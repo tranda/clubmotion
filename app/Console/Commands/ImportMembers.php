@@ -26,13 +26,15 @@ class ImportMembers extends Command
 
         foreach ($csv as $record) {
             try {
+                $dateOfBirth = !empty($record['date_of_birth']) ? $record['date_of_birth'] : null;
+                $medicalValidity = !empty($record['medical_validity']) ? $record['medical_validity'] : null;
                 Member::updateOrCreate(
                     ['membership_number' => $record['membership_number']], // Matching condition
                     [
                         'name' => $record['name'],
                         'email' => $record['email'],
-                        'date_of_birth' => $record['date_of_birth'],
-                        'medical_validity' => $record['medical_validity'],
+                        'date_of_birth' => $dateOfBirth,
+                        'medical_validity' => $medicalValidity,
                         //'category_id' => $record['category_id'],
                     ]
                 );
