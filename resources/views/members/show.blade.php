@@ -38,7 +38,7 @@
             </tr>
             <tr>
                 <th>Category:</th>
-                <td>{{ $member->category_id->category_name ?? 'N/A' }}</td>
+                <td>{{ $member->category->category_name ?? 'N/A' }}</td>
             </tr>
             <tr>
                 <th>Medical Validity:</th>
