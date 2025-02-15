@@ -19,11 +19,11 @@
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                <!--    <th>ID</th> -->
                     <th>Name</th>
-                    <th>MemberID</th>
+                    <th>ID</th>
                     <th>Date of Birth</th>
-                    <th>Address</th>
+                <!--    <th>Address</th> -->
                     <th>Phone</th>
                     <th>Email</th>
                     <th>Category</th>
@@ -33,11 +33,11 @@
             <tbody>
                 @foreach($members as $member)
                     <tr onclick="window.location='{{ route('members.show', $member->id) }}'">
-                        <td>{{ $member->id }}</td>
+                    <!--    <td>{{ $member->id }}</td> -->
                         <td>{{ $member->name }}</td>
                         <td>{{ $member->membership_number }}</td>
                         <td>{{ $member->date_of_birth }}</td>
-                        <td>{{ $member->address }}</td>
+                    <!--    <td>{{ $member->address }}</td> -->
                         <td>{{ $member->phone }}</td>
                         <td>{{ $member->email }}</td>
                         <td>{{ $member->category->category_name ?? 'N/A' }}</td>
