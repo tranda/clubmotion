@@ -12,6 +12,8 @@ Route::get('/members', function () {
     return view('members.index', compact('members'));
 })->name('members.index');
 
+Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
+
 Route::get('/payments', function () {
     // Add logic to display payments
 })->name('payments.index');
