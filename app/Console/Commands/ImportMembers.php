@@ -40,6 +40,8 @@ class ImportMembers extends Command
                         'date_of_birth' => $dateOfBirth,
                         'medical_validity' => $medicalValidity,
                         'category_id' => $categoryId,
+                        'address' => $record['address'],
+                        'phone' => $record['phone'],
                     ]
                 );
             } catch (\Exception $e) {
