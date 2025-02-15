@@ -27,7 +27,7 @@
                     <th>Phone</th>
                     <th>Email</th>
                     <th>Category</th>
-                    <th>Medical</th>
+                 <!--   <th>Medical</th> -->
                 </tr>
             </thead>
             <tbody>
