@@ -38,7 +38,7 @@ class ImportMembers extends Command
                     'name' => $record['name'],
                     'membership_number' => $record['membership_number'],
                     'email' => $record['email'],
-                    'category_id' => $record['category_id'],
+                    //'category_id' => $record['category_id'],
                 ]);
             } catch (\Exception $e) {
                 Log::error("Failed to import member: " . $e->getMessage());
