@@ -60,9 +60,9 @@ nav ul li a {
 
     .custom-table th {
         background-color: #f4f4f4;
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
+        position: sticky;
+        top: 0;
+        z-index: 1;
     }
 
     .custom-table td {
