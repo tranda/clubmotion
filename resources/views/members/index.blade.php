@@ -21,9 +21,13 @@
                 <tr>
                     <th>ID</th>
                     <th>Name</th>
-                    <th>Membership Number</th>
+                    <th>MemberID</th>
+                    <th>Date of Birth</th>
+                    <th>Address</th>
+                    <th>Phone</th>
                     <th>Email</th>
                     <th>Category</th>
+                    <th>Medical</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,8 +36,12 @@
                         <td>{{ $member->id }}</td>
                         <td>{{ $member->name }}</td>
                         <td>{{ $member->membership_number }}</td>
+                        <td>{{ $member->date_of_birth }}</td>
+                        <td>{{ $member->address }}</td>
+                        <td>{{ $member->phone }}</td>
                         <td>{{ $member->email }}</td>
                         <td>{{ $member->category_id->category_name ?? 'N/A' }}</td>
+                        <td>{{ $member->medical_validity }}</td>
                     </tr>
                 @endforeach
             </tbody>
