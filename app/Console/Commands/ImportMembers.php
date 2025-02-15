@@ -31,6 +31,7 @@ class ImportMembers extends Command
                     [
                         'name' => $record['name'],
                         'email' => $record['email'],
+                        'date_of_birth' => $record['date_of_birth'],
                         //'category_id' => $record['category_id'],
                     ]
                 );
