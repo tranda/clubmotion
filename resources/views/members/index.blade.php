@@ -1,4 +1,3 @@
-// filepath: /d:/Projects/motion/club.motion.rs/clubmotion/resources/views/members/index.blade.php
 <!DOCTYPE html>
 <html lang="en">
 <head>
