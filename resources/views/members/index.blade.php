@@ -29,11 +29,11 @@
             <tbody>
                 @foreach($members as $member)
                     <tr>
-                        <td>{{ $member->member_id }}</td>
+                        <td>{{ $member->id }}</td>
                         <td>{{ $member->name }}</td>
                         <td>{{ $member->membership_number }}</td>
                         <td>{{ $member->email }}</td>
-                        <td>{{ $member->category->category_name ?? 'N/A' }}</td>
+                        <td>{{ $member->category_id->category_name ?? 'N/A' }}</td>
                     </tr>
                 @endforeach
             </tbody>
