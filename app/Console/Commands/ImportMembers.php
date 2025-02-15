@@ -30,7 +30,7 @@ class ImportMembers extends Command
                 $dateOfBirth = !empty($record['date_of_birth']) ? $record['date_of_birth'] : null;
                 $medicalValidity = !empty($record['medical_validity']) ? $record['medical_validity'] : null;
                 $category = MembershipCategory::where('category_name', $record['category_name'])->first();
-                $categoryId = $category ? $category->category_id : null;
+                $categoryId = $category ? $category->id : null;
 
                 Member::updateOrCreate(
                     ['membership_number' => $record['membership_number']], // Matching condition
