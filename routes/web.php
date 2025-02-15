@@ -2,6 +2,7 @@
 // filepath: /d:/Projects/motion/club.motion.rs/clubmotion/routes/web.php
 use Illuminate\Support\Facades\Route;
 use App\Models\Member;
+use App\Http\Controllers\MemberController;
 
 Route::get('/', function () {
     return view('home');

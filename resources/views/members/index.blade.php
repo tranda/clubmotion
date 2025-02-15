@@ -32,7 +32,7 @@
             </thead>
             <tbody>
                 @foreach($members as $member)
-                    <tr>
+                    <tr onclick="window.location='{{ route('members.show', $member->id) }}'">
                         <td>{{ $member->id }}</td>
                         <td>{{ $member->name }}</td>
                         <td>{{ $member->membership_number }}</td>
