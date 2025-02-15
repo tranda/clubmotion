@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Member;
 use League\Csv\Reader;
+use App\Models\MembershipCategory;
 use Illuminate\Support\Facades\Log;
 
 class ImportMembers extends Command
@@ -28,6 +29,9 @@ class ImportMembers extends Command
             try {
                 $dateOfBirth = !empty($record['date_of_birth']) ? $record['date_of_birth'] : null;
                 $medicalValidity = !empty($record['medical_validity']) ? $record['medical_validity'] : null;
+                $category = MembershipCategory::where('category_name', $record['category_name'])->first();
+                $categoryId = $category ? $category->category_id : null;
+
                 Member::updateOrCreate(
                     ['membership_number' => $record['membership_number']], // Matching condition
                     [
@@ -35,7 +39,7 @@ class ImportMembers extends Command
                         'email' => $record['email'],
                         'date_of_birth' => $dateOfBirth,
                         'medical_validity' => $medicalValidity,
-                        //'category_id' => $record['category_id'],
+                        'category_id' => $categoryId,
                     ]
                 );
             } catch (\Exception $e) {
