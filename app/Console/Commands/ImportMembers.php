@@ -15,13 +15,13 @@ class ImportMembers extends Command
     public function handle()
     {
         //test insert
-        Member::create([
-            'name' => 'John Doe',
-            'membership_number' => '12345',
-            'email' => 'john.doe@example.com',
-            // other fields
-        ]);
-        
+        // Member::create([
+        //     'name' => 'John Doe',
+        //     'membership_number' => '12345',
+        //     'email' => 'john.doe@example.com',
+        //     // other fields
+        // ]);
+
         $filePath = $this->argument('filepath');
 
         if (!file_exists($filePath)) {
