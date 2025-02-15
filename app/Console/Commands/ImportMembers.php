@@ -14,14 +14,6 @@ class ImportMembers extends Command
 
     public function handle()
     {
-        //test insert
-        // Member::create([
-        //     'name' => 'John Doe',
-        //     'membership_number' => '12345',
-        //     'email' => 'john.doe@example.com',
-        //     // other fields
-        // ]);
-
         $filePath = $this->argument('filepath');
 
         if (!file_exists($filePath)) {
@@ -34,12 +26,14 @@ class ImportMembers extends Command
 
         foreach ($csv as $record) {
             try {
-                Member::create([
-                    'name' => $record['name'],
-                    'membership_number' => $record['membership_number'],
-                    'email' => $record['email'],
-                    //'category_id' => $record['category_id'],
-                ]);
+                Member::updateOrCreate(
+                    ['membership_number' => $record['membership_number']], // Matching condition
+                    [
+                        'name' => $record['name'],
+                        'email' => $record['email'],
+                        //'category_id' => $record['category_id'],
+                    ]
+                );
             } catch (\Exception $e) {
                 Log::error("Failed to import member: " . $e->getMessage());
             }
