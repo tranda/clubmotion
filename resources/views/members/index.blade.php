@@ -11,7 +11,6 @@
     <nav>
         <ul>
             <li><a href="{{ route('home') }}">Home</a></li>
-            <li><a href="{{ route('members.index') }}">Members</a></li>
             <li><a href="{{ route('payments.index') }}">Payments</a></li>
             <li><a href="#">Other</a></li>
         </ul>
