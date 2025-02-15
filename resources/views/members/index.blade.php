@@ -33,7 +33,7 @@
             <tbody>
                 @foreach($members as $member)
                     <tr onclick="window.location='{{ route('members.show', $member->id) }}'">
-                    //    <td>{{ $member->id }}</td>
+                        <td>{{ $member->id }}</td>
                         <td>{{ $member->name }}</td>
                         <td>{{ $member->membership_number }}</td>
                         <td>{{ $member->date_of_birth }}</td>
@@ -41,7 +41,7 @@
                         <td>{{ $member->phone }}</td>
                         <td>{{ $member->email }}</td>
                         <td>{{ $member->category->category_name ?? 'N/A' }}</td>
-                    //    <td>{{ $member->medical_validity }}</td>
+                        <td>{{ $member->medical_validity }}</td>
                     </tr>
                 @endforeach
             </tbody>
