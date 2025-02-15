@@ -41,7 +41,7 @@
                         <td>{{ $member->phone }}</td>
                         <td>{{ $member->email }}</td>
                         <td>{{ $member->category->category_name ?? 'N/A' }}</td>
-                        <td>{{ $member->medical_validity }}</td>
+                    <!--    <td>{{ $member->medical_validity }}</td> -->
                     </tr>
                 @endforeach
             </tbody>
