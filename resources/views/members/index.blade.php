@@ -40,7 +40,7 @@
                         <td>{{ $member->address }}</td>
                         <td>{{ $member->phone }}</td>
                         <td>{{ $member->email }}</td>
-                        <td>{{ $member->category_id ?? 'N/A' }}</td>
+                        <td>{{ $member->category ?? 'N/A' }}</td>
                         <td>{{ $member->medical_validity }}</td>
                     </tr>
                 @endforeach
