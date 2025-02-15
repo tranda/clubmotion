@@ -16,6 +16,6 @@ class Member extends Model
 
     public function category()
     {
-        return $this->belongsTo(MembershipCategory::class, 'category_id', 'category_id');
+        return $this->belongsTo(MembershipCategory::class, 'category_id', 'id');
     }
 }
