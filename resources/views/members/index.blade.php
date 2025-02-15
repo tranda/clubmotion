@@ -16,8 +16,8 @@
     </nav>
     <div class="content">
         <h1>Members List</h1>
-        <table class="table table-striped table-hover table-bordered mt-3">
-            <thead class="table-dark">
+        <table class="custom-table">
+            <thead>
                 <tr>
                     <th>ID</th>
                     <th>Name</th>
