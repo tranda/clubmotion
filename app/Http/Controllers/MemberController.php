@@ -6,6 +6,7 @@ use App\Models\Member;
 use Illuminate\Http\Request;
 use App\Models\MembershipCategory;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class MemberController extends Controller
 {
