@@ -27,6 +27,10 @@ Route::put('/members/{member}', [MemberController::class, 'update'])->name('memb
 Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('members.destroy');
 Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
 Route::post('/members', [MemberController::class, 'store'])->name('members.store');
+Route::get('/members/create-test', function () {
+    return 'Route is working!';
+});
+
 
 Route::get('/payments', function () {
     // Add logic to display payments
