@@ -46,7 +46,7 @@
             </tr>
             <tr>
                 <th>Active:</th>
-                <td>{{ $member->is_active ? 'Yes' : 'No' }}</td>
+                <td>{{ $member->is_active ? '✅' : '❌' }}</td>
             </tr>
         </table>
         <a href="{{ route('members.index') }}">Back to Members List</a>
