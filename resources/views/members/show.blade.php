@@ -44,6 +44,10 @@
                 <th>Medical Validity:</th>
                 <td>{{ $member->medical_validity }}</td>
             </tr>
+            <tr>
+                <th>Active:</th>
+                <td>{{ $member->is_active ? 'Yes' : 'No' }}</td>
+            </tr>
         </table>
         <a href="{{ route('members.index') }}">Back to Members List</a>
     </div>
