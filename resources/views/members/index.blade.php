@@ -28,6 +28,7 @@
                     <th>Email</th>
                     <th>Category</th>
                  <!--   <th>Medical</th> -->
+                    <th>Active</th>
                 </tr>
             </thead>
             <tbody>
@@ -42,6 +43,7 @@
                         <td>{{ $member->email }}</td>
                         <td>{{ $member->category->category_name ?? 'N/A' }}</td>
                     <!--    <td>{{ $member->medical_validity }}</td> -->
+                        <td>{{ $member->active }}</td>
                     </tr>
                 @endforeach
             </tbody>
