@@ -61,6 +61,10 @@ nav ul li a {
     font-size: 16px;
 }
 
+.filter-form {
+    margin-top: 20px;
+}
+
 form {
     margin-bottom: 20px;
 }

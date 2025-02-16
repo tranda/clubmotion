@@ -9,7 +9,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/members', function () {
-    $filter = request('filter','active'); // Get the filter from the query string
+    $filter = request('filter'); // Get the filter from the query string
 
     if ($filter === 'active') {
         $members = Member::with('category')->where('is_active', true)->get();
