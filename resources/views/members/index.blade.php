@@ -29,6 +29,7 @@
         <table class="custom-table">
             <thead>
                 <tr>
+                    <th>#</th>
                 <!--    <th>ID</th> -->
                     <th>Name</th>
                     <th>ID</th>
@@ -42,8 +43,9 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($members as $member)
+                @foreach($members as $index => $member)
                     <tr onclick="window.location='{{ route('members.show', $member->id) }}'">
+                        <td>{{ $index + 1 }}</td>
                     <!--    <td>{{ $member->id }}</td> -->
                         <td>{{ $member->name }}</td>
                         <td>{{ $member->membership_number }}</td>
