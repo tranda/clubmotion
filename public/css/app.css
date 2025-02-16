@@ -110,31 +110,51 @@ select:focus {
 /* Responsive Styles */
 @media (max-width: 768px) {
 
-    .custom-table,
-    .custom-table th,
-    .custom-table td {
-        display: flex;
-    }
+    .custom-table {
+            width: 100%;
+            display: block;
+        }
+    
+        .custom-table th,
+        .custom-table td {
+            display: inline-block;
+            width: auto;
+            padding: 8px 15px;
+            text-align: left;
+        }
+    
+        .custom-table thead {
+            display: none;
+            /* Hide headers */
+        }
 
-    .custom-table th {
-        background-color: #f4f4f4;
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-
-    .custom-table td {
-        border: none;
-        position: relative;
-        padding-left: 50%;
-    }
-
-    .custom-table td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        font-weight: bold;
-    }
+        .custom-table tr {
+            display: block;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+    
+        .custom-table td {
+            display: block;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+            position: relative;
+            text-align: right;
+        }
+    
+        .custom-table td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            top: 5px;
+        }
+    
+        .custom-table td:last-child {
+            border-bottom: none;
+        }
 
     .custom-table td:nth-of-type(odd) {
         background-color: #f9f9f9;
