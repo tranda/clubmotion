@@ -102,6 +102,11 @@ select:focus {
     box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
 }
 
+.spacer {
+    height: 20px;
+    /* Adjust height as needed */
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
 
