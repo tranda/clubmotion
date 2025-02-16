@@ -114,7 +114,7 @@ select:focus {
             width: 100%;
             display: block;
             overflow-x: auto;
-           /* white-space: nowrap; */
+            white-space: nowrap;
         }
     
         .custom-table th,
@@ -124,6 +124,9 @@ select:focus {
             padding: 8px 15px;
             text-align: left;
             vertical-align: top;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     
         .custom-table thead {
@@ -133,10 +136,13 @@ select:focus {
 
         .custom-table tr {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
+            /* Aligns items to the left */
             margin-bottom: 10px;
             border: 1px solid #ddd;
             padding: 10px;
+            flex-wrap: wrap;
+            /* Allows content to wrap if necessary */
         }
     
         .custom-table td {
@@ -146,6 +152,10 @@ select:focus {
             text-align: left;
             width: 150px;
             position: relative;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            /* Adds ellipsis to overflowed text */
+            white-space: nowrap;
         }
     
         .custom-table td:last-child {
@@ -154,5 +164,9 @@ select:focus {
 
     .custom-table td:nth-of-type(odd) {
         background-color: #f9f9f9;
+    }
+
+    .custom-table td {
+        flex: 1;
     }
 }
