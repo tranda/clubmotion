@@ -1,6 +1,4 @@
 <?php
-// filepath: /d:/Projects/motion/club.motion.rs/clubmotion/app/Models/MembershipPayment.php
-<?php
 
 namespace App\Models;
 
