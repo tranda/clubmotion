@@ -43,7 +43,7 @@
                         <td>{{ $member->email }}</td>
                         <td>{{ $member->category->category_name ?? 'N/A' }}</td>
                     <!--    <td>{{ $member->medical_validity }}</td> -->
-                        <td>{{ $member->active }}</td>
+                        <td>{{ $member->is_active ? 'Yes' : 'No' }}</td>
                     </tr>
                 @endforeach
             </tbody>
