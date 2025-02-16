@@ -33,7 +33,8 @@ class MemberController extends Controller
      */
     public function create()
     {
-        //
+        $categories = MembershipCategory::all();
+        return view('members.create', compact('categories'));
     }
 
     /**
@@ -44,7 +45,21 @@ class MemberController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'membership_number' => 'required|unique:members',
+            'date_of_birth' => 'nullable|date',
+            'address' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'category_id' => 'nullable|exists:membership_categories,id',
+            'medical_validity' => 'nullable|date',
+            'is_active' => 'boolean',
+        ]);
+
+        Member::create($request->all());
+
+        return redirect()->route('members.index')->with('success', 'Member added successfully.');
     }
 
     /**

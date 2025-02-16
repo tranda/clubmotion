@@ -204,6 +204,58 @@ select {
     display: inline;
 }
 
+.add-member-container {
+    margin-bottom: 15px;
+}
+
+.btn-add {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.btn-add:hover {
+    background-color: #218838;
+}
+
+.member-form {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.member-form label {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.member-form input,
+.member-form select {
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.btn-save {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-save:hover {
+    background-color: #218838;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
 

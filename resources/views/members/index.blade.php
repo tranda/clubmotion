@@ -14,6 +14,7 @@
             <li><a href="#">Other</a></li>
         </ul>
     </nav>
+    
     <div class="filter-container">
         <div class="spacer"></div> 
         <form method="GET" action="{{ route('members.index') }}" class="filter-form">
@@ -24,6 +25,11 @@
             </select>
         </form>
     </div>
+
+    <div class="add-member-container">
+        <a href="{{ route('members.create') }}" class="btn-add">➕ Add New Member</a>
+    </div>
+
     <div class="content">
         <h1>Members List</h1>
         <table class="custom-table">
