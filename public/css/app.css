@@ -30,8 +30,6 @@ nav ul li a {
     padding: 20px;
 }
 
-
-
 .custom-table {
     width: 100%;
     border-collapse: collapse;
@@ -67,77 +65,14 @@ nav ul li a {
 }
 
 form {
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-/* Style the label for clarity */
-label {
-    font-weight: bold;
-    margin-right: 10px;
-}
-
-/* Style the dropdown */
-select {
-    padding: 10px 15px;
-    font-size: 16px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    background-color: #f9f9f9;
-    cursor: pointer;
-}
-
-/* Style the dropdown options */
-option {
-    padding: 10px;
-}
-
-/* Add hover effect */
-select:hover {
-    border-color: #007bff;
-}
-
-/* Style for the active state */
-select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
-}
-
-.spacer {
-    height: 20px;
-}
-
-.btn-edit,
-.btn-back {
-    display: inline-block;
-    margin-top: 15px;
-    padding: 8px 15px;
-    background-color: #28a745;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    margin-right: 10px;
-}
-
-.btn-edit:hover {
-    background-color: #218838;
-}
-
-.btn-back {
-    background-color: #007bff;
-}
-
-.btn-back:hover {
-    background-color: #0056b3;
-}
-
-form {
+    margin: 20px 0;
     display: flex;
     flex-direction: column;
     max-width: 400px;
 }
 
 label {
+    font-weight: bold;
     margin-top: 10px;
 }
 
@@ -149,23 +84,12 @@ select {
     border-radius: 5px;
 }
 
-.btn-save {
-    margin-top: 15px;
-    padding: 10px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.spacer {
+    height: 20px;
 }
 
-.btn-save:hover {
-    background-color: #218838;
-}
-
-.btn-edit,
-.btn-delete,
-.btn-back {
+/* Universal button styles */
+.btn {
     display: inline-block;
     margin-top: 15px;
     padding: 10px 15px;
@@ -174,14 +98,25 @@ select {
     color: white;
     border: none;
     cursor: pointer;
+    font-weight: bold;
+    text-align: center;
 }
 
-.btn-edit {
+/* Button color variations */
+.btn-add {
     background-color: #28a745;
 }
 
-.btn-edit:hover {
+.btn-add:hover {
     background-color: #218838;
+}
+
+.btn-edit {
+    background-color: #ffc107;
+}
+
+.btn-edit:hover {
+    background-color: #e0a800;
 }
 
 .btn-delete {
@@ -208,80 +143,27 @@ select {
     margin-bottom: 15px;
 }
 
-.btn-add {
-    display: inline-block;
-    padding: 10px 15px;
-    background-color: #28a745;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-}
-
-.btn-add:hover {
-    background-color: #218838;
-}
-
-.member-form {
-    display: flex;
-    flex-direction: column;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.member-form label {
-    margin-top: 10px;
-    font-weight: bold;
-}
-
-.member-form input,
-.member-form select {
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.btn-save {
-    margin-top: 15px;
-    padding: 10px 15px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.btn-save:hover {
-    background-color: #218838;
-}
-
 /* Responsive Styles */
 @media (max-width: 768px) {
-
     .custom-table {
-            width: 100%;
-            display: block;
-            overflow-x: auto;
-            /* Enables horizontal scrolling */
-            white-space: nowrap;
-            /* Prevents text from wrapping */
-        }
-    
-        .custom-table th,
-        .custom-table td {
-            padding: 8px 15px;
-            text-align: left;
-            white-space: nowrap;
-            /* Ensures content stays on one line */
-        }
-    
-        .custom-table thead {
-            display: table-header-group;
-            /* Keeps headers aligned with columns */
-        }
-    
-        .custom-table tr {
-            display: table-row;
-        }
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .custom-table th,
+    .custom-table td {
+        padding: 8px 15px;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .custom-table thead {
+        display: table-header-group;
+    }
+
+    .custom-table tr {
+        display: table-row;
+    }
 }
