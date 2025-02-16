@@ -39,7 +39,7 @@ nav ul li a {
 .custom-table th,
 .custom-table td {
     border: 1px solid #ddd;
-    padding: 8px;
+    padding: 8px 15px;
     text-align: left;
 }
 
@@ -84,22 +84,22 @@ select {
     border-radius: 5px;
 }
 
-.spacer {
-    height: 20px;
-}
-
-/* Universal button styles */
+/* Universal button styles with better spacing */
 .btn {
     display: inline-block;
     margin-top: 15px;
-    padding: 10px 15px;
+    padding: 8px 18px;
+    /* Restored previous padding */
     text-decoration: none;
     border-radius: 5px;
     color: white;
     border: none;
     cursor: pointer;
+    font-size: 16px;
+    /* Slightly larger for a better look */
     font-weight: bold;
     text-align: center;
+    transition: background 0.2s ease-in-out;
 }
 
 /* Button color variations */
@@ -113,6 +113,7 @@ select {
 
 .btn-edit {
     background-color: #ffc107;
+    color: black;
 }
 
 .btn-edit:hover {
