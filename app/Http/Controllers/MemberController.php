@@ -12,9 +12,17 @@ class MemberController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $filter = $request->query('filter');
+
+        if ($filter === 'active') {
+            $members = Member::where('is_active', 1)->get();
+        } else {
+            $members = Member::all();
+        }
+
+        return view('members.index', compact('members', 'filter'));
     }
 
     /**

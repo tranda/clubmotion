@@ -14,6 +14,15 @@
             <li><a href="#">Other</a></li>
         </ul>
     </nav>
+    <div class="filter-container">
+        <form method="GET" action="{{ route('members.index') }}">
+            <label for="filter">Show:</label>
+            <select name="filter" id="filter" onchange="this.form.submit()">
+                <option value="" {{ $filter == '' ? 'selected' : '' }}>All Members</option>
+                <option value="active" {{ $filter == 'active' ? 'selected' : '' }}>Active Members</option>
+            </select>
+        </form>
+<   /div>
     <div class="content">
         <h1>Members List</h1>
         <table class="custom-table">
