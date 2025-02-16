@@ -9,11 +9,20 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/members', function () {
-    $members = Member::with('category')->get();
-    return view('members.index', compact('members'));
+    $filter = request('filter'); // Get the filter from the query string
+
+    $query = Member::with('category'); // Start the query
+
+    if ($filter === 'active') {
+        $query->where('is_active', true);
+    }
+
+    $members = $query->get(); // Execute the query
+
+    return view('members.index', compact('members', 'filter'));
 })->name('members.index');
 
-Route::get('/members/{id}', [MemberController::class, 'index'])->name('members.index');
+Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
 
 Route::get('/payments', function () {
     // Add logic to display payments
