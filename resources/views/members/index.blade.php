@@ -22,7 +22,7 @@
                 <option value="active" {{ $filter == 'active' ? 'selected' : '' }}>Active Members</option>
             </select>
         </form>
-
+    </div>
     <div class="content">
         <h1>Members List</h1>
         <table class="custom-table">
