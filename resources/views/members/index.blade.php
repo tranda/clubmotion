@@ -14,7 +14,7 @@
             <li><a href="#">Other</a></li>
         </ul>
     </nav>
-    
+
     <div class="filter-container">
         <div class="spacer"></div> 
         <form method="GET" action="{{ route('members.index') }}" class="filter-form">
@@ -39,6 +39,7 @@
                 <!--    <th>ID</th> -->
                     <th>Name</th>
                     <th>ID</th>
+                    <th>Image</th>
                     <th>Date of Birth</th>
                 <!--    <th>Address</th> -->
                     <th>Phone</th>
@@ -55,6 +56,13 @@
                     <!--    <td>{{ $member->id }}</td> -->
                         <td>{{ $member->name }}</td>
                         <td>{{ $member->membership_number }}</td>
+                        <td>
+                            @if($member->image)
+                                <img src="{{ asset('storage/' . $member->image) }}" alt="Member Image" width="50">
+                            @else
+                                No Picture
+                            @endif
+                        </td>
                         <td>{{ $member->date_of_birth }}</td>
                     <!--    <td>{{ $member->address }}</td> -->
                         <td>{{ $member->phone }}</td>
