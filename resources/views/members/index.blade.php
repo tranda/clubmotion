@@ -15,7 +15,7 @@
         </ul>
     </nav>
     <div class="filter-container">
-        <form method="GET" action="{{ route('members.index') }} class="filter-form"">
+        <form method="GET" action="{{ route('members.index') }}" class="filter-form">
             <label for="filter">Show:</label>
             <select name="filter" id="filter" onchange="this.form.submit()">
                 <option value="" {{ request('filter') == '' ? 'selected' : '' }}>All</option>
