@@ -34,7 +34,7 @@ class MemberController extends Controller
     public function create()
     {
         $categories = MembershipCategory::all();
-        return view('members.create', compact('categories'));
+        return view('members/create', compact('categories'));
     }
 
     /**
