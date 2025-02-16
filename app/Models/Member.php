@@ -11,7 +11,7 @@ class Member extends Model
 
     protected $fillable = [
         'name', 'membership_number', 'date_of_birth', 'address', 'phone', 'email', 
-        'category_id', 'medical_validity', 'profile_image_url', 'password_hash', 'is_active'
+        'category_id', 'medical_validity', 'profile_image_url', 'password_hash', 'is_active', 'image'
     ];
 
     public function category()

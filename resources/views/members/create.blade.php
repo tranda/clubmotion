@@ -45,6 +45,16 @@
 
             <button type="submit" class="btn-save">✅ Save Member</button>
         </form>
+        <form action="{{ route('members.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <label for="name">Name:</label>
+            <input type="text" name="name" required>
+
+            <label for="image">Upload Picture:</label>
+            <input type="file" name="image" accept="image/*">
+
+            <button type="submit" class="btn btn-save">Save Member</button>
+        </form>
         <a href="{{ route('members.index') }}" class="btn-back">⬅ Back to Members List</a>
     </div>
 </body>

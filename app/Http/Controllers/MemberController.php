@@ -55,9 +55,17 @@ class MemberController extends Controller
             'category_id' => 'nullable|exists:membership_categories,id',
             'medical_validity' => 'nullable|date',
             'is_active' => 'boolean',
+            'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
         ]);
 
-        Member::create($request->all());
+        $data = $request->all();
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('members', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        Member::create($data);
 
         return redirect()->route('members.index')->with('success', 'Member added successfully.');
     }
@@ -105,9 +113,22 @@ class MemberController extends Controller
             'category_id' => 'nullable|exists:membership_categories,id',
             'medical_validity' => 'nullable|date',
             'is_active' => 'required|boolean',
+            'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
         ]);
 
-        $member->update($request->all());
+        $data = $request->all();
+
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($member->image) {
+                Storage::disk('public')->delete($member->image);
+            }
+
+            $imagePath = $request->file('image')->store('members', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        $member->update($data);
 
         return redirect()->route('members.show', $member)->with('success', 'Member updated successfully.');
     }
