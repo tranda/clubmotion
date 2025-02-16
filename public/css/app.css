@@ -127,12 +127,12 @@ select:focus {
         }
     
         .custom-table thead {
-            display: none;
+            /* display: none; */
             /* Hide headers */
         }
 
         .custom-table tr {
-        display: flex;
+            display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
             border: 1px solid #ddd;
