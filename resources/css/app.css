@@ -52,6 +52,15 @@ nav ul li a {
     z-index: 1;
 }
 
+.filter-container {
+    margin-bottom: 15px;
+}
+
+.filter-container select {
+    padding: 5px;
+    font-size: 16px;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
 
