@@ -50,6 +50,11 @@
             </tr>
         </table>
         <a href="{{ route('members.edit', $member->id) }}" class="btn-edit">✏ Edit Member</a>
+        <form action="{{ route('members.destroy', $member->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this member?');" class="delete-form">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn-delete">🗑 Delete Member</button>
+    </form>
         <a href="{{ route('members.index') }}" class="btn-back">⬅ Back to Members List</a>
    </div>
 </body>
