@@ -113,6 +113,8 @@ select:focus {
     .custom-table {
             width: 100%;
             display: block;
+            overflow-x: auto;
+            white-space: nowrap;
         }
     
         .custom-table th,
@@ -121,6 +123,7 @@ select:focus {
             width: auto;
             padding: 8px 15px;
             text-align: left;
+            vertical-align: top;
         }
     
         .custom-table thead {
