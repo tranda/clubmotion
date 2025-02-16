@@ -54,6 +54,7 @@ nav ul li a {
 
 .filter-container {
     margin-bottom: 15px;
+    margin-left: 20px;
 }
 
 .filter-container select {
