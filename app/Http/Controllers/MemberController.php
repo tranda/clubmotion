@@ -14,7 +14,7 @@ class MemberController extends Controller
      */
     public function index(Request $request)
     {
-        $filter = $request->query('filter');
+        $filter = $request->query('filter', '');
 
         if ($filter === 'active') {
             $members = Member::where('is_active', 1)->get();
