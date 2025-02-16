@@ -14,10 +14,12 @@ Route::get('/members', function () {
     $query = Member::with('category'); // Start the query
 
     if ($filter === 'active') {
-        $query->where('is_active', true);
+        $members = Member::with('category')->where('is_active', true)->get();
+    } else {
+        $members = Member::with('category')->get();
     }
 
-    $members = $query->get(); // Execute the query
+//    $members = $query->get(); // Execute the query
 
     return view('members.index', compact('members', 'filter'));
 })->name('members.index');
