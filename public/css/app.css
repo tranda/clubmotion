@@ -113,7 +113,7 @@ select:focus {
     .custom-table,
     .custom-table th,
     .custom-table td {
-        display: block;
+        display: flex;
     }
 
     .custom-table th {
