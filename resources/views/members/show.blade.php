@@ -48,6 +48,16 @@
                 <th>Active:</th>
                 <td>{{ $member->is_active ? '✅' : '❌' }}</td>
             </tr>
+            <tr>
+                <th>Picture:</th>
+                <td>
+                    @if($member->image)
+                        <img src="{{ asset('storage/' . $member->image) }}" alt="Member Image" width="150">
+                    @else
+                        No Picture
+                    @endif
+                </td>
+            </tr>
         </table>
         <a href="{{ route('members.index') }}" class="btn-back">⬅ Back to Members List</a>
         <form action="{{ route('members.destroy', $member->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this member?');" class="delete-form">
