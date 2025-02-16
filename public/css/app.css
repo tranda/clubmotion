@@ -163,6 +163,47 @@ select {
     background-color: #218838;
 }
 
+.btn-edit,
+.btn-delete,
+.btn-back {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 8px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-edit {
+    background-color: #28a745;
+}
+
+.btn-edit:hover {
+    background-color: #218838;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+}
+
+.btn-back {
+    background-color: #007bff;
+}
+
+.btn-back:hover {
+    background-color: #0056b3;
+}
+
+.delete-form {
+    display: inline;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
 

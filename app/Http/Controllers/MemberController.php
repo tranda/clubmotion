@@ -103,8 +103,10 @@ class MemberController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Member $member)
     {
-        //
+        $member->delete();
+
+        return redirect()->route('members.index')->with('success', 'Member deleted successfully.');
     }
 }
