@@ -8,6 +8,10 @@ Route::get('/', function () {
     return view('home');
 })->name('home');
 
+Route::get('/test', function () {
+    return 'Route is working!';
+});
+
 Route::get('/members', function () {
     $filter = request('filter'); // Get the filter from the query string
 
