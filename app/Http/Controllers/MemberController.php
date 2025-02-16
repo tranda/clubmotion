@@ -64,7 +64,7 @@ class MemberController extends Controller
             $file = $request->file('image');
 
             // Generate a custom filename: "member_name-timestamp.extension"
-            $filename = Str::slug($request->name) . '-' . $data['membership_number'] . '.' . $file->getClientOriginalExtension();
+            $filename = Str::slug($request->name) . '-' . $request->membership_number . '.' . $file->getClientOriginalExtension();
 
             // Store the file
             $imagePath = $file->storeAs('members', $filename, 'public');
@@ -133,7 +133,7 @@ class MemberController extends Controller
             $file = $request->file('image');
 
             // Generate a custom filename: "member_name-timestamp.extension"
-            $filename = Str::slug($request->name) . '-' . $data['membership_number'] . '.' . $file->getClientOriginalExtension();
+            $filename = Str::slug($request->name) . '-' . $request->membership_number . '.' . $file->getClientOriginalExtension();
 
             // Store the file
             $imagePath = $file->storeAs('members', $filename, 'public');
