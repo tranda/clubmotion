@@ -61,7 +61,13 @@ class MemberController extends Controller
         $data = $request->all();
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('members', 'public');
+            $file = $request->file('image');
+
+            // Generate a custom filename: "member_name-timestamp.extension"
+            $filename = Str::slug($request->name) . '-' . $data['membership_number'] . '.' . $file->getClientOriginalExtension();
+
+            // Store the file
+            $imagePath = $file->storeAs('members', $filename, 'public');
             $data['image'] = $imagePath;
         }
 
@@ -124,7 +130,13 @@ class MemberController extends Controller
                 Storage::disk('public')->delete($member->image);
             }
 
-            $imagePath = $request->file('image')->store('members', 'public');
+            $file = $request->file('image');
+
+            // Generate a custom filename: "member_name-timestamp.extension"
+            $filename = Str::slug($request->name) . '-' . $data['membership_number'] . '.' . $file->getClientOriginalExtension();
+
+            // Store the file
+            $imagePath = $file->storeAs('members', $filename, 'public');
             $data['image'] = $imagePath;
         }
 
