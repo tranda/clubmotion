@@ -1,29 +1,27 @@
-/* Universal button styles */
+/* Base button styles */
 .btn {
     display: inline-block;
-    margin-top: 15px;
-    padding: 12px 20px;
-    /* Added more padding for a balanced look */
+    padding: 10px 15px;
+    /* Keeping original padding */
     text-decoration: none;
     border-radius: 5px;
     color: white;
     border: none;
     cursor: pointer;
     font-size: 16px;
-    /* Keeps text legible */
     font-weight: bold;
     text-align: center;
     transition: background 0.2s ease-in-out;
-    height: 44px;
-    /* Ensures uniform height across all buttons */
-    line-height: 20px;
-    /* Centers text vertically */
+    min-width: 120px;
+    /* Ensures consistent width */
+    height: 42px;
+    /* Keeps buttons uniform */
     display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Button color variations */
+/* Specific button colors */
 .btn-add {
     background-color: #28a745;
 }
