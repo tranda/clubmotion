@@ -9,7 +9,7 @@
 <body>
     <div class="content">
         <h1>Edit Member Details</h1>
-        <form action="{{ route('members.update', $member->id) }}" method="POST">
+        <form action="{{ route('members.update', $member->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -48,23 +48,14 @@
                 <option value="1" {{ $member->is_active ? 'selected' : '' }}>Yes</option>
                 <option value="0" {{ !$member->is_active ? 'selected' : '' }}>No</option>
             </select>
-            <form action="{{ route('members.update', $member->id) }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                @method('PUT')
+            <label for="image">Current Picture:</label>
+            @if($member->image)
+                <img src="{{ asset('storage/' . $member->image) }}" alt="Member Image" width="150">
+            @endif
 
-                <label for="name">Name:</label>
-                <input type="text" name="name" value="{{ $member->name }}" required>
+            <label for="image">Upload New Picture:</label>
+            <input type="file" name="image" accept="image/*">
 
-                <label for="image">Current Picture:</label>
-                @if($member->image)
-                    <img src="{{ asset('storage/' . $member->image) }}" alt="Member Image" width="150">
-                @endif
-
-                <label for="image">Upload New Picture:</label>
-                <input type="file" name="image" accept="image/*">
-
-                <button type="submit" class="btn btn-save">Update Member</button>
-            </form>
             <button type="submit" class="btn-save">Save Changes</button>
         </form>
         <a href="{{ route('members.show', $member->id) }}" class="btn-back">⬅ Cancel</a>
