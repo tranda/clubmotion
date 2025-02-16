@@ -51,5 +51,7 @@
         </table>
         <a href="{{ route('members.index') }}">Back to Members List</a>
     </div>
+    <a href="{{ route('members.edit', $member->id) }}" class="btn-edit">✏ Edit Member</a>
+    <a href="{{ route('members.index') }}" class="btn-back">⬅ Back to Members List</a>
 </body>
 </html>

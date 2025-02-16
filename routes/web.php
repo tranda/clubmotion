@@ -22,6 +22,9 @@ Route::get('/members', function () {
 
 Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
 
+Route::get('/members/{member}/edit', [MemberController::class, 'edit'])->name('members.edit');
+Route::put('/members/{member}', [MemberController::class, 'update'])->name('members.update');
+
 Route::get('/payments', function () {
     // Add logic to display payments
 })->name('payments.index');

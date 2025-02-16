@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use Illuminate\Http\Request;
+use App\Models\MembershipCategory;
 
 class MemberController extends Controller
 {
@@ -64,9 +65,10 @@ class MemberController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Member $member)
     {
-        //
+        $categories = MembershipCategory::all();
+        return view('members.edit', compact('member', 'categories'));
     }
 
     /**
@@ -76,9 +78,23 @@ class MemberController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Member $member)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'membership_number' => 'required|string|max:50',
+            'date_of_birth' => 'nullable|date',
+            'address' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'category_id' => 'nullable|exists:membership_categories,id',
+            'medical_validity' => 'nullable|date',
+            'is_active' => 'required|boolean',
+        ]);
+
+        $member->update($request->all());
+
+        return redirect()->route('members.show', $member)->with('success', 'Member updated successfully.');
     }
 
     /**
