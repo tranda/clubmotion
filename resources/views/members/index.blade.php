@@ -18,8 +18,8 @@
         <form method="GET" action="{{ route('members.index') }}">
             <label for="filter">Show:</label>
             <select name="filter" id="filter" onchange="this.form.submit()">
-                <option value="" {{ $filter == '' ? 'selected' : '' }}>All Members</option>
-                <option value="active" {{ $filter == 'active' ? 'selected' : '' }}>Active Members</option>
+                <option value="" {{ request('filter') == '' ? 'selected' : '' }}>All</option>
+                <option value="active" {{ request('filter') == 'active' ? 'selected' : '' }}>Active</option>
             </select>
         </form>
     </div>
