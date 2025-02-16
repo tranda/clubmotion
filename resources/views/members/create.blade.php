@@ -48,7 +48,7 @@
 
             <button type="submit" class="btn-save">✅ Save Member</button>
         </form>
-        <a href="{{ route('members.index') }}" class="btn-back">⬅ Back to Members List</a>
+        <button onclick="history.back()" class="btn-back">⬅ Back</button>
     </div>
 </body>
 </html>

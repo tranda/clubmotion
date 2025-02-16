@@ -59,7 +59,7 @@
                 </td>
             </tr>
         </table>
-        <button onclick="history.back()" class="btn-back">⬅ Back to Members List</button>
+        <button onclick="history.back()" class="btn-back">⬅ Back</button>
         <form action="{{ route('members.destroy', $member->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this member?');" class="delete-form">
             @csrf
             @method('DELETE')
