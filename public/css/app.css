@@ -114,24 +114,20 @@ select:focus {
             width: 100%;
             display: block;
             overflow-x: auto;
-            white-space: nowrap;
         }
     
         .custom-table th,
         .custom-table td {
-            display: inline-block;
-            width: auto;
+            display: block;
+            width: 100%;
             padding: 8px 15px;
             text-align: left;
             vertical-align: top;
+            word-wrap: break-word;
+            /* Ensures text breaks to the next line if necessary */
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-    
-        .custom-table thead {
-            /* display: none; */
-            /* Hide headers */
+            /* Adds "..." when text overflows */
         }
 
         .custom-table tr {
@@ -146,16 +142,15 @@ select:focus {
         }
     
         .custom-table td {
-            display: inline-block;
+            display: block;
             padding: 5px;
-            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            /* Adds a border between cells */
             text-align: left;
-            width: 150px;
-            position: relative;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            /* Adds ellipsis to overflowed text */
-            white-space: nowrap;
+            width: 100%;
+            /* Full width for each cell */
+            word-wrap: break-word;
+            /* Ensures the content wraps within the cell */
         }
     
         .custom-table td:last-child {
