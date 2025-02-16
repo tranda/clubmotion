@@ -14,7 +14,6 @@ return new class extends Migration
      */
     public function up()
     {
-        DB::statement('DROP TABLE IF EXISTS members');
         Schema::create('members', function (Blueprint $table) {
             $table->id(); // Auto-incrementing primary key
             $table->string('name'); // Member's name
