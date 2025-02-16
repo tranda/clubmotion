@@ -9,7 +9,7 @@
 <body>
     <div class="content">
         <h1>Add New Member</h1>
-        <form action="{{ route('members.store') }}" method="POST" class="member-form">
+        <form action="{{ route('members.store') }}" method="POST" enctype="multipart/form-data" class="member-form">
             @csrf
             <label>Name:</label>
             <input type="text" name="name" required>
@@ -43,17 +43,10 @@
             <label>Active:</label>
             <input type="checkbox" name="is_active" value="1">
 
-            <button type="submit" class="btn-save">✅ Save Member</button>
-        </form>
-        <form action="{{ route('members.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <label for="name">Name:</label>
-            <input type="text" name="name" required>
-
             <label for="image">Upload Picture:</label>
             <input type="file" name="image" accept="image/*">
 
-            <button type="submit" class="btn btn-save">Save Member</button>
+            <button type="submit" class="btn-save">✅ Save Member</button>
         </form>
         <a href="{{ route('members.index') }}" class="btn-back">⬅ Back to Members List</a>
     </div>
