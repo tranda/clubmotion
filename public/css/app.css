@@ -114,54 +114,25 @@ select:focus {
             width: 100%;
             display: block;
             overflow-x: auto;
+            /* Enables horizontal scrolling */
+            white-space: nowrap;
+            /* Prevents text from wrapping */
         }
     
         .custom-table th,
         .custom-table td {
-            display: block;
-            width: 100%;
             padding: 8px 15px;
             text-align: left;
-            vertical-align: top;
-            word-wrap: break-word;
-            /* Ensures text breaks to the next line if necessary */
-            overflow: hidden;
-            text-overflow: ellipsis;
-            /* Adds "..." when text overflows */
+            white-space: nowrap;
+            /* Ensures content stays on one line */
         }
-
+    
+        .custom-table thead {
+            display: table-header-group;
+            /* Keeps headers aligned with columns */
+        }
+    
         .custom-table tr {
-            display: flex;
-            justify-content: flex-start;
-            /* Aligns items to the left */
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            padding: 10px;
-            flex-wrap: wrap;
-            /* Allows content to wrap if necessary */
+            display: table-row;
         }
-    
-        .custom-table td {
-            display: block;
-            padding: 5px;
-            border-bottom: 1px solid #ddd;
-            /* Adds a border between cells */
-            text-align: left;
-            width: 100%;
-            /* Full width for each cell */
-            word-wrap: break-word;
-            /* Ensures the content wraps within the cell */
-        }
-    
-        .custom-table td:last-child {
-            border-bottom: none;
-        }
-
-    .custom-table td:nth-of-type(odd) {
-        background-color: #f9f9f9;
-    }
-
-    .custom-table td {
-        flex: 1;
-    }
 }
