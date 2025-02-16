@@ -14,7 +14,6 @@
             <li><a href="#">Other</a></li>
         </ul>
     </nav>
-    <div class="spacer"></div> 
     <div class="filter-container">
         <div class="spacer"></div> 
         <form method="GET" action="{{ route('members.index') }}" class="filter-form">
