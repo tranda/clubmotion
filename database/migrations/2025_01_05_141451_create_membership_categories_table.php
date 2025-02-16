@@ -14,8 +14,10 @@ return new class extends Migration
     public function up()
     {
         Schema::create('membership_categories', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id(); // Auto-incrementing primary key
+            $table->string('category_name'); // Column for category name
+            $table->text('description')->nullable(); // Column for description (nullable)
+            $table->timestamps(); // Automatically created `created_at` and `updated_at` columns
         });
     }
 
