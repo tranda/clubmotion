@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Member;
 use Illuminate\Http\Request;
 use App\Models\MembershipCategory;
+use Illuminate\Support\Str;
 
 class MemberController extends Controller
 {
