@@ -17,7 +17,7 @@
                 <td>{{ $member->name }}</td>
             </tr>
             <tr>
-                <th>Membership Number:</th>
+                <th>Membership ID:</th>
                 <td>{{ $member->membership_number }}</td>
             </tr>
             <tr>

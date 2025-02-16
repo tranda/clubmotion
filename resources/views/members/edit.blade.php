@@ -16,7 +16,7 @@
             <label>Name:</label>
             <input type="text" name="name" value="{{ $member->name }}" required>
 
-            <label>Membership Number:</label>
+            <label>Membership ID:</label>
             <input type="text" name="membership_number" value="{{ $member->membership_number }}" required>
 
             <label>Date of Birth:</label>
