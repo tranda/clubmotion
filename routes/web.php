@@ -24,13 +24,14 @@ Route::get('/members', function () {
     return view('members.index', compact('members', 'filter'));
 })->name('members.index');
 
-Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
 
 Route::get('/members/{member}/edit', [MemberController::class, 'edit'])->name('members.edit');
 Route::put('/members/{member}', [MemberController::class, 'update'])->name('members.update');
 Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('members.destroy');
 Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
 Route::post('/members', [MemberController::class, 'store'])->name('members.store');
+Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
+
 Route::get('/members/create-test', function () {
     return 'Route is working!';
 });
