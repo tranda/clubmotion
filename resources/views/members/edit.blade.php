@@ -58,7 +58,7 @@
 
             <button type="submit" class="btn-save">Save Changes</button>
         </form>
-        <button onclick="history.back()" class="btn-back">⬅ Cancel</button>
+        <a href="{{ route('members.show', $member->id) }}" class="btn-back">⬅ Cancel</a>
     </div>
 </body>
 </html>
