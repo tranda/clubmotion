@@ -27,7 +27,7 @@ class MemberController extends Controller
             $members = Member::where('is_active', 1)->orderBy('membership_number')->get();
         } else {
             $members = Member::whereRaw('membership_number REGEXP "^[0-9]+$"')->orderByRaw('CAST(membership_number AS UNSIGNED) ASC')->get();
-            Log::info(print_r(DB::getQueryLog(), true));;
+            Log::info(print_r(DB::getQueryLog(), true));
         }
 
         return view('members.index', compact('members', 'filter'));
