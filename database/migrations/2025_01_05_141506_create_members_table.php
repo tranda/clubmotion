@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('members', function (Blueprint $table) {
             $table->id(); // Auto-incrementing primary key
             $table->string('name'); // Member's name
-            $table->string('membership_number')->unique(); // Membership number
+            $table->integer('membership_number')->unique(); // Membership number
             $table->date('date_of_birth'); // Date of birth
             $table->text('address'); // Member's address
             $table->string('phone'); // Phone number
