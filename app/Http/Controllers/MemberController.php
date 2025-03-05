@@ -22,7 +22,7 @@ class MemberController extends Controller
         if ($filter === 'active') {
             $members = Member::where('is_active', 1)->orderBy('membership_number')->get();
         } else {
-            $members = Member::orderBy('membership_number')->get();
+            $members = Member::groupBy('membership_number')->orderBy('membership_number')->get();
         }
 
         return view('members.index', compact('members', 'filter'));
