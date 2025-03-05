@@ -9,6 +9,8 @@ class Kernel extends ConsoleKernel
 {
     protected $commands = [
         \App\Console\Commands\ImportMembers::class,
+        \App\Console\Commands\CreateRoleImplementationCommand::class,
+        \App\Console\Commands\ManageRolesCommand::class, 
     ];
 
     /**
