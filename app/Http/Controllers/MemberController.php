@@ -22,7 +22,7 @@ class MemberController extends Controller
         if ($filter === 'active') {
             $members = Member::where('is_active', 1)->orderBy('membership_number')->get();
         } else {
-            $members = Member::orderByRaw('CAST(membership_number AS UNSIGNED) ASC')->get();
+            $members = Member::whereRaw('membership_number REGEXP "^[0-9]+$"')->orderByRaw('CAST(membership_number AS UNSIGNED) ASC')->get();
         }
 
         return view('members.index', compact('members', 'filter'));
