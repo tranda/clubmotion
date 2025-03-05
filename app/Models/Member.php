@@ -14,6 +14,10 @@ class Member extends Model
         'category_id', 'medical_validity', 'profile_image_url', 'password_hash', 'is_active', 'image'
     ];
 
+    protected $casts = [
+            'membership_number' => 'integer', // Ensure Laravel treats it as an integer
+    ];
+
     public function category()
     {
         return $this->belongsTo(MembershipCategory::class, 'category_id', 'id');
