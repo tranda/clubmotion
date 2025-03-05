@@ -19,6 +19,7 @@ class MemberController extends Controller
      */
     public function index(Request $request)
     {
+        Log::error('Test log message');
         DB::enableQueryLog();
 
         $filter = $request->query('filter', '');
