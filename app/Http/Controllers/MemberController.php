@@ -20,9 +20,9 @@ class MemberController extends Controller
         $filter = $request->query('filter', '');
 
         if ($filter === 'active') {
-            $members = Member::where('is_active', 1)->get();
+            $members = Member::where('is_active', 1)->orderBy('membership_number')->get();
         } else {
-            $members = Member::all();
+            $members = Member::orderBy('membership_number')->all();
         }
 
         return view('members.index', compact('members', 'filter'));
