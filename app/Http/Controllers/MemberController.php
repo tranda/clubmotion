@@ -19,18 +19,14 @@ class MemberController extends Controller
      */
     public function index(Request $request)
     {
-        Log::error('Test log message');
-        DB::enableQueryLog();
-
         $filter = $request->query('filter', '');
 
         if ($filter === 'active') {
-            $members = Member::where('is_active', 0)->orderBy('membership_number')->get();
+            $members = Member::where('is_active', 1)->orderBy('membership_number')->get();
         } else {
-            $members = Member::whereRaw('membership_number REGEXP "^[0-9]+$"')->orderByRaw('CAST(membership_number AS UNSIGNED) ASC')->get();
-            Log::info(print_r(DB::getQueryLog(), true));
+            $members = Member::orderBy('membership_number')->get();
         }
-        dd(DB::getQueryLog());
+
         return view('members.index', compact('members', 'filter'));
     }
 
