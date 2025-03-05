@@ -30,7 +30,7 @@ class MemberController extends Controller
             $members = Member::whereRaw('membership_number REGEXP "^[0-9]+$"')->orderByRaw('CAST(membership_number AS UNSIGNED) ASC')->get();
             Log::info(print_r(DB::getQueryLog(), true));
         }
-
+        dd(DB::getQueryLog());
         return view('members.index', compact('members', 'filter'));
     }
 
