@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Member;
 use Illuminate\Http\Request;
 use App\Models\MembershipCategory;
@@ -26,9 +27,9 @@ class MemberController extends Controller
             $members = Member::where('is_active', 1)->orderBy('membership_number')->get();
         } else {
             $members = Member::whereRaw('membership_number REGEXP "^[0-9]+$"')->orderByRaw('CAST(membership_number AS UNSIGNED) ASC')->get();
-            dd(DB::getQueryLog());
+            Log::info(print_r(DB::getQueryLog(), true));;
         }
-        dd($members->toArray());
+
         return view('members.index', compact('members', 'filter'));
     }
 
