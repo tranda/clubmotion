@@ -24,11 +24,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
+Route::get('/members', [MemberController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
-    
-    Route::get('/members', [MemberController::class, 'index']);
+
+
     Route::get('/members/{member}', [MemberController::class, 'show']);
     Route::post('/members', [MemberController::class, 'store']);
     Route::put('/members/{member}', [MemberController::class, 'update']);
