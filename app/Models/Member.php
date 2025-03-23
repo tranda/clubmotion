@@ -11,11 +11,15 @@ class Member extends Model
 
     protected $fillable = [
         'name', 'membership_number', 'date_of_birth', 'address', 'phone', 'email', 
-        'category_id', 'medical_validity', 'profile_image_url', 'password_hash', 'is_active'
+        'category_id', 'medical_validity', 'profile_image_url', 'password_hash', 'is_active', 'image'
+    ];
+
+    protected $casts = [
+            'membership_number' => 'integer', // Ensure Laravel treats it as an integer
     ];
 
     public function category()
     {
-        return $this->belongsTo(MembershipCategory::class, 'category_id', 'category_id');
+        return $this->belongsTo(MembershipCategory::class, 'category_id', 'id');
     }
 }

@@ -7,6 +7,12 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
+    protected $commands = [
+        \App\Console\Commands\ImportMembers::class,
+        \App\Console\Commands\CreateRoleImplementationCommand::class,
+        \App\Console\Commands\ManageRolesCommand::class, 
+    ];
+
     /**
      * Define the application's command schedule.
      *
