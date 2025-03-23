@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\MembershipCategoryResource;
+use Illuminate\Support\Facades\Storage;
 
 class MemberResource extends JsonResource
 {
@@ -30,6 +31,7 @@ class MemberResource extends JsonResource
             'is_active' => (bool) $this->is_active,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
+            'image' => $this->image ? Storage::url($this->image) : null, // Transform the path to a URL
         ];
     }
 }
