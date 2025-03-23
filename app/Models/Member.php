@@ -16,6 +16,11 @@ class Member extends Model
 
     protected $casts = [
             'membership_number' => 'integer', // Ensure Laravel treats it as an integer
+            'date_of_birth' => 'date:Y-m-d', // Cast to Carbon and specify the output format (optional here)
+            'medical_validity' => 'date',     // Cast to Carbon
+            'is_active' => 'boolean',         // Example of casting other types
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
     ];
 
     public function category()
