@@ -30,7 +30,7 @@ class MemberController extends Controller
             $query->where('is_active', $isActive);
         }
 
-        $members = $query;//->paginate(15); // Adjust pagination as needed
+        $members = $query->paginate(15); // Adjust pagination as needed
 
         return response()->json(MemberResource::collection($members)->response()->getData(true));
     }
