@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MemberController;
-
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,6 +16,12 @@ use App\Http\Controllers\Api\MemberController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+
+Route::get('/log-test', function () {
+    Log::info('✅ Log test worked!');
+    return 'Logged!';
+});
 
 
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
