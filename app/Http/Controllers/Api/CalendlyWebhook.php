@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 
 Route::post('/calendly-webhook', function (Request $request) {
+    Log::info('✅ Calendly webhook endpoint hit');
     // Get the raw payload
     $payload = $request->getContent();
     
