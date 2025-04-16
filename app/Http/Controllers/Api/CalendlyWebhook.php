@@ -55,8 +55,41 @@ class CalendlyWebhook extends Controller {
             return false;
         }
  
-        $computedSignature = hash_hmac('sha256', $payload, $signingKey);
-        return hash_equals($computedSignature, $signature);
+        $components = [];
+        foreach (explode(',', $signature) as $component) {
+            if (strpos($component, '=') !== false) {
+                list($key, $value) = explode('=', $component, 2);
+                $components[$key] = $value;
+            }
+        }
+        
+        // Check if we have the required components
+        if (!isset($components['t']) || !isset($components['v1'])) {
+            return false;
+        }
+        
+        $timestamp = $components['t'];
+        $signature = $components['v1'];
+        
+        // Optional: Check if the timestamp is recent (within 5 minutes)
+        $maxAge = 5 * 60; // 5 minutes in seconds
+        if (time() - intval($timestamp) > $maxAge) {
+            Log::warning('Webhook timestamp too old');
+            return false;
+        }
+        
+        // Calculate the expected signature
+        // For debugging, try both methods and log them
+        $computedSignature1 = hash_hmac('sha256', $payload, $signingKey);
+        $computedSignature2 = hash_hmac('sha256', $timestamp . '.' . $payload, $signingKey);
+        
+        Log::info('Received signature: ' . $signature);
+        Log::info('Computed signature (payload only): ' . $computedSignature1);
+        Log::info('Computed signature (timestamp.payload): ' . $computedSignature2);
+        
+        // Compare both possible signatures
+        return hash_equals($computedSignature1, $signature) || 
+               hash_equals($computedSignature2, $signature);
     }
 
 }
