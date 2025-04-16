@@ -19,10 +19,10 @@ use App\Http\Controllers\Api\CalendlyWebhook;
 */
 
 
-Route::get('/log-test', function () {
-    Log::info('✅ Log test worked!');
-    return 'Logged!';
-});
+// Route::get('/log-test', function () {
+//     Log::info('✅ Log test worked!');
+//     return 'Logged!';
+// });
 
 Route::post('/calendly-webhook', [CalendlyWebhook::class, 'webhook']);
 

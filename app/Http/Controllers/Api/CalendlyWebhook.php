@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
 class CalendlyWebhook extends Controller {
+    protected $signing_key = "5mEzn9C-I28UtwOjZJtFoob0sAAFZ95GbZkqj4y3i0I";
+
     public function webhook(Request $request) {
         Log::info('✅ Calendly webhook endpoint hit');
         // Get the raw payload
@@ -19,8 +21,13 @@ class CalendlyWebhook extends Controller {
         // Parse the JSON payload
         $data = json_decode($payload, true);
         
-        // Optional: Verify the signature if you've enabled it
-        // See the verification section below
+        $signature = $request->header('Calendly-Webhook-Signature');
+        $signingKey = $this->signing_key; // Your signing key
+        
+        if (!$this->verifyCalendlySignature($payload, $signature, $signingKey)) {
+            Log::warning('Invalid Calendly webhook signature');
+            return response()->json(['status' => 'invalid signature'], 401);
+        }
         
         // Print details to your server log
         Log::info('Event Type: ' . $data['event']);
@@ -41,8 +48,11 @@ class CalendlyWebhook extends Controller {
         return response()->json(['status' => 'success']);
     }
 
-    // Optional: Signature verification function
-    function verifyCalendlySignature($payload, $signature, $signingKey) {
+
+    protected function verifyCalendlySignature($payload, $signature, $signingKey) {
+        if (empty($payload) || empty($signature) || empty($signingKey)) {
+            return false;
+        }
         $computedSignature = hash_hmac('sha256', $payload, $signingKey);
         return hash_equals($computedSignature, $signature);
     }
