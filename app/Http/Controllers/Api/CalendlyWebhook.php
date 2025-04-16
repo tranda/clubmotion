@@ -22,6 +22,7 @@ class CalendlyWebhook extends Controller {
         $data = json_decode($payload, true);
         
         $signature = $request->header('Calendly-Webhook-Signature');
+        Log::info('Signature: ' . $signature);
         $signingKey = $this->signing_key; // Your signing key
         
         if (!$this->verifyCalendlySignature($payload, $signature, $signingKey)) {
@@ -53,6 +54,7 @@ class CalendlyWebhook extends Controller {
         if (empty($payload) || empty($signature) || empty($signingKey)) {
             return false;
         }
+ 
         $computedSignature = hash_hmac('sha256', $payload, $signingKey);
         return hash_equals($computedSignature, $signature);
     }
