@@ -23,6 +23,9 @@ Route::get('/log-test', function () {
     return 'Logged!';
 });
 
+Route::post('/calendly-webhook', [AuthController::class, 'webhook']);
+
+
 
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
