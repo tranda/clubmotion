@@ -23,7 +23,7 @@ Route::get('/log-test', function () {
     return 'Logged!';
 });
 
-Route::post('/calendly-webhook', [AuthController::class, 'webhook']);
+Route::post('/calendly-webhook', [CalendlyWebhook::class, 'webhook']);
 
 
 
