@@ -2,10 +2,10 @@
 // PHP/Laravel Example - routes/api.php or web.php
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 
-class CalendlyWebhook {
+class CalendlyWebhook extends Controller {
     public function webhook(Request $request) {
         Log::info('✅ Calendly webhook endpoint hit');
         // Get the raw payload
