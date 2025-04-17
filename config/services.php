@@ -31,4 +31,13 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'supermove' => [
+        'api_url' => env('SUPERMOVE_API_URL'),
+        'api_key' => env('SUPERMOVE_API_KEY'),
+    ],
+
+    'calendly' => [
+        'api_key' => env('CALENDLY_API_KEY'),
+        'signing_key' => env('CALENDLY_SIGNING_KEY'),
+    ],
 ];

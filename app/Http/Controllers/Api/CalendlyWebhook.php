@@ -24,19 +24,19 @@ class CalendlyWebhook extends Controller {
     {
         // Validate the webhook (you might want to add Calendly signature verification)
         $calendlyData = $request->all();
-        
-        $payload = $request->getContent();
-        $data = json_decode($payload, true);
 
         // Transform data to SuperMove format
         $supermoveData = $this->transformer->transform($calendlyData);
-        
-        // Send data to SuperMove API
-        // $response = Http::post('https://api.supermove.com/endpoint', $supermoveData);
-        
-        // Handle response as needed
         Log::info('Transformed payload: ', $supermoveData);
-        
+
+        // Send data to SuperMove API
+        $response = Http::post(config('services.supermove.api_url').'/v1/projects/sync', $supermoveData);
+        Log::info('SuperMove API response: ', $response->json());
+        if ($response->failed()) {
+            Log::error('Failed to send data to SuperMove API', ['response' => $response->body()]);
+            return response()->json(['status' => 'error', 'message' => 'Failed to send data'], 500);
+        }
+
         return response()->json(['status' => 'success']);
     }
 

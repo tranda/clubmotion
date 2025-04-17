@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 
 class CalendlyToSupermoveTransformer
 {
+    protected $projectIdentifier = 'TRAINING-2514';
     /**
      * Transform Calendly webhook data to SuperMove API format
      *
@@ -28,7 +29,7 @@ class CalendlyToSupermoveTransformer
         $addressParts = $this->parseAddress($originAddress);
         
         // Generate a unique project identifier
-        $projectIdentifier = 'TRAINING-2514';
+        $projectIdentifier = $this->projectIdentifier;
         
         // Format date from Calendly to required format (YYYY-MM-DD)
         $formattedDate = $this->formatDate($moveDate);
