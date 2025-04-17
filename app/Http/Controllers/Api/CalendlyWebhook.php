@@ -41,16 +41,16 @@ class CalendlyWebhook extends Controller {
             Log::info('Transformed payload: ', $supermoveData);
 
             // Send data to SuperMove API
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . config('services.supermove.api_key'),
-                'Content-Type' => 'application/json',
-            ])->post(config('services.supermove.api_url').'/v1/projects/sync', $supermoveData);
+            // $response = Http::withHeaders([
+            //     'Authorization' => 'Bearer ' . config('services.supermove.api_key'),
+            //     'Content-Type' => 'application/json',
+            // ])->post(config('services.supermove.api_url').'/v1/projects/sync', $supermoveData);
 
-            Log::info('SuperMove API response: ', $response->json());
-            if ($response->failed()) {
-                Log::error('Failed to send data to SuperMove API', ['response' => $response->body()]);
-                return response()->json(['status' => 'error', 'message' => 'Failed to send data'], 500);
-            }
+            // Log::info('SuperMove API response: ', $response->json());
+            // if ($response->failed()) {
+            //     Log::error('Failed to send data to SuperMove API', ['response' => $response->body()]);
+            //     return response()->json(['status' => 'error', 'message' => 'Failed to send data'], 500);
+            // }
 
             return response()->json(['status' => 'success']);
         } else {
