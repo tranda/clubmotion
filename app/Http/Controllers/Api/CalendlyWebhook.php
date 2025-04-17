@@ -25,6 +25,10 @@ class CalendlyWebhook extends Controller {
         // Validate the webhook (you might want to add Calendly signature verification)
         $calendlyData = $request->all();
 
+        $payload = $request->getContent();
+        $data = json_decode($payload, true);
+        Log::info('Event Type: ' . $data['event']);
+
         // Transform data to SuperMove format
         $supermoveData = $this->transformer->transform($calendlyData);
         Log::info('Transformed payload: ', $supermoveData);
