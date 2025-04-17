@@ -29,7 +29,7 @@ class CalendlyWebhook extends Controller {
         $data = json_decode($payload, true);
 
         // Transform data to SuperMove format
-        $supermoveData = $this->transformer->transform($data);
+        $supermoveData = $this->transformer->transform($calendlyData);
         
         // Send data to SuperMove API
         // $response = Http::post('https://api.supermove.com/endpoint', $supermoveData);
