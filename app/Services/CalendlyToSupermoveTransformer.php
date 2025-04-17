@@ -52,6 +52,7 @@ class CalendlyToSupermoveTransformer
                     'first_name' => $payload['first_name'] ?? '',
                     'last_name' => $payload['last_name'] ?? '',
                     'phone_number' => $this->formatPhoneNumber($phoneNumber),
+                    'phone_number' => '1112223333',
                     'email' => $payload['email'] ?? '',
                 ],
                 'jobs' => [
@@ -171,7 +172,7 @@ class CalendlyToSupermoveTransformer
         }
         
         return $phoneNumber;
-        
+
         // Remove non-numeric characters
         return preg_replace('/[^0-9]/', '', $phoneNumber);
     }
