@@ -26,7 +26,9 @@ class CalendlyWebhook extends Controller {
         $calendlyData = $request->all();
 
         $payload = $request->getContent();
+        Log::info('Calendly Webhook Received: ' . $payload);
         $data = json_decode($payload, true);
+        
         Log::info('Event Type: ' . $data['event']);
         if ($data['event'] === 'invitee.canceled') {
             Log::info('Booking canceled: ' . $data['payload']['name']);

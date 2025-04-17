@@ -4,10 +4,24 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class CalendlyToSupermoveTransformer
 {
-    protected $projectIdentifier = 'TRAINING-2515';
+    protected $projectIdentifierPrefix = 'TRAINING-';
+
+    private function getNextProjectNumber()
+    {
+        if (!Cache::has('project_counter')) {
+            // Set initial value (for example, starting from 1000)
+            Cache::put('project_counter', 5000, now()->addYears(10)); // Cache for 10 years or whatever duration you prefer
+        }
+        // Use Laravel's atomic increment operation
+        $number = Cache::increment('project_counter', 1);
+        
+        // If the counter wasn't set before (first run), it will be 1
+        return $number;
+    }
     /**
      * Transform Calendly webhook data to SuperMove API format
      *
@@ -29,7 +43,8 @@ class CalendlyToSupermoveTransformer
         $addressParts = $this->parseAddress($originAddress);
         
         // Generate a unique project identifier
-        $projectIdentifier = $this->projectIdentifier;
+        $projectNumber = $this->getNextProjectNumber();
+        $projectIdentifier = $this->projectIdentifierPrefix . str_pad($projectNumber, 4, '0', STR_PAD_LEFT);
         
         // Format date from Calendly to required format (YYYY-MM-DD)
         $formattedDate = $this->formatDate($moveDate);
