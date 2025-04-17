@@ -6,9 +6,38 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
+
+use App\Services\CalendlyToSupermoveTransformer;
 
 class CalendlyWebhook extends Controller {
     protected $signing_key = "5mEzn9C-I28UtwOjZJtFoob0sAAFZ95GbZkqj4y3i0I";
+
+    protected $transformer;
+    
+    public function __construct(CalendlyToSupermoveTransformer $transformer)
+    {
+        $this->transformer = $transformer;
+    }
+    
+    public function handleWebhook(Request $request)
+    {
+        // Validate the webhook (you might want to add Calendly signature verification)
+        $calendlyData = $request->all();
+        
+        // Transform data to SuperMove format
+        $supermoveData = $this->transformer->transform($calendlyData);
+        
+        // Send data to SuperMove API
+        // $response = Http::post('https://api.supermove.com/endpoint', $supermoveData);
+        
+        // Handle response as needed
+        Log::info('Transformed payload: ' . $supermoveData);
+        
+        return response()->json(['status' => 'success']);
+    }
+
+
 
     public function webhook(Request $request) {
         Log::info('✅ Calendly webhook endpoint hit');

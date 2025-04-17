@@ -24,7 +24,7 @@ use App\Http\Controllers\Api\CalendlyWebhook;
 //     return 'Logged!';
 // });
 
-Route::post('/calendly-webhook', [CalendlyWebhook::class, 'webhook']);
+Route::post('/calendly-webhook', [CalendlyWebhook::class, 'handleWebhook']);
 
 
 
