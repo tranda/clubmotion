@@ -21,13 +21,17 @@ class CalendlyWebhook extends Controller {
         // Parse the JSON payload
         $data = json_decode($payload, true);
         
-        $signature = $request->header('Calendly-Webhook-Signature');
-        Log::info('Signature: ' . $signature);
-        $signingKey = $this->signing_key; // Your signing key
-        
-        if (!$this->verifyCalendlySignature($payload, $signature, $signingKey)) {
-            Log::warning('Invalid Calendly webhook signature');
-            return response()->json(['status' => 'invalid signature'], 401);
+        if ($request["noSignature"] == "true") {
+            Log::info('No signature check, skipping verification');
+        } else {
+            $signature = $request->header('Calendly-Webhook-Signature');
+            Log::info('Signature: ' . $signature);
+            $signingKey = $this->signing_key; // Your signing key
+            
+            if (!$this->verifyCalendlySignature($payload, $signature, $signingKey)) {
+                Log::warning('Invalid Calendly webhook signature');
+                return response()->json(['status' => 'invalid signature'], 401);
+            }
         }
         
         // Print details to your server log
