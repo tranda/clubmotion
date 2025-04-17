@@ -35,7 +35,7 @@ class CalendlyWebhook extends Controller {
         // $response = Http::post('https://api.supermove.com/endpoint', $supermoveData);
         
         // Handle response as needed
-        Log::info('Transformed payload: ' . $supermoveData);
+        Log::info('Transformed payload: ', $supermoveData);
         
         return response()->json(['status' => 'success']);
     }
