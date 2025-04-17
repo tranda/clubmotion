@@ -170,6 +170,8 @@ class CalendlyToSupermoveTransformer
             return '';
         }
         
+        return $phoneNumber;
+        
         // Remove non-numeric characters
         return preg_replace('/[^0-9]/', '', $phoneNumber);
     }
