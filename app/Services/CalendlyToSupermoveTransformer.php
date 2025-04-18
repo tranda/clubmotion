@@ -36,26 +36,32 @@ class CalendlyToSupermoveTransformer
         // Extract data from questions and answers
         $phoneNumber = $this->getAnswerByQuestion($questionsAndAnswers, 'Phone Number');
         $bedroomCount = $this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms');
-        $moveDate = $this->getAnswerByQuestion($questionsAndAnswers, 'Move date');
+        // $moveDate = $this->getAnswerByQuestion($questionsAndAnswers, 'Move date');
         $originAddress = $this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address');
+        $destinationAddress = $this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address');
+        $referralSource = $this->getAnswerByQuestion($questionsAndAnswers, 'First name and email address of the person to receive complete Video Survey and Cube Sheet - moving consultant/agent ');
         
         // Parse origin address (basic parsing, can be improved)
         $addressParts = $this->parseAddress($originAddress);
+        $addressParts2 = $this->parseAddress($destinationAddress);
         
         // Generate a unique project identifier
         $projectNumber = $this->getNextProjectNumber();
         $projectIdentifier = $this->projectIdentifierPrefix . str_pad($projectNumber, 4, '0', STR_PAD_LEFT);
         
+        $moveDate = $payload['scheduled_event']['end_time'];
         // Format date from Calendly to required format (YYYY-MM-DD)
         $formattedDate = $this->formatDate($moveDate);
         
         // Use start time from scheduled event
-        $startTime = isset($payload['scheduled_event']['start_time']) 
-            ? Carbon::parse($payload['scheduled_event']['start_time'])->format('Hi') 
+        $startTime = isset($payload['scheduled_event']['end_time']) 
+            ? Carbon::parse($payload['scheduled_event']['end_time'])->format('Hi') 
             : '0900';
         
         // Map bedroom count to move size
         $moveSize = $bedroomCount . ' Bedroom';
+
+        $dispatchNotes = $this->getAnswerByQuestion($questionsAndAnswers, 'Dispatch Notes').'; '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms').'; '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Square footage').'; '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional property units (check all that apply)').'; '.$this->getAnswerByQuestion($questionsAndAnswers, 'Move date').'; '.$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address').'; '.$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address').'; '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details');
         
         return [
             'id' => 'supersalesforce',
@@ -85,16 +91,29 @@ class CalendlyToSupermoveTransformer
                         'start_time_1' => $startTime,
                         'start_time_2' => '', // Will be updated later as mentioned
                         'additional_notes' => $this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details'),
-                        'dispatch_notes' => '',
+                        'dispatch_notes' => $dispatchNotes,
                         'office_notes' => '',
                         'note_to_customer' => '',
-                        'referral_source' => '',
+                        'referral_source' => $referralSource,
                         'referral_details' => '',
                         'locations' => [
                             [
                                 'address' => $addressParts['street'] ?? $originAddress,
                                 'city' => $addressParts['city'] ?? '',
                                 'zip_code' => $addressParts['zip'] ?? '',
+                                'latitude' => 0, // Will need to be geocoded
+                                'longitude' => 0, // Will need to be geocoded
+                                'unit' => '',
+                                'floor_number' => 0,
+                                'notes' => '',
+                                'has_elevator' => false,
+                                'has_long_walk' => false,
+                                'stair_count' => 0,
+                            ],
+                            [
+                                'address' => $addressParts2['street'] ?? $destinationAddress,
+                                'city' => $addressParts2['city'] ?? '',
+                                'zip_code' => $addressParts2['zip'] ?? '',
                                 'latitude' => 0, // Will need to be geocoded
                                 'longitude' => 0, // Will need to be geocoded
                                 'unit' => '',
