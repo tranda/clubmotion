@@ -67,7 +67,7 @@ class CalendlyToSupermoveTransformer
                     'first_name' => $payload['first_name'] ?? '',
                     'last_name' => $payload['last_name'] ?? '',
                     'phone_number' => $this->formatPhoneNumber($phoneNumber),
-                    'phone_number' => '1112223333',
+                    // 'phone_number' => '1112223333',
                     'email' => $payload['email'] ?? '',
                 ],
                 'jobs' => [
@@ -185,10 +185,21 @@ class CalendlyToSupermoveTransformer
         if (!$phoneNumber) {
             return '';
         }
-        
-        return $phoneNumber;
 
         // Remove non-numeric characters
-        return preg_replace('/[^0-9]/', '', $phoneNumber);
+        $numbers = preg_replace('/[^0-9]/', '', $phoneNumber);
+        
+        // Check if it's an international number
+        if (strlen($numbers) > 10) {
+            // If longer than 10 digits and starts with country code, take last 10 digits
+            return substr($numbers, -10);
+        }
+        
+        // Pad shorter numbers to 10 digits
+        if (strlen($numbers) < 10) {
+            return str_pad($numbers, 10, '0', STR_PAD_LEFT);
+        }
+        
+        return $numbers;
     }
 }
