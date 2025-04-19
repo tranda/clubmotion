@@ -61,7 +61,13 @@ class CalendlyToSupermoveTransformer
         // Map bedroom count to move size
         $moveSize = $bedroomCount . ' Bedroom';
 
-        $dispatchNotes = $this->getAnswerByQuestion($questionsAndAnswers, 'Dispatch Notes').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Square footage').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional property units (check all that apply)').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Move date').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details');
+        $formattedPhoneNumber = $this->formatPhoneNumber($phoneNumber);
+        $USphoneNumber = $formattedPhoneNumber;
+        if (strlen($formattedPhoneNumber) > 10) {
+            $USphoneNumber = '';
+        }
+
+        $dispatchNotes = $this->getAnswerByQuestion($questionsAndAnswers, 'Dispatch Notes').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Square footage').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional property units (check all that apply)').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Move date').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details').', '.$formattedPhoneNumber;
         
         return [
             'id' => 'supersalesforce',
@@ -72,8 +78,7 @@ class CalendlyToSupermoveTransformer
                 'customer' => [
                     'first_name' => $payload['first_name'] ?? '',
                     'last_name' => $payload['last_name'] ?? '',
-                    'phone_number' => $this->formatPhoneNumber($phoneNumber),
-                    // 'phone_number' => '1112223333',
+                    'phone_number' => $USphoneNumber,
                     'email' => $payload['email'] ?? '',
                 ],
                 'jobs' => [
@@ -211,7 +216,7 @@ class CalendlyToSupermoveTransformer
         // Check if it's an international number
         if (strlen($numbers) > 10) {
             // If longer than 10 digits and starts with country code, take last 10 digits
-            return substr($numbers, -10);
+            // return substr($numbers, -10);
         }
         
         // Pad shorter numbers to 10 digits
