@@ -175,7 +175,7 @@ class CalendlyToSupermoveTransformer
         return [
             'street' => trim($parts[0] ?? ''),
             'city' => trim($parts[1] ?? ''),
-            'zip' => '', // No zip in the example data
+            'zip' => trim($parts[2] ?? ''),, // No zip in the example data
         ];
     }
     
