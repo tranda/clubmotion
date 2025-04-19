@@ -29,6 +29,11 @@ class CalendlyWebhook extends Controller {
         Log::info('Calendly Webhook Received: ' . $payload);
         $data = json_decode($payload, true);
 
+        if ($data['first_name'] !== "TEST") {
+            Log::info('Not TEST, skipping processing');
+            return response()->json(['status' => 'skipping'], 200);
+        }
+
         if ($request["noSignature"] == "true") {
             Log::info('No signature check, skipping verification');
         } else {
