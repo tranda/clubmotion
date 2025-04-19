@@ -61,7 +61,7 @@ class CalendlyToSupermoveTransformer
         // Map bedroom count to move size
         $moveSize = $bedroomCount . ' Bedroom';
 
-        $dispatchNotes = $this->getAnswerByQuestion($questionsAndAnswers, 'Dispatch Notes').' // '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms').' // '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Square footage').' // '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional property units (check all that apply)').' // '.$this->getAnswerByQuestion($questionsAndAnswers, 'Move date').' // '.$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address').' // '.$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address').' // '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details');
+        $dispatchNotes = $this->getAnswerByQuestion($questionsAndAnswers, 'Dispatch Notes').'</br>'.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms').'</br>'.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Square footage').'</br>'.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional property units (check all that apply)').'</br>'.$this->getAnswerByQuestion($questionsAndAnswers, 'Move date').'</br>'.$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address').'</br>'.$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address').'</br>'.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details');
         
         return [
             'id' => 'supersalesforce',
