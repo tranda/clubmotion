@@ -63,7 +63,7 @@ class CalendlyToSupermoveTransformer
 
         $formattedPhoneNumber = $this->formatPhoneNumber($phoneNumber);
         $USphoneNumber = $formattedPhoneNumber;
-        if (strlen($formattedPhoneNumber) > 10) {
+        if (strlen($formattedPhoneNumber) != 10) {
             $USphoneNumber = '';
         }
 
