@@ -39,7 +39,8 @@ class CalendlyToSupermoveTransformer
         // $moveDate = $this->getAnswerByQuestion($questionsAndAnswers, 'Move date');
         $originAddress = $this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address');
         $destinationAddress = $this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address');
-        $referralSource = $this->getAnswerByQuestion($questionsAndAnswers, 'First name and email address of the person to receive complete Video Survey and Cube Sheet - moving consultant/agent ');
+        // $referralSource = $this->getAnswerByQuestion($questionsAndAnswers, 'First name and email address of the person to receive complete Video Survey and Cube Sheet - moving consultant/agent ');
+        $referralSource = $this->getAnswerByPosition($questionsAndAnswers, 2);
         
         // Parse origin address (basic parsing, can be improved)
         $addressParts = $this->parseAddress($originAddress);
@@ -149,6 +150,17 @@ class CalendlyToSupermoveTransformer
     {
         foreach ($questionsAndAnswers as $qa) {
             if ($qa['question'] === $questionText) {
+                return $qa['answer'];
+            }
+        }
+        
+        return null;
+    }
+    
+    private function getAnswerByPosition(array $questionsAndAnswers, int $questionPosition): ?string
+    {
+        foreach ($questionsAndAnswers as $qa) {
+            if ($qa['position'] === $questionPosition) {
                 return $qa['answer'];
             }
         }
