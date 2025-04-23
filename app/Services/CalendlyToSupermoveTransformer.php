@@ -101,7 +101,7 @@ class CalendlyToSupermoveTransformer
                         'office_notes' => '',
                         'note_to_customer' => '',
                         'referral_source' => $referralSource,
-                        'referral_details' => $referralSource,
+                        'referral_details' => '',
                         'locations' => [
                             [
                                 'address' => $addressParts['street'] ?? $originAddress,
