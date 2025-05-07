@@ -57,7 +57,9 @@ class CalendlyWebhook extends Controller {
             // Transform data to SuperMove format
             $supermoveData = $this->transformer->transform($calendlyData);
             Log::info('Transformed payload: ', $supermoveData);
-
+            //comment out the next line to skip sending data to SuperMove API
+            return response()->json(['status' => 'success']);
+            
             // Send data to SuperMove API
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . config('services.supermove.api_key'),
