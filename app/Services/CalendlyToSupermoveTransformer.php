@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Cache;
 
 class CalendlyToSupermoveTransformer
 {
-    protected $projectIdentifierPrefix = 'TRAINING-';
+    protected $projectIdentifierPrefix = '';
 
     private function getNextProjectNumber()
     {
@@ -34,11 +34,11 @@ class CalendlyToSupermoveTransformer
         $questionsAndAnswers = $payload['questions_and_answers'] ?? [];
         
         // Extract data from questions and answers
-        $phoneNumber = $this->getAnswerByQuestion($questionsAndAnswers, 'Phone Number');
-        $bedroomCount = $this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms');
+        $phoneNumber = $this->getAnswerByPosition($questionsAndAnswers, 1); //$this->getAnswerByQuestion($questionsAndAnswers, 'Phone Number');
+        $bedroomCount = $this->getAnswerByPosition($questionsAndAnswers, 3); //$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms');
         // $moveDate = $this->getAnswerByQuestion($questionsAndAnswers, 'Move date');
-        $originAddress = $this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address');
-        $destinationAddress = $this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address');
+        $originAddress = $this->getAnswerByPosition($questionsAndAnswers, 7); //$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address');
+        $destinationAddress = $this->getAnswerByPosition($questionsAndAnswers, 8); //$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address');
         // $referralSource = $this->getAnswerByQuestion($questionsAndAnswers, 'First name and email address of the person to receive complete Video Survey and Cube Sheet - moving consultant/agent ');
         $referralSource = $this->getAnswerByPosition($questionsAndAnswers, 2);
         
@@ -68,13 +68,21 @@ class CalendlyToSupermoveTransformer
             $USphoneNumber = '';
         }
 
-        $dispatchNotes = $this->getAnswerByQuestion($questionsAndAnswers, 'Dispatch Notes').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Square footage').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional property units (check all that apply)').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Move date').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details').', '.$formattedPhoneNumber;
+        // $dispatchNotes = $this->getAnswerByQuestion($questionsAndAnswers, 'Dispatch Notes').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Square footage').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional property units (check all that apply)').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Move date').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details').', '.$formattedPhoneNumber;
+        $dispatchNotes = '';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 3).': '.$this->getAnswerByPosition($questionsAndAnswers, 3).', ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 4).': '.$this->getAnswerByPosition($questionsAndAnswers, 4).', ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 5).': '.$this->getAnswerByPosition($questionsAndAnswers, 5).', ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 6).': '.$this->getAnswerByPosition($questionsAndAnswers, 6).', ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 7).': '.$this->getAnswerByPosition($questionsAndAnswers, 7).', ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 8).': '.$this->getAnswerByPosition($questionsAndAnswers, 8).', ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 9).': '.$this->getAnswerByPosition($questionsAndAnswers, 9).', ';
         
         return [
             'id' => 'supersalesforce',
             'project' => [
                 'identifier' => $projectIdentifier,
-                'name' => $this->getAnswerByQuestion($questionsAndAnswers, 'Service Order Number (If applicable)'),
+                'name' => $this->getQuestionByPosition($questionsAndAnswers, 0),
                 'description' => 'Move project created from Calendly booking',
                 'customer' => [
                     'first_name' => $payload['first_name'] ?? '',
@@ -96,7 +104,7 @@ class CalendlyToSupermoveTransformer
                         'date' => $formattedDate,
                         'start_time_1' => $startTime,
                         'start_time_2' => '', // Will be updated later as mentioned
-                        'additional_notes' => $this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details'),
+                        'additional_notes' => $this->getAnswerByPosition($questionsAndAnswers, 9),
                         'dispatch_notes' => $dispatchNotes,
                         'office_notes' => '',
                         'note_to_customer' => '',
@@ -157,6 +165,16 @@ class CalendlyToSupermoveTransformer
         return null;
     }
     
+    private function getQuestionByPosition(array $questionsAndAnswers, int $questionPosition): ?string
+    {
+        foreach ($questionsAndAnswers as $qa) {
+            if ($qa['position'] === $questionPosition) {
+                return $qa['question'];
+            }
+        }
+        
+        return null;
+    }
     private function getAnswerByPosition(array $questionsAndAnswers, int $questionPosition): ?string
     {
         foreach ($questionsAndAnswers as $qa) {
