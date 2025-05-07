@@ -92,7 +92,7 @@ class CalendlyToSupermoveTransformer
                 ],
                 'jobs' => [
                     [
-                        'identifier' => 'JOB-' . Str::random(5),
+                        'identifier' => 'JOB-' .$projectIdentifier . '-1',
                         'is_primary' => true,
                         'job_type' => [
                             'identifier' => 'local-move-move', // This will be defined elsewhere as mentioned
