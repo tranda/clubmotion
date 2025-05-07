@@ -70,12 +70,12 @@ class CalendlyToSupermoveTransformer
 
         // $dispatchNotes = $this->getAnswerByQuestion($questionsAndAnswers, 'Dispatch Notes').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Square footage').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional property units (check all that apply)').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Move date').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details').', '.$formattedPhoneNumber;
         $dispatchNotes = '';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 3).': '.$this->getAnswerByPosition($questionsAndAnswers, 3).',\r\n ';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 4).': '.$this->getAnswerByPosition($questionsAndAnswers, 4).',\r\n ';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 5).': '.$this->getAnswerByPosition($questionsAndAnswers, 5).',\r\n ';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 6).': '.$this->getAnswerByPosition($questionsAndAnswers, 6).',\r\n ';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 7).': '.$this->getAnswerByPosition($questionsAndAnswers, 7).',\r\n ';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 8).': '.$this->getAnswerByPosition($questionsAndAnswers, 8).',\r\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 3).': '.$this->getAnswerByPosition($questionsAndAnswers, 3).',\\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 4).': '.$this->getAnswerByPosition($questionsAndAnswers, 4).',\\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 5).': '.$this->getAnswerByPosition($questionsAndAnswers, 5).',\\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 6).': '.$this->getAnswerByPosition($questionsAndAnswers, 6).',\\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 7).': '.$this->getAnswerByPosition($questionsAndAnswers, 7).',\\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 8).': '.$this->getAnswerByPosition($questionsAndAnswers, 8).',\\n ';
         $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 9).': '.$this->getAnswerByPosition($questionsAndAnswers, 9).', ';
         
         return [
