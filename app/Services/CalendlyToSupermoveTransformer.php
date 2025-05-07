@@ -83,7 +83,7 @@ class CalendlyToSupermoveTransformer
             'project' => [
                 'identifier' => $projectIdentifier,
                 'name' => $this->getAnswerByPosition($questionsAndAnswers, 0),
-                'description' => "Line one.\nLine two.", // $dispatchNotes, // 'Move project created from Calendly booking',
+                'description' => $dispatchNotes, // 'Move project created from Calendly booking',
                 'customer' => [
                     'first_name' => $payload['first_name'] ?? '',
                     'last_name' => $payload['last_name'] ?? '',
