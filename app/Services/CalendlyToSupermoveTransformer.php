@@ -82,7 +82,7 @@ class CalendlyToSupermoveTransformer
             'id' => 'supersalesforce',
             'project' => [
                 'identifier' => $projectIdentifier,
-                'name' => $this->getQuestionByPosition($questionsAndAnswers, 0),
+                'name' => $this->getAnswerByPosition($questionsAndAnswers, 0),
                 'description' => $dispatchNotes, // 'Move project created from Calendly booking',
                 'customer' => [
                     'first_name' => $payload['first_name'] ?? '',
