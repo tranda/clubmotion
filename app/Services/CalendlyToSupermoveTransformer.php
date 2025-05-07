@@ -246,7 +246,7 @@ class CalendlyToSupermoveTransformer
         // Check if it's an international number
         if (strlen($numbers) > 10) {
             // If longer than 10 digits and starts with country code, take last 10 digits
-            $number = substr($numbers, -10);
+            $numbers = substr($numbers, -10);
         }
         
         // Pad shorter numbers to 10 digits
