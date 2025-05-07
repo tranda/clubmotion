@@ -70,12 +70,12 @@ class CalendlyToSupermoveTransformer
 
         // $dispatchNotes = $this->getAnswerByQuestion($questionsAndAnswers, 'Dispatch Notes').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Square footage').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional property units (check all that apply)').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Move date').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details').', '.$formattedPhoneNumber;
         $dispatchNotes = '';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 3).': '.$this->getAnswerByPosition($questionsAndAnswers, 3).', ';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 4).': '.$this->getAnswerByPosition($questionsAndAnswers, 4).', ';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 5).': '.$this->getAnswerByPosition($questionsAndAnswers, 5).', ';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 6).': '.$this->getAnswerByPosition($questionsAndAnswers, 6).', ';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 7).': '.$this->getAnswerByPosition($questionsAndAnswers, 7).', ';
-        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 8).': '.$this->getAnswerByPosition($questionsAndAnswers, 8).', ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 3).': '.$this->getAnswerByPosition($questionsAndAnswers, 3).',\r\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 4).': '.$this->getAnswerByPosition($questionsAndAnswers, 4).',\r\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 5).': '.$this->getAnswerByPosition($questionsAndAnswers, 5).',\r\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 6).': '.$this->getAnswerByPosition($questionsAndAnswers, 6).',\r\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 7).': '.$this->getAnswerByPosition($questionsAndAnswers, 7).',\r\n ';
+        $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 8).': '.$this->getAnswerByPosition($questionsAndAnswers, 8).',\r\n ';
         $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 9).': '.$this->getAnswerByPosition($questionsAndAnswers, 9).', ';
         
         return [
@@ -83,7 +83,7 @@ class CalendlyToSupermoveTransformer
             'project' => [
                 'identifier' => $projectIdentifier,
                 'name' => $this->getQuestionByPosition($questionsAndAnswers, 0),
-                'description' => 'Move project created from Calendly booking',
+                'description' => $dispatchNotes, // 'Move project created from Calendly booking',
                 'customer' => [
                     'first_name' => $payload['first_name'] ?? '',
                     'last_name' => $payload['last_name'] ?? '',
@@ -105,7 +105,7 @@ class CalendlyToSupermoveTransformer
                         'start_time_1' => $startTime,
                         'start_time_2' => '', // Will be updated later as mentioned
                         'additional_notes' => $this->getAnswerByPosition($questionsAndAnswers, 9),
-                        'dispatch_notes' => $dispatchNotes,
+                        'dispatch_notes' => '', // $dispatchNotes,
                         'office_notes' => '',
                         'note_to_customer' => '',
                         'referral_source' => $referralSource,
