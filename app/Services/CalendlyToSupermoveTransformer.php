@@ -77,6 +77,9 @@ class CalendlyToSupermoveTransformer
         $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 7).': '.$this->getAnswerByPosition($questionsAndAnswers, 7).",\n";
         $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 8).': '.$this->getAnswerByPosition($questionsAndAnswers, 8).",\n";
         $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 9).': '.$this->getAnswerByPosition($questionsAndAnswers, 9);
+        if ($USphoneNumber == '') {
+            $dispatchNotes = $dispatchNotes.",\n".'Phone: '.$USphoneNumber;
+        }
         
         return [
             'id' => 'supersalesforce',
