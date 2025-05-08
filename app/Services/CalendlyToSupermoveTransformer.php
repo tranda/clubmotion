@@ -13,13 +13,10 @@ class CalendlyToSupermoveTransformer
     private function getNextProjectNumber()
     {
         if (!Cache::has('project_counter')) {
-            // Set initial value (for example, starting from 1000)
-            Cache::put('project_counter', 5000, now()->addYears(10)); // Cache for 10 years or whatever duration you prefer
+            Cache::put('project_counter', 5000, now()->addYears(10));
         }
-        // Use Laravel's atomic increment operation
         $number = Cache::increment('project_counter', 1);
         
-        // If the counter wasn't set before (first run), it will be 1
         return $number;
     }
     /**
@@ -33,20 +30,16 @@ class CalendlyToSupermoveTransformer
         $payload = $calendlyData['payload'] ?? [];
         $questionsAndAnswers = $payload['questions_and_answers'] ?? [];
         
-        // Extract data from questions and answers
-        $phoneNumber = $this->getAnswerByPosition($questionsAndAnswers, 1); //$this->getAnswerByQuestion($questionsAndAnswers, 'Phone Number');
-        $bedroomCount = $this->getAnswerByPosition($questionsAndAnswers, 3); //$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms');
-        // $moveDate = $this->getAnswerByQuestion($questionsAndAnswers, 'Move date');
-        $originAddress = $this->getAnswerByPosition($questionsAndAnswers, 7); //$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address');
-        $destinationAddress = $this->getAnswerByPosition($questionsAndAnswers, 8); //$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address');
-        // $referralSource = $this->getAnswerByQuestion($questionsAndAnswers, 'First name and email address of the person to receive complete Video Survey and Cube Sheet - moving consultant/agent ');
-        $referralSource = $this->getAnswerByPosition($questionsAndAnswers, 2);
+        $phoneNumber = $this->getAnswerByPosition($questionsAndAnswers, 1); //'Phone Number');
+        $bedroomCount = $this->getAnswerByPosition($questionsAndAnswers, 3); //'Property size - Number of bedrooms');
+        $originAddress = $this->getAnswerByPosition($questionsAndAnswers, 7); //'Origin Address');
+        $destinationAddress = $this->getAnswerByPosition($questionsAndAnswers, 8); //'Destination Address');
         
-        // Parse origin address (basic parsing, can be improved)
+        $referralSource = $this->getAnswerByPosition($questionsAndAnswers, 2); //'First name and email address of the person to receive complete Video Survey and Cube Sheet - moving consultant/agent ');
+        
         $addressParts = $this->parseAddress($originAddress);
         $addressParts2 = $this->parseAddress($destinationAddress);
         
-        // Generate a unique project identifier
         $projectNumber = $this->getNextProjectNumber();
         $projectIdentifier = $this->projectIdentifierPrefix . str_pad($projectNumber, 4, '0', STR_PAD_LEFT);
         
@@ -59,7 +52,6 @@ class CalendlyToSupermoveTransformer
             ? Carbon::parse($payload['scheduled_event']['end_time'])->format('Hi') 
             : '0900';
         
-        // Map bedroom count to move size
         $moveSize = $bedroomCount . ' Bedroom';
 
         $formattedPhoneNumber = $this->formatPhoneNumber($phoneNumber);
@@ -68,7 +60,6 @@ class CalendlyToSupermoveTransformer
             $USphoneNumber = '';
         }
 
-        // $dispatchNotes = $this->getAnswerByQuestion($questionsAndAnswers, 'Dispatch Notes').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Number of bedrooms').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Property size - Square footage').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional property units (check all that apply)').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Move date').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Origin Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Destination Address').', '.$this->getAnswerByQuestion($questionsAndAnswers, 'Additional Details').', '.$formattedPhoneNumber;
         $dispatchNotes = '';
         $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 3).': '.$this->getAnswerByPosition($questionsAndAnswers, 3).",\n";
         $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 4).': '.$this->getAnswerByPosition($questionsAndAnswers, 4).",\n";
@@ -86,7 +77,7 @@ class CalendlyToSupermoveTransformer
             'project' => [
                 'identifier' => $projectIdentifier,
                 'name' => $this->getAnswerByPosition($questionsAndAnswers, 0),
-                'description' => $dispatchNotes, // 'Move project created from Calendly booking',
+                'description' => $dispatchNotes,
                 'customer' => [
                     'first_name' => $payload['first_name'] ?? '',
                     'last_name' => $payload['last_name'] ?? '',
@@ -103,12 +94,12 @@ class CalendlyToSupermoveTransformer
                         'status' => 'BOOKED',
                         'name' => 'Moving Job',
                         'move_size' => $moveSize,
-                        'crew_size' => '2', // Default value as mentioned
+                        'crew_size' => '2',
                         'date' => $formattedDate,
                         'start_time_1' => $startTime,
-                        'start_time_2' => '', // Will be updated later as mentioned
-                        'additional_notes' => '', // $this->getAnswerByPosition($questionsAndAnswers, 9),
-                        'dispatch_notes' => '', // $dispatchNotes,
+                        'start_time_2' => '',
+                        'additional_notes' => '',
+                        'dispatch_notes' => '',
                         'office_notes' => '',
                         'note_to_customer' => '',
                         'referral_source' => $referralSource,
@@ -118,8 +109,8 @@ class CalendlyToSupermoveTransformer
                                 'address' => $addressParts['street'] ?? $originAddress,
                                 'city' => $addressParts['city'] ?? '',
                                 'zip_code' => $addressParts['zip'] ?? '',
-                                'latitude' => 0, // Will need to be geocoded
-                                'longitude' => 0, // Will need to be geocoded
+                                'latitude' => 0,
+                                'longitude' => 0,
                                 'unit' => '',
                                 'floor_number' => 0,
                                 'notes' => '',
@@ -131,8 +122,8 @@ class CalendlyToSupermoveTransformer
                                 'address' => $addressParts2['street'] ?? $destinationAddress,
                                 'city' => $addressParts2['city'] ?? '',
                                 'zip_code' => $addressParts2['zip'] ?? '',
-                                'latitude' => 0, // Will need to be geocoded
-                                'longitude' => 0, // Will need to be geocoded
+                                'latitude' => 0,
+                                'longitude' => 0,
                                 'unit' => '',
                                 'floor_number' => 0,
                                 'notes' => '',
@@ -243,19 +234,17 @@ class CalendlyToSupermoveTransformer
             return '';
         }
 
-        // Remove non-numeric characters
         $numbers = preg_replace('/[^0-9]/', '', $phoneNumber);
         
-        // Check if it's an international number
+        // Check if it's US number
         if (strlen($numbers) == 11 && substr($numbers, 0, 1) == '1') {
-            // If longer than 10 digits and starts with country code, take last 10 digits
             $numbers = substr($numbers, -10);
         }
         
         // Pad shorter numbers to 10 digits
-        if (strlen($numbers) < 10) {
-            return str_pad($numbers, 10, '0', STR_PAD_LEFT);
-        }
+        // if (strlen($numbers) < 10) {
+        //     return str_pad($numbers, 10, '0', STR_PAD_LEFT);
+        // }
         
         return $numbers;
     }
