@@ -78,7 +78,7 @@ class CalendlyToSupermoveTransformer
         $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 8).': '.$this->getAnswerByPosition($questionsAndAnswers, 8).",\n";
         $dispatchNotes = $dispatchNotes.$this->getQuestionByPosition($questionsAndAnswers, 9).': '.$this->getAnswerByPosition($questionsAndAnswers, 9);
         if ($USphoneNumber == '') {
-            $dispatchNotes = $dispatchNotes.",\n".'Phone: '.$USphoneNumber;
+            $dispatchNotes = $dispatchNotes.",\n".'Phone: '.$formattedPhoneNumber;
         }
         
         return [
