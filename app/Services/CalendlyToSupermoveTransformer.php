@@ -244,7 +244,7 @@ class CalendlyToSupermoveTransformer
         $numbers = preg_replace('/[^0-9]/', '', $phoneNumber);
         
         // Check if it's an international number
-        if (strlen($numbers) > 10) {
+        if (strlen($numbers) == 11 && substr($numbers, 0, 1) == '1') {
             // If longer than 10 digits and starts with country code, take last 10 digits
             $numbers = substr($numbers, -10);
         }
