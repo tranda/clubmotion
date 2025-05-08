@@ -104,7 +104,7 @@ class CalendlyToSupermoveTransformer
                         'date' => $formattedDate,
                         'start_time_1' => $startTime,
                         'start_time_2' => '', // Will be updated later as mentioned
-                        'additional_notes' => $this->getAnswerByPosition($questionsAndAnswers, 9),
+                        'additional_notes' => '', // $this->getAnswerByPosition($questionsAndAnswers, 9),
                         'dispatch_notes' => '', // $dispatchNotes,
                         'office_notes' => '',
                         'note_to_customer' => '',
