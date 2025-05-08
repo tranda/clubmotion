@@ -241,11 +241,6 @@ class CalendlyToSupermoveTransformer
             $numbers = substr($numbers, -10);
         }
         
-        // Pad shorter numbers to 10 digits
-        // if (strlen($numbers) < 10) {
-        //     return str_pad($numbers, 10, '0', STR_PAD_LEFT);
-        // }
-        
         return $numbers;
     }
 }
