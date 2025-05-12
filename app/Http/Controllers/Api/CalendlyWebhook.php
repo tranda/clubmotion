@@ -151,7 +151,7 @@ class CalendlyWebhook extends Controller {
         $maxAge = 5 * 60; // 5 minutes in seconds
         if (time() - intval($timestamp) > $maxAge) {
             Log::warning('Webhook timestamp too old');
-            // return false;
+            return false;
         }
         
         // Calculate the expected signature
