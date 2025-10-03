@@ -1,13 +1,36 @@
 import { Link } from '@inertiajs/react';
 import Layout from '../Components/Layout';
 
-export default function Home() {
+export default function Home({ stats }) {
     return (
         <Layout>
             <div className="py-8">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to ClubMotion</h1>
                     <p className="text-gray-600">Manage your club members and payments efficiently</p>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="mb-8 bg-white rounded-lg shadow-md p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Overview</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                            <p className="text-4xl font-bold text-blue-600">{stats.totalMembers}</p>
+                            <p className="text-sm text-gray-600 mt-2">Total Members</p>
+                        </div>
+                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                            <p className="text-4xl font-bold text-green-600">{stats.activeMembers}</p>
+                            <p className="text-sm text-gray-600 mt-2">Active Members</p>
+                        </div>
+                        <div className="text-center p-4 bg-purple-50 rounded-lg">
+                            <p className="text-4xl font-bold text-purple-600">{stats.newThisMonth}</p>
+                            <p className="text-sm text-gray-600 mt-2">New This Month</p>
+                        </div>
+                        <div className="text-center p-4 bg-gray-100 rounded-lg">
+                            <p className="text-4xl font-bold text-gray-400">-</p>
+                            <p className="text-sm text-gray-600 mt-2">Pending Payments</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Dashboard Cards */}
@@ -68,29 +91,6 @@ export default function Home() {
                         <h2 className="text-xl font-semibold text-gray-900 mb-2">Add Member</h2>
                         <p className="text-gray-600">Register a new club member</p>
                     </Link>
-                </div>
-
-                {/* Quick Stats (Optional - can be populated with real data later) */}
-                <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Overview</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-blue-600">-</p>
-                            <p className="text-sm text-gray-600 mt-1">Total Members</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-green-600">-</p>
-                            <p className="text-sm text-gray-600 mt-1">Active Members</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-purple-600">-</p>
-                            <p className="text-sm text-gray-600 mt-1">New This Month</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-3xl font-bold text-orange-600">-</p>
-                            <p className="text-sm text-gray-600 mt-1">Pending Payments</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </Layout>

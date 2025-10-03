@@ -1,10 +1,24 @@
 <?php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MemberController;
+use App\Models\Member;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 Route::get('/', function () {
-    return Inertia::render('Home');
+    $totalMembers = Member::count();
+    $activeMembers = Member::where('is_active', true)->count();
+    $newThisMonth = Member::whereMonth('created_at', Carbon::now()->month)
+                          ->whereYear('created_at', Carbon::now()->year)
+                          ->count();
+
+    return Inertia::render('Home', [
+        'stats' => [
+            'totalMembers' => $totalMembers,
+            'activeMembers' => $activeMembers,
+            'newThisMonth' => $newThisMonth,
+        ]
+    ]);
 })->name('home');
 
 // Member routes
