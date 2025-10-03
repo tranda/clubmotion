@@ -1,8 +1,11 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
 
 export default function Show({ member }) {
+    const { auth } = usePage().props;
+    const userRole = auth.user?.role?.name || 'user';
+    const canManage = userRole === 'admin' || userRole === 'superuser';
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const handleDelete = () => {
@@ -18,15 +21,17 @@ export default function Show({ member }) {
             <div className="py-4">
                 {/* Header */}
                 <div className="mb-6">
-                    <Link
-                        href="/members"
-                        className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
-                    >
-                        <svg className="w-5 h-5 mr-1" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Back to Members
-                    </Link>
+                    {canManage && (
+                        <Link
+                            href="/members"
+                            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
+                        >
+                            <svg className="w-5 h-5 mr-1" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Back to Members
+                        </Link>
+                    )}
                     <h1 className="text-2xl font-bold text-gray-800">{member.name}'s Details</h1>
                 </div>
 
@@ -115,28 +120,30 @@ export default function Show({ member }) {
                         </dl>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row gap-3">
-                        <Link
-                            href={`/members/${member.id}/edit`}
-                            className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Edit Member
-                        </Link>
+                    {/* Action Buttons - Admin/Superuser only */}
+                    {canManage && (
+                        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row gap-3">
+                            <Link
+                                href={`/members/${member.id}/edit`}
+                                className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit Member
+                            </Link>
 
-                        <button
-                            onClick={() => setShowDeleteConfirm(true)}
-                            className="inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                        >
-                            <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Delete Member
-                        </button>
-                    </div>
+                            <button
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Delete Member
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Delete Confirmation Modal */}
