@@ -39,15 +39,36 @@ class AuthController extends Controller
             return redirect()->intended('/');
         }
 
-        // Check if user exists but password is incorrect or not set
+        // Check if user exists
         $user = \App\Models\User::where('email', $request->email)->first();
 
-        if ($user && !$user->password) {
-            // User exists but no password set - send reset link
-            Password::sendResetLink(['email' => $request->email]);
+        if (!$user) {
+            // User doesn't exist - check if there's a member with this email
+            $member = \App\Models\Member::where('email', $request->email)->first();
+
+            if ($member) {
+                // Member exists but no user account - create user and send password setup link
+                $newUser = \App\Models\User::create([
+                    'name' => $member->name,
+                    'email' => $member->email,
+                    'password' => Hash::make(Str::random(32)), // temporary random password
+                    'role_id' => 3, // regular user role
+                ]);
+
+                // Link member to user
+                $member->user_id = $newUser->id;
+                $member->save();
+
+                // Send password reset link
+                Password::sendResetLink(['email' => $request->email]);
+
+                throw ValidationException::withMessages([
+                    'email' => 'Welcome! We have created your account and sent you an email with a link to set your password.',
+                ]);
+            }
 
             throw ValidationException::withMessages([
-                'email' => 'Your account exists but no password is set. We have sent you a password reset link to set your password.',
+                'email' => 'No account found with this email address.',
             ]);
         }
 
