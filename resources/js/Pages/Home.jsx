@@ -13,11 +13,7 @@ export default function Home({ stats }) {
                 {/* Quick Stats */}
                 <div className="mb-8 bg-white rounded-lg shadow-md p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Overview</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-                        <div className="text-center p-4 bg-blue-50 rounded-lg">
-                            <p className="text-4xl font-bold text-blue-600">{stats.totalMembers}</p>
-                            <p className="text-sm text-gray-600 mt-2">Total Members</p>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                         <div className="text-center p-4 bg-green-50 rounded-lg">
                             <p className="text-4xl font-bold text-green-600">{stats.activeMembers}</p>
                             <p className="text-sm text-gray-600 mt-2">Active Members</p>
