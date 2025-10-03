@@ -1,0 +1,98 @@
+import { Link } from '@inertiajs/react';
+import Layout from '../Components/Layout';
+
+export default function Home() {
+    return (
+        <Layout>
+            <div className="py-8">
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to ClubMotion</h1>
+                    <p className="text-gray-600">Manage your club members and payments efficiently</p>
+                </div>
+
+                {/* Dashboard Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Members Card */}
+                    <Link
+                        href="/members"
+                        className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-blue-100 rounded-full">
+                                <svg className="w-8 h-8 text-blue-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <svg className="w-6 h-6 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Members</h2>
+                        <p className="text-gray-600">View and manage club members</p>
+                    </Link>
+
+                    {/* Payments Card */}
+                    <Link
+                        href="/payments"
+                        className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-green-100 rounded-full">
+                                <svg className="w-8 h-8 text-green-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                            </div>
+                            <svg className="w-6 h-6 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Payments</h2>
+                        <p className="text-gray-600">Track membership payments</p>
+                    </Link>
+
+                    {/* Add Member Card */}
+                    <Link
+                        href="/members/create"
+                        className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-dashed border-gray-300 hover:border-blue-500"
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-purple-100 rounded-full">
+                                <svg className="w-8 h-8 text-purple-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                            </div>
+                            <svg className="w-6 h-6 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Add Member</h2>
+                        <p className="text-gray-600">Register a new club member</p>
+                    </Link>
+                </div>
+
+                {/* Quick Stats (Optional - can be populated with real data later) */}
+                <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Overview</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center">
+                            <p className="text-3xl font-bold text-blue-600">-</p>
+                            <p className="text-sm text-gray-600 mt-1">Total Members</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-3xl font-bold text-green-600">-</p>
+                            <p className="text-sm text-gray-600 mt-1">Active Members</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-3xl font-bold text-purple-600">-</p>
+                            <p className="text-sm text-gray-600 mt-1">New This Month</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-3xl font-bold text-orange-600">-</p>
+                            <p className="text-sm text-gray-600 mt-1">Pending Payments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Layout>
+    );
+}

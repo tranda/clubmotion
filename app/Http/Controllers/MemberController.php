@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\MembershipCategory;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class MemberController extends Controller
 {
@@ -22,12 +23,15 @@ class MemberController extends Controller
         $filter = $request->query('filter', '');
 
         if ($filter === 'active') {
-            $members = Member::where('is_active', 1)->orderBy('membership_number')->get();
+            $members = Member::with('category')->where('is_active', 1)->orderBy('membership_number')->get();
         } else {
-            $members = Member::orderBy('membership_number')->get();
+            $members = Member::with('category')->orderBy('membership_number')->get();
         }
 
-        return view('members.index', compact('members', 'filter'));
+        return Inertia::render('Members/Index', [
+            'members' => $members,
+            'filter' => $filter,
+        ]);
     }
 
     /**
@@ -38,7 +42,9 @@ class MemberController extends Controller
     public function create()
     {
         $categories = MembershipCategory::all();
-        return view('members.create', compact('categories'));
+        return Inertia::render('Members/Create', [
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -88,8 +94,10 @@ class MemberController extends Controller
      */
     public function show($id)
     {
-        $member = Member::findOrFail($id);
-        return view('members.show', compact('member'));
+        $member = Member::with('category')->findOrFail($id);
+        return Inertia::render('Members/Show', [
+            'member' => $member,
+        ]);
     }
 
     /**
@@ -101,7 +109,10 @@ class MemberController extends Controller
     public function edit(Member $member)
     {
         $categories = MembershipCategory::all();
-        return view('members.edit', compact('member', 'categories'));
+        return Inertia::render('Members/Edit', [
+            'member' => $member,
+            'categories' => $categories,
+        ]);
     }
 
     /**
