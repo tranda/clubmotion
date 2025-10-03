@@ -106,6 +106,25 @@ export default function Home({ stats }) {
                                 <h2 className="text-xl font-semibold text-gray-900 mb-2">My Profile</h2>
                                 <p className="text-gray-600">View your member information</p>
                             </Link>
+
+                            {/* My Payments Card - Regular users */}
+                            <Link
+                                href="/payments"
+                                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                            >
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="p-3 bg-green-100 rounded-full">
+                                        <svg className="w-8 h-8 text-green-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                        </svg>
+                                    </div>
+                                    <svg className="w-6 h-6 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                                <h2 className="text-xl font-semibold text-gray-900 mb-2">My Payments</h2>
+                                <p className="text-gray-600">View your payment obligations</p>
+                            </Link>
                         </>
                     )}
                 </div>

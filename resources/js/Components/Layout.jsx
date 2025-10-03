@@ -67,17 +67,15 @@ export default function Layout({ children }) {
                                 </Link>
                             )}
 
-                            {canManage && (
-                                <Link
-                                    href="/payments"
-                                    className="flex items-center px-4 py-2 text-gray-800 font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
-                                >
-                                    <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                    </svg>
-                                    Payments
-                                </Link>
-                            )}
+                            <Link
+                                href="/payments"
+                                className="flex items-center px-4 py-2 text-gray-800 font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                {canManage ? 'Payments' : 'My Payments'}
+                            </Link>
                         </nav>
 
                         {/* Right Side: User Menu + Hamburger */}
@@ -191,18 +189,16 @@ export default function Layout({ children }) {
                             </Link>
                         )}
 
-                        {canManage && (
-                            <Link
-                                href="/payments"
-                                onClick={closeMenu}
-                                className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
-                            >
-                                <svg className="w-5 h-5 mr-3" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                </svg>
-                                Payments
-                            </Link>
-                        )}
+                        <Link
+                            href="/payments"
+                            onClick={closeMenu}
+                            className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                        >
+                            <svg className="w-5 h-5 mr-3" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                            {canManage ? 'Payments' : 'My Payments'}
+                        </Link>
 
                         {/* Mobile User Info & Logout */}
                         <div className="mt-6 pt-6 border-t border-gray-200">

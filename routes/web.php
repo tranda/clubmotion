@@ -60,10 +60,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('members.destroy');
     });
 
-    // Payments - accessible to admin and superuser
-    Route::middleware('role:admin,superuser')->group(function () {
-        Route::get('/payments', function () {
-            return Inertia::render('Payments/Index');
-        })->name('payments.index');
-    });
+    // Payments - accessible to all authenticated users
+    Route::get('/payments', function () {
+        return Inertia::render('Payments/Index');
+    })->name('payments.index');
 });
