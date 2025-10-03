@@ -23,27 +23,12 @@ Route::middleware('auth')->group(function () {
 
     // Home - accessible to all authenticated users
     Route::get('/', function () {
-        $user = auth()->user();
-
-        // Admin and superuser see all stats
-        if ($user->isAdmin() || $user->isSuperuser()) {
-            $totalMembers = Member::count();
-            $activeMembers = Member::where('is_active', true)->count();
-            $newThisMonth = Member::whereMonth('created_at', Carbon::now()->month)
-                                  ->whereYear('created_at', Carbon::now()->year)
-                                  ->count();
-        } else {
-            // Regular users see limited stats
-            $totalMembers = 1; // just themselves
-            $activeMembers = $user->member && $user->member->is_active ? 1 : 0;
-            $newThisMonth = 0;
-        }
+        // Show real active members count to everyone
+        $activeMembers = Member::where('is_active', true)->count();
 
         return Inertia::render('Home', [
             'stats' => [
-                'totalMembers' => $totalMembers,
                 'activeMembers' => $activeMembers,
-                'newThisMonth' => $newThisMonth,
             ]
         ]);
     })->name('home');
