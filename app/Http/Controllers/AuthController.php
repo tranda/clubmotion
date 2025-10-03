@@ -39,6 +39,18 @@ class AuthController extends Controller
             return redirect()->intended('/');
         }
 
+        // Check if user exists but password is incorrect or not set
+        $user = \App\Models\User::where('email', $request->email)->first();
+
+        if ($user && !$user->password) {
+            // User exists but no password set - send reset link
+            Password::sendResetLink(['email' => $request->email]);
+
+            throw ValidationException::withMessages([
+                'email' => 'Your account exists but no password is set. We have sent you a password reset link to set your password.',
+            ]);
+        }
+
         throw ValidationException::withMessages([
             'email' => 'The provided credentials do not match our records.',
         ]);
