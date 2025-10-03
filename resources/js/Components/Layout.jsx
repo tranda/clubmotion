@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 
 export default function Layout({ children }) {
+    const { auth } = usePage().props;
     const [menuOpen, setMenuOpen] = useState(false);
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
 
     const toggleMenu = () => {
         setMenuOpen(!menuOpen);
@@ -11,6 +13,12 @@ export default function Layout({ children }) {
     const closeMenu = () => {
         setMenuOpen(false);
     };
+
+    const handleLogout = () => {
+        router.post('/logout');
+    };
+
+    const canManage = auth.user?.role?.name === 'admin' || auth.user?.role?.name === 'superuser';
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -56,28 +64,70 @@ export default function Layout({ children }) {
                             </Link>
                         </nav>
 
-                        {/* Hamburger Button - Visible ONLY on Mobile */}
-                        <button
-                            onClick={toggleMenu}
-                            className="md:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            aria-label="Toggle menu"
-                        >
-                            <svg
-                                className="w-6 h-6"
-                                fill="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                {menuOpen ? (
-                                    <path d="M6 18L18 6M6 6l12 12" />
-                                ) : (
-                                    <path d="M4 6h16M4 12h16M4 18h16" />
+                        {/* Right Side: User Menu + Hamburger */}
+                        <div className="flex items-center gap-2">
+                            {/* User Menu - Desktop */}
+                            <div className="hidden md:relative md:block">
+                                <button
+                                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                                        {auth.user?.name?.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span className="text-sm font-medium text-gray-700">{auth.user?.name}</span>
+                                    <svg className="w-4 h-4 text-gray-500" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                {/* Dropdown */}
+                                {userMenuOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)}></div>
+                                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-20">
+                                            <div className="px-4 py-3 border-b border-gray-200">
+                                                <p className="text-sm font-medium text-gray-900">{auth.user?.name}</p>
+                                                <p className="text-xs text-gray-500">{auth.user?.email}</p>
+                                                <p className="text-xs text-blue-600 font-medium mt-1 capitalize">{auth.user?.role?.name}</p>
+                                            </div>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                </svg>
+                                                Logout
+                                            </button>
+                                        </div>
+                                    </>
                                 )}
-                            </svg>
-                        </button>
+                            </div>
+
+                            {/* Hamburger Button - Visible ONLY on Mobile */}
+                            <button
+                                onClick={toggleMenu}
+                                className="md:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-label="Toggle menu"
+                            >
+                                <svg
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    {menuOpen ? (
+                                        <path d="M6 18L18 6M6 6l12 12" />
+                                    ) : (
+                                        <path d="M4 6h16M4 12h16M4 18h16" />
+                                    )}
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -122,6 +172,24 @@ export default function Layout({ children }) {
                             </svg>
                             Payments
                         </Link>
+
+                        {/* Mobile User Info & Logout */}
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                            <div className="px-4 py-3 bg-gray-50 rounded-lg mb-3">
+                                <p className="text-sm font-medium text-gray-900">{auth.user?.name}</p>
+                                <p className="text-xs text-gray-500">{auth.user?.email}</p>
+                                <p className="text-xs text-blue-600 font-medium mt-1 capitalize">{auth.user?.role?.name}</p>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                                <svg className="w-5 h-5 mr-3" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                Logout
+                            </button>
+                        </div>
                     </nav>
                 </div>
             </aside>
