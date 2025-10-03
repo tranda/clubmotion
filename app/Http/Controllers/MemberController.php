@@ -95,6 +95,15 @@ class MemberController extends Controller
     public function show($id)
     {
         $member = Member::with('category')->findOrFail($id);
+        $user = auth()->user();
+
+        // Regular users can only see their own profile
+        if (!$user->isAdmin() && !$user->isSuperuser()) {
+            if (!$user->member || $user->member->id != $member->id) {
+                abort(403, 'Unauthorized to view this member');
+            }
+        }
+
         return Inertia::render('Members/Show', [
             'member' => $member,
         ]);

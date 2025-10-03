@@ -62,4 +62,9 @@ class User extends Authenticatable
     {
         return $this->hasRole('superuser');
     }
+
+    public function member()
+    {
+        return $this->hasOne(Member::class);
+    }
 }

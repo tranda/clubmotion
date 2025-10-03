@@ -23,11 +23,21 @@ Route::middleware('auth')->group(function () {
 
     // Home - accessible to all authenticated users
     Route::get('/', function () {
-        $totalMembers = Member::count();
-        $activeMembers = Member::where('is_active', true)->count();
-        $newThisMonth = Member::whereMonth('created_at', Carbon::now()->month)
-                              ->whereYear('created_at', Carbon::now()->year)
-                              ->count();
+        $user = auth()->user();
+
+        // Admin and superuser see all stats
+        if ($user->isAdmin() || $user->isSuperuser()) {
+            $totalMembers = Member::count();
+            $activeMembers = Member::where('is_active', true)->count();
+            $newThisMonth = Member::whereMonth('created_at', Carbon::now()->month)
+                                  ->whereYear('created_at', Carbon::now()->year)
+                                  ->count();
+        } else {
+            // Regular users see limited stats
+            $totalMembers = 1; // just themselves
+            $activeMembers = $user->member && $user->member->is_active ? 1 : 0;
+            $newThisMonth = 0;
+        }
 
         return Inertia::render('Home', [
             'stats' => [
@@ -38,8 +48,22 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('home');
 
-    // Member routes - accessible to all authenticated users (view only for regular users)
-    Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+    // My Profile - for regular users to see their own data
+    Route::get('/my-profile', function () {
+        $user = auth()->user();
+
+        if (!$user->member) {
+            abort(404, 'Member profile not found');
+        }
+
+        return redirect()->route('members.show', $user->member->id);
+    })->name('profile');
+
+    // Member routes - Admin and Superuser can view all, Users redirected to their profile
+    Route::middleware('role:admin,superuser')->group(function () {
+        Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+    });
+
     Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
 
     // Admin and Superuser only routes (create, edit, delete)
