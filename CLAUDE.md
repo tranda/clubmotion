@@ -52,6 +52,37 @@ See VERSION.md and CHANGELOG.md for detailed versioning instructions and change 
 - **Build Tool**: Vite
 - **Database**: MySQL (via shared hosting)
 
+## Project Structure
+
+### Frontend (React + Inertia)
+- **Pages**: `resources/js/Pages/` - All React page components
+  - `Auth/` - Login, ForgotPassword, ResetPassword
+  - `Members/` - Index, Show, Create, Edit
+  - `Home.jsx` - Dashboard
+- **Components**: `resources/js/Components/` - Reusable React components
+  - `Layout.jsx` - Main layout with navigation
+- **Entry Point**: `resources/js/app.jsx` - Inertia app initialization
+- **Styles**: `resources/css/app.css` - Tailwind CSS entry point
+
+### Backend (Laravel)
+- **Controllers**: `app/Http/Controllers/`
+  - `AuthController.php` - Authentication logic
+  - `MemberController.php` - Member CRUD operations
+- **Models**: `app/Models/`
+  - `User.php`, `Member.php`, `Role.php`, `Category.php`
+- **Routes**: `routes/web.php` - All application routes
+- **Middleware**: `app/Http/Middleware/`
+  - `HandleInertiaRequests.php` - Shares auth data with frontend
+  - `CheckRole.php` - Role-based access control
+
+### Configuration
+- **Vite**: `vite.config.mjs` - Frontend build configuration
+- **Tailwind**: `tailwind.config.js` - Tailwind CSS configuration
+- **Laravel**: `config/` - Laravel configuration files
+
+### Build Output
+- **Public Assets**: `public/build/` - Compiled frontend assets (committed to repo)
+
 ## Role System
 - **admin** (role_id=1): Full system access
 - **superuser** (role_id=2): Club management access
