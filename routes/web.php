@@ -3,8 +3,26 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\AuthController;
 use App\Models\Member;
+use App\Models\Role;
+use App\Models\User;
 use Inertia\Inertia;
 use Carbon\Carbon;
+
+// One-time setup route to seed roles and fix existing users
+Route::get('/setup-roles', function () {
+    // Run role seeder
+    \Artisan::call('db:seed', ['--class' => 'RoleSeeder']);
+
+    // Find user role
+    $userRole = Role::where('name', 'user')->first();
+
+    // Update all users without a role to 'user' role
+    if ($userRole) {
+        User::whereNull('role_id')->update(['role_id' => $userRole->id]);
+    }
+
+    return 'Roles seeded and users updated! You can now delete this route from web.php';
+});
 
 // Guest routes (login, password reset)
 Route::middleware('guest')->group(function () {

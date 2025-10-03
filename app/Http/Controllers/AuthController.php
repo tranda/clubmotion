@@ -48,11 +48,14 @@ class AuthController extends Controller
 
             if ($member) {
                 // Member exists but no user account - create user with the password they entered
+                // Find the 'user' role (regular member role)
+                $userRole = \App\Models\Role::where('name', 'user')->first();
+
                 $newUser = \App\Models\User::create([
                     'name' => $member->name,
                     'email' => $member->email,
                     'password' => Hash::make($request->password),
-                    'role_id' => 3, // regular user role
+                    'role_id' => $userRole ? $userRole->id : null,
                 ]);
 
                 // Link member to user

@@ -18,7 +18,9 @@ export default function Layout({ children }) {
         router.post('/logout');
     };
 
-    const canManage = auth.user?.role?.name === 'admin' || auth.user?.role?.name === 'superuser';
+    // Only admin and superuser can manage - if no role, treat as regular user
+    const userRole = auth.user?.role?.name || 'user';
+    const canManage = userRole === 'admin' || userRole === 'superuser';
 
     return (
         <div className="min-h-screen bg-gray-50">
