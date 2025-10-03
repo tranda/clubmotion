@@ -47,11 +47,11 @@ class AuthController extends Controller
             $member = \App\Models\Member::where('email', $request->email)->first();
 
             if ($member) {
-                // Member exists but no user account - create user and send password setup link
+                // Member exists but no user account - create user with the password they entered
                 $newUser = \App\Models\User::create([
                     'name' => $member->name,
                     'email' => $member->email,
-                    'password' => Hash::make(Str::random(32)), // temporary random password
+                    'password' => Hash::make($request->password),
                     'role_id' => 3, // regular user role
                 ]);
 
@@ -59,12 +59,11 @@ class AuthController extends Controller
                 $member->user_id = $newUser->id;
                 $member->save();
 
-                // Send password reset link
-                Password::sendResetLink(['email' => $request->email]);
+                // Log them in immediately
+                Auth::login($newUser, $request->boolean('remember'));
+                $request->session()->regenerate();
 
-                throw ValidationException::withMessages([
-                    'email' => 'Welcome! We have created your account and sent you an email with a link to set your password.',
-                ]);
+                return redirect()->intended('/');
             }
 
             throw ValidationException::withMessages([
