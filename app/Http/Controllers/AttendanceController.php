@@ -163,4 +163,136 @@ class AttendanceController extends Controller
     {
         return response()->json(SessionType::all());
     }
+
+    /**
+     * Show import form
+     */
+    public function showImport()
+    {
+        return Inertia::render('Attendance/Import');
+    }
+
+    /**
+     * Import attendance from CSV
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:5120', // 5MB max
+        ]);
+
+        $file = $request->file('csv_file');
+        $path = $file->getRealPath();
+        $data = array_map('str_getcsv', file($path));
+
+        if (count($data) < 2) {
+            return redirect()->back()->with('error', 'CSV file is empty or invalid.');
+        }
+
+        $headers = array_shift($data); // Remove header row
+        $errors = [];
+        $imported = 0;
+        $skipped = 0;
+
+        // Get default Training session type
+        $trainingType = SessionType::where('name', 'Training')->first();
+        if (!$trainingType) {
+            return redirect()->back()->with('error', 'Training session type not found. Please run the seeder.');
+        }
+
+        // Parse date columns (skip first two columns: name and membership number)
+        $dateColumns = [];
+        for ($i = 2; $i < count($headers); $i++) {
+            $dateStr = trim($headers[$i]);
+
+            // Parse date format like "4-Sep", "5-Sep", etc.
+            if (preg_match('/^(\d+)-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/i', $dateStr, $matches)) {
+                $day = $matches[1];
+                $month = $matches[2];
+
+                // Convert month name to number
+                $monthNum = date('m', strtotime($month));
+
+                // Use current year (you can make this configurable)
+                $year = date('Y');
+
+                try {
+                    $date = Carbon::createFromFormat('Y-m-d', "$year-$monthNum-$day");
+                    $dateColumns[$i] = $date->format('Y-m-d');
+                } catch (\Exception $e) {
+                    $errors[] = "Invalid date format in column: $dateStr";
+                }
+            }
+        }
+
+        if (empty($dateColumns)) {
+            return redirect()->back()->with('error', 'No valid date columns found. Expected format: DD-MMM (e.g., 4-Sep)');
+        }
+
+        // Process each row
+        foreach ($data as $rowIndex => $row) {
+            $lineNumber = $rowIndex + 2; // +2 because we removed header and arrays are 0-indexed
+
+            // Skip empty rows
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            // Get membership number (second column)
+            $membershipNumber = isset($row[1]) ? trim($row[1]) : null;
+
+            if (empty($membershipNumber)) {
+                $errors[] = "Line $lineNumber: Missing membership number";
+                $skipped++;
+                continue;
+            }
+
+            // Find member by membership number
+            $member = Member::where('membership_number', $membershipNumber)->first();
+
+            if (!$member) {
+                $errors[] = "Line $lineNumber: Member with number $membershipNumber not found";
+                $skipped++;
+                continue;
+            }
+
+            // Process each date column
+            foreach ($dateColumns as $colIndex => $date) {
+                $attendance = isset($row[$colIndex]) ? strtoupper(trim($row[$colIndex])) : 'FALSE';
+
+                $isPresent = ($attendance === 'TRUE' || $attendance === '1');
+
+                // Create or get session for this date
+                $session = AttendanceSession::firstOrCreate(
+                    [
+                        'date' => $date,
+                        'session_type_id' => $trainingType->id,
+                    ]
+                );
+
+                // Create or update attendance record
+                AttendanceRecord::updateOrCreate(
+                    [
+                        'member_id' => $member->id,
+                        'session_id' => $session->id,
+                    ],
+                    [
+                        'present' => $isPresent,
+                    ]
+                );
+
+                $imported++;
+            }
+        }
+
+        $message = "Import completed: $imported records imported";
+        if ($skipped > 0) {
+            $message .= ", $skipped rows skipped";
+        }
+
+        return redirect()
+            ->route('attendance.index')
+            ->with('success', $message)
+            ->with('import_errors', $errors);
+    }
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { router, usePage, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotals, sessionTypes, year, month, sessionTypeFilter }) {
@@ -161,9 +161,19 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
                     </div>
                 </div>
 
-                {/* Session Type Legend */}
+                {/* Session Type Legend and Import */}
                 <div className="bg-white rounded-lg shadow p-4 mb-6">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Session Types:</h3>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-medium text-gray-700">Session Types:</h3>
+                        {canManage && (
+                            <Link
+                                href="/attendance/import"
+                                className="text-sm bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                            >
+                                📥 Import CSV
+                            </Link>
+                        )}
+                    </div>
                     <div className="flex flex-wrap gap-3">
                         {sessionTypes.map(type => (
                             <div key={type.id} className="flex items-center gap-2">
