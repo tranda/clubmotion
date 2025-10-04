@@ -242,6 +242,7 @@ export default function Index({ members, filter, categoryStats }) {
                         <h3 className="text-lg font-semibold text-gray-900 mb-6">Members by Category</h3>
                         <div className="relative">
                             {(() => {
+                                console.log('Category stats:', categoryStats);
                                 const maxCount = Math.max(...categoryStats.map(c => c.count));
                                 const chartHeight = 300;
 
