@@ -16,14 +16,12 @@ export default function ImportAttendance() {
         e.preventDefault();
 
         if (files.length === 0) {
-            alert('Please select at least one CSV file to import');
+            alert('Please select a CSV file to import');
             return;
         }
 
         const formData = new FormData();
-        files.forEach((file, index) => {
-            formData.append(`csv_files[${index}]`, file);
-        });
+        formData.append('csv_files[0]', files[0]);
 
         setProcessing(true);
 
@@ -54,23 +52,17 @@ export default function ImportAttendance() {
                             {/* File Upload */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Upload CSV Files (Multiple)
+                                    Upload CSV File
                                 </label>
                                 <input
                                     type="file"
                                     accept=".csv,.txt"
-                                    multiple
                                     onChange={handleFileChange}
                                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                 />
                                 {files.length > 0 && (
                                     <div className="mt-2 text-sm text-green-600">
-                                        <p className="font-semibold">Selected {files.length} file{files.length > 1 ? 's' : ''}:</p>
-                                        <ul className="list-disc ml-5 mt-1">
-                                            {files.map((file, idx) => (
-                                                <li key={idx}>{file.name}</li>
-                                            ))}
-                                        </ul>
+                                        <p className="font-semibold">Selected file: {files[0].name}</p>
                                     </div>
                                 )}
                             </div>
