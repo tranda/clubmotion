@@ -1,7 +1,8 @@
-import { useForm, Link } from '@inertiajs/react';
+import { useForm, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Login({ status }) {
+    const { expired } = usePage().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -29,6 +30,13 @@ export default function Login({ status }) {
 
                 {/* Login Card */}
                 <div className="bg-white rounded-2xl shadow-xl p-8">
+                    {/* Session Expired Message */}
+                    {expired && (
+                        <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg text-sm">
+                            Your session has expired. Please sign in again.
+                        </div>
+                    )}
+
                     {/* Status Message */}
                     {status && (
                         <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">

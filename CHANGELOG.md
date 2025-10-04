@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.16] - 2025-01-05
+
+### Added
+- Added automatic redirect to login page with message when session expires (419 error)
+
 ## [0.5.15] - 2025-01-05
 
 ### Changed

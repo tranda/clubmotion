@@ -2,10 +2,20 @@ import './bootstrap';
 import '../css/app.css';
 
 import { createRoot } from 'react-dom/client';
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 
 const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'Laravel';
+
+// Handle 419 session expired errors
+router.on('error', (event) => {
+    if (event.detail.response?.status === 419) {
+        router.visit('/login', {
+            data: { expired: true },
+            replace: true
+        });
+    }
+});
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
