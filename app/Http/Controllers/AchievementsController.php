@@ -44,23 +44,18 @@ class AchievementsController extends Controller
             $file = $request->file('file');
             $csvData = array_map('str_getcsv', file($file->getRealPath()));
 
-            // Get header row
-            $header = array_shift($csvData);
+            // Skip header row (first row)
+            array_shift($csvData);
 
-            // Normalize header (trim spaces, lowercase for matching)
-            $header = array_map(function($col) {
-                return strtolower(trim($col));
-            }, $header);
-
-            // Find column indexes
-            $membershipCol = array_search('membership_number', $header);
-            $classCol = array_search('competition class', $header);
-            $medalCol = array_search('medal', $header);
-            $eventCol = array_search('event name', $header);
-
-            if ($membershipCol === false || $classCol === false || $medalCol === false || $eventCol === false) {
-                return redirect()->back()->with('error', 'CSV must contain: membership_number, competition class, medal, Event name');
-            }
+            // Hardcoded column mapping:
+            // Column A (0) = membership_number
+            // Column B (1) = Competition class
+            // Column C (2) = achievement (medal)
+            // Column D (3) = Competition name (event name)
+            $membershipCol = 0;
+            $classCol = 1;
+            $medalCol = 2;
+            $eventCol = 3;
 
             $imported = 0;
             $skipped = 0;

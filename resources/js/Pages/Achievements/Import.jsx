@@ -98,20 +98,20 @@ export default function Import() {
 
                             {/* CSV Format Instructions */}
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h3 className="font-medium text-blue-900 mb-3">📋 CSV Format</h3>
+                                <h3 className="font-medium text-blue-900 mb-3">📋 CSV Format (Fixed Column Order)</h3>
 
                                 <div className="space-y-3 text-sm text-blue-800">
                                     <div>
-                                        <p className="font-medium mb-1">Expected Format:</p>
+                                        <p className="font-medium mb-1">Required Column Order:</p>
                                         <code className="bg-white px-2 py-1 rounded text-xs block">
-                                            membership_number, competition class, medal, Event name
+                                            Column A: Membership Number | Column B: Competition Class | Column C: Achievement (Medal) | Column D: Competition Name
                                         </code>
                                     </div>
 
                                     <div className="bg-white rounded p-3 mt-2">
-                                        <p className="font-medium mb-2">Example:</p>
+                                        <p className="font-medium mb-2">Example CSV:</p>
                                         <code className="text-xs block">
-                                            membership_number,competition class,medal,Event name<br/>
+                                            <span className="text-gray-500">Any Header,Any Header,Any Header,Any Header</span><br/>
                                             4,SM Premier Mixed 500m,GOLD,National 2025<br/>
                                             5,SM Premier Mixed 200m,SILVER,National 2025
                                         </code>
@@ -120,9 +120,11 @@ export default function Import() {
                                     <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2">
                                         <p className="font-medium">✨ Import Features:</p>
                                         <ul className="list-disc ml-5 mt-1">
-                                            <li>Matches members by membership number</li>
-                                            <li>Automatically extracts year from Event name (e.g., "National 2025" → 2025)</li>
-                                            <li>Medal types: GOLD, SILVER, BRONZE</li>
+                                            <li>First row is automatically skipped (headers don't matter)</li>
+                                            <li>Columns must be in exact order: A, B, C, D</li>
+                                            <li>Matches members by membership number (Column A)</li>
+                                            <li>Automatically extracts year from Competition Name (e.g., "National 2025" → 2025)</li>
+                                            <li>Medal types: GOLD, SILVER, BRONZE (Column C)</li>
                                             <li>Duplicate prevention (updates existing achievements)</li>
                                         </ul>
                                     </div>
@@ -131,12 +133,12 @@ export default function Import() {
 
                             {/* Column Descriptions */}
                             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                <h3 className="font-medium text-gray-900 mb-3">📝 Column Details</h3>
+                                <h3 className="font-medium text-gray-900 mb-3">📝 Column Mapping (Fixed)</h3>
                                 <ul className="space-y-2 text-sm text-gray-700">
-                                    <li><strong>membership_number</strong> → Member's ID (must exist in system)</li>
-                                    <li><strong>competition class</strong> → Competition category/class</li>
-                                    <li><strong>medal</strong> → GOLD, SILVER, or BRONZE</li>
-                                    <li><strong>Event name</strong> → Event/competition name (include year)</li>
+                                    <li><strong>Column A</strong> → Membership Number (must exist in system)</li>
+                                    <li><strong>Column B</strong> → Competition Class/Category</li>
+                                    <li><strong>Column C</strong> → Achievement (GOLD, SILVER, or BRONZE)</li>
+                                    <li><strong>Column D</strong> → Competition Name (include year in name)</li>
                                 </ul>
                             </div>
 
