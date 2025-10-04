@@ -71,11 +71,21 @@ class PaymentController extends Controller
             ];
         });
 
+        // Get available years from actual payment data
+        $yearsInDb = MembershipPayment::select('payment_year')
+            ->distinct()
+            ->orderBy('payment_year', 'desc')
+            ->pluck('payment_year')
+            ->toArray();
+
+        // If no data, default to current year and next year
+        $availableYears = !empty($yearsInDb) ? $yearsInDb : [date('Y') + 1, date('Y')];
+
         return Inertia::render('Payments/Index', [
             'year' => (int)$year,
             'members' => $gridData,
             'stats' => $stats,
-            'availableYears' => range(date('Y') + 1, 2024), // Current year +1 down to 2024
+            'availableYears' => $availableYears,
         ]);
     }
 
@@ -238,8 +248,15 @@ class PaymentController extends Controller
      */
     public function showImport()
     {
+        // Get available years from actual payment data
+        $yearsInDb = MembershipPayment::select('payment_year')
+            ->distinct()
+            ->orderBy('payment_year', 'desc')
+            ->pluck('payment_year')
+            ->toArray();
+
         return Inertia::render('Payments/Import', [
-            'availableYears' => range(date('Y'), 2024),
+            'availableYears' => !empty($yearsInDb) ? $yearsInDb : [date('Y')],
         ]);
     }
 
