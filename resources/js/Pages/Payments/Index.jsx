@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-export default function Index({ year, members, stats, availableYears }) {
+export default function Index({ year, members, stats, availableYears, filter }) {
     const { auth } = usePage().props;
     const [selectedPayment, setSelectedPayment] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -10,7 +10,13 @@ export default function Index({ year, members, stats, availableYears }) {
     const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
     const handleYearChange = (newYear) => {
-        router.get(`/payments?year=${newYear}`);
+        const currentFilter = filter || 'active';
+        router.get(`/payments?year=${newYear}&filter=${currentFilter}`);
+    };
+
+    const handleFilterChange = (e) => {
+        const value = e.target.value;
+        router.get(`/payments?year=${year}&filter=${value}`);
     };
 
     const handleCellClick = (member, month, payment) => {
@@ -63,6 +69,15 @@ export default function Index({ year, members, stats, availableYears }) {
                     <h1 className="text-2xl font-bold text-gray-800">Payments Management - {year}</h1>
 
                     <div className="flex gap-2">
+                        <select
+                            value={filter || 'active'}
+                            onChange={handleFilterChange}
+                            className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        >
+                            <option value="">All</option>
+                            <option value="active">Active</option>
+                        </select>
+
                         <select
                             value={year}
                             onChange={(e) => handleYearChange(e.target.value)}

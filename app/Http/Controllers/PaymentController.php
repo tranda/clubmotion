@@ -16,6 +16,7 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         $year = $request->input('year', date('Y'));
+        $filter = $request->input('filter', 'active');
         $user = auth()->user();
 
         // Regular users see only their own payments
@@ -23,13 +24,16 @@ class PaymentController extends Controller
             return redirect('/my-payments');
         }
 
-        // Get all active members with their payments for the year
-        $members = Member::with(['category', 'payments' => function($query) use ($year) {
+        // Get members with their payments for the year
+        $membersQuery = Member::with(['category', 'payments' => function($query) use ($year) {
             $query->where('payment_year', $year);
-        }])
-        ->where('is_active', true)
-        ->orderBy('membership_number')
-        ->get();
+        }]);
+
+        if ($filter === 'active') {
+            $membersQuery->where('is_active', true);
+        }
+
+        $members = $membersQuery->orderBy('membership_number')->get();
 
         // Calculate stats
         $stats = MembershipPayment::where('payment_year', $year)
@@ -86,6 +90,7 @@ class PaymentController extends Controller
             'members' => $gridData,
             'stats' => $stats,
             'availableYears' => $availableYears,
+            'filter' => $filter,
         ]);
     }
 

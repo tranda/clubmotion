@@ -20,7 +20,7 @@ class MemberController extends Controller
      */
     public function index(Request $request)
     {
-        $filter = $request->query('filter', '');
+        $filter = $request->query('filter', 'active');
 
         if ($filter === 'active') {
             $members = Member::with('category')->where('is_active', 1)->orderBy('membership_number')->get();
@@ -144,7 +144,7 @@ class MemberController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'membership_number' => 'required|integer|max:50',
+            'membership_number' => 'required|integer',
             'date_of_birth' => 'nullable|date',
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',

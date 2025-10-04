@@ -2,6 +2,18 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.10] - 2025-01-05
+
+### Added
+- Added member filter (All/Active) to Payments page with default to 'Active'
+
+### Changed
+- Set default filter to 'Active' on Members page
+- Filter now persists when changing years in Payments page
+
+### Fixed
+- Removed max:50 limit on membership_number validation in member update
+
 ## [0.5.9] - 2025-01-05
 
 ### Changed

@@ -25,7 +25,7 @@ export default function Index({ members, filter }) {
                         <label htmlFor="filter" className="text-sm text-gray-600">Show:</label>
                         <select
                             id="filter"
-                            value={filter || ''}
+                            value={filter || 'active'}
                             onChange={handleFilterChange}
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
