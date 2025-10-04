@@ -216,6 +216,12 @@ class AttendanceController extends Controller
         $totalSkipped = 0;
         $filesProcessed = 0;
 
+        // Get default Training session type (outside loop for efficiency)
+        $trainingType = SessionType::where('name', 'Training')->first();
+        if (!$trainingType) {
+            return redirect()->back()->with('error', 'Training session type not found. Please run the seeder.');
+        }
+
         foreach ($request->file('csv_files') as $file) {
             $filesProcessed++;
             $path = $file->getRealPath();
@@ -234,91 +240,86 @@ class AttendanceController extends Controller
             $imported = 0;
             $skipped = 0;
 
-        // Get default Training session type
-        $trainingType = SessionType::where('name', 'Training')->first();
-        if (!$trainingType) {
-            return redirect()->back()->with('error', 'Training session type not found. Please run the seeder.');
-        }
+            // Parse date columns (skip first two columns: name and membership number, and last column: totals)
+            $dateColumns = [];
+            $lastIndex = count($headers) - 1; // Index of last column (totals column)
+            for ($i = 2; $i < $lastIndex; $i++) {
+                $dateStr = trim($headers[$i]);
 
-        // Parse date columns (skip first two columns: name and membership number, and last column: totals)
-        $dateColumns = [];
-        $lastIndex = count($headers) - 1; // Index of last column (totals column)
-        for ($i = 2; $i < $lastIndex; $i++) {
-            $dateStr = trim($headers[$i]);
-
-            // Parse date format YYYY-MM-DD (e.g., "2025-09-04")
-            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateStr)) {
-                try {
-                    $date = Carbon::createFromFormat('Y-m-d', $dateStr);
-                    $dateColumns[$i] = $date->format('Y-m-d');
-                } catch (\Exception $e) {
-                    $errors[] = "Invalid date format in column: $dateStr";
+                // Parse date format YYYY-MM-DD (e.g., "2025-09-04")
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateStr)) {
+                    try {
+                        $date = Carbon::createFromFormat('Y-m-d', $dateStr);
+                        $dateColumns[$i] = $date->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        $errors[] = "Invalid date format in column: $dateStr";
+                    }
                 }
             }
-        }
 
-        if (empty($dateColumns)) {
-            return redirect()->back()->with('error', 'No valid date columns found. Expected format: YYYY-MM-DD (e.g., 2025-09-04)');
-        }
-
-        // Process each row
-        foreach ($data as $rowIndex => $row) {
-            $lineNumber = $rowIndex + 2; // +2 because we removed header and arrays are 0-indexed
-
-            // Skip empty rows
-            if (empty(array_filter($row))) {
+            if (empty($dateColumns)) {
+                $allErrors[] = "File '{$file->getClientOriginalName()}': No valid date columns found. Expected format: YYYY-MM-DD";
                 continue;
             }
 
-            // Get membership number (second column)
-            $membershipNumber = isset($row[1]) ? trim($row[1]) : null;
+            // Process each row
+            foreach ($data as $rowIndex => $row) {
+                $lineNumber = $rowIndex + 2; // +2 because we removed header and arrays are 0-indexed
 
-            if (empty($membershipNumber)) {
-                $errors[] = "Line $lineNumber: Missing membership number";
-                $skipped++;
-                continue;
-            }
-
-            // Find member by membership number
-            $member = Member::where('membership_number', $membershipNumber)->first();
-
-            if (!$member) {
-                $errors[] = "Line $lineNumber: Member with number $membershipNumber not found";
-                $skipped++;
-                continue;
-            }
-
-            // Process each date column
-            foreach ($dateColumns as $colIndex => $date) {
-                $attendance = isset($row[$colIndex]) ? strtoupper(trim($row[$colIndex])) : 'FALSE';
-
-                $isPresent = ($attendance === 'TRUE' || $attendance === '1');
-
-                // Get session for this date (ignore session type to avoid duplicates)
-                $session = AttendanceSession::where('date', $date)->first();
-
-                // If no session exists for this date, create one with Training type
-                if (!$session) {
-                    $session = AttendanceSession::create([
-                        'date' => $date,
-                        'session_type_id' => $trainingType->id,
-                    ]);
+                // Skip empty rows
+                if (empty(array_filter($row))) {
+                    continue;
                 }
 
-                // Create or update attendance record
-                AttendanceRecord::updateOrCreate(
-                    [
-                        'member_id' => $member->id,
-                        'session_id' => $session->id,
-                    ],
-                    [
-                        'present' => $isPresent,
-                    ]
-                );
+                // Get membership number (second column)
+                $membershipNumber = isset($row[1]) ? trim($row[1]) : null;
 
-                $imported++;
+                if (empty($membershipNumber)) {
+                    $errors[] = "Line $lineNumber: Missing membership number";
+                    $skipped++;
+                    continue;
+                }
+
+                // Find member by membership number
+                $member = Member::where('membership_number', $membershipNumber)->first();
+
+                if (!$member) {
+                    $errors[] = "Line $lineNumber: Member with number $membershipNumber not found";
+                    $skipped++;
+                    continue;
+                }
+
+                // Process each date column
+                foreach ($dateColumns as $colIndex => $date) {
+                    $attendance = isset($row[$colIndex]) ? strtoupper(trim($row[$colIndex])) : 'FALSE';
+
+                    $isPresent = ($attendance === 'TRUE' || $attendance === '1');
+
+                    // Get session for this date (ignore session type to avoid duplicates)
+                    $session = AttendanceSession::where('date', $date)->first();
+
+                    // If no session exists for this date, create one with Training type
+                    if (!$session) {
+                        $session = AttendanceSession::create([
+                            'date' => $date,
+                            'session_type_id' => $trainingType->id,
+                        ]);
+                    }
+
+                    // Create or update attendance record
+                    AttendanceRecord::updateOrCreate(
+                        [
+                            'member_id' => $member->id,
+                            'session_id' => $session->id,
+                        ],
+                        [
+                            'present' => $isPresent,
+                        ]
+                    );
+
+                    $imported++;
+                }
             }
-        }
 
             $totalImported += $imported;
             $totalSkipped += $skipped;
