@@ -17,11 +17,15 @@ export default function Login({ status }) {
         post('/login', {
             onFinish: () => reset('password'),
             onError: (errors) => {
-                // If 419 CSRF error on login page, reload to get fresh token
-                if (errors && Object.keys(errors).length === 0) {
+                // If 419 CSRF error or page expired error
+                if (errors && (Object.keys(errors).length === 0 || errors.message?.includes('expired') || errors.message?.includes('419'))) {
                     setCsrfError(true);
                     setTimeout(() => window.location.reload(), 2000);
                 }
+            },
+            onBefore: () => {
+                // Clear any previous CSRF error state
+                setCsrfError(false);
             },
         });
     };
@@ -40,8 +44,15 @@ export default function Login({ status }) {
                 <div className="bg-white rounded-2xl shadow-xl p-8">
                     {/* CSRF Error Message */}
                     {csrfError && (
-                        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-                            Security token expired. Refreshing page...
+                        <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg text-sm">
+                            Page expired. Refreshing to get a new security token...
+                        </div>
+                    )}
+
+                    {/* Page Expired Error (from Laravel) */}
+                    {errors && errors.message && errors.message.includes('419') && (
+                        <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg text-sm">
+                            Session expired. Please try logging in again.
                         </div>
                     )}
 
