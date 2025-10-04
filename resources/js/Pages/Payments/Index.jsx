@@ -70,7 +70,7 @@ export default function Index({ year, members, stats, availableYears, filter }) 
 
                     <div className="flex gap-2">
                         <select
-                            value={filter || 'active'}
+                            value={filter === undefined || filter === null ? 'active' : filter}
                             onChange={handleFilterChange}
                             className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                         >
