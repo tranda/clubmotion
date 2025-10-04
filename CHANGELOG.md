@@ -2,6 +2,22 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.6.8] - 2025-01-05
+
+### Added
+- Category distribution chart on Members page
+- List/Stats view toggle with icons on Members page
+- Category statistics showing member count per category
+
+### Changed
+- Moved category chart from Attendance to Members page (better fit)
+- Categories sorted by min_age then max_age (youngest to oldest)
+- Category names display correctly on X-axis
+
+### Fixed
+- Fixed category name column reference (category_name vs name)
+- Category chart now shows all categories with proper labels
+
 ## [0.6.7] - 2025-01-05
 
 ### Changed
