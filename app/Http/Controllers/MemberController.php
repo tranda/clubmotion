@@ -64,11 +64,12 @@ class MemberController extends Controller
         $allCategories = MembershipCategory::all();
         $categoryStats = [];
 
-        // Initialize all categories with count 0
+        // Initialize all categories with count 0 and min_age for sorting
         foreach ($allCategories as $category) {
             $categoryStats[$category->id] = [
                 'name' => $category->category_name,
                 'count' => 0,
+                'min_age' => $category->min_age ?? 999, // Use 999 for non-age-based categories to sort them last
             ];
         }
 
@@ -79,10 +80,10 @@ class MemberController extends Controller
             }
         }
 
-        // Convert to array and sort by category name alphabetically
+        // Convert to array and sort by min_age
         $categoryStats = array_values($categoryStats);
         usort($categoryStats, function($a, $b) {
-            return strcmp($a['name'], $b['name']);
+            return $a['min_age'] <=> $b['min_age'];
         });
 
         return Inertia::render('Members/Index', [
