@@ -459,26 +459,33 @@ class AttendanceController extends Controller
             ];
         }
 
-        // Category distribution
+        // Category distribution - include ALL categories
+        $allCategories = MembershipCategory::all();
         $categoryStats = [];
-        $members = Member::with('category')->where('is_active', 1)->get();
 
+        // Initialize all categories with count 0
+        foreach ($allCategories as $category) {
+            $categoryStats[$category->name] = [
+                'name' => $category->name,
+                'count' => 0,
+            ];
+        }
+
+        // Count members per category
+        $members = Member::with('category')->where('is_active', 1)->get();
         foreach ($members as $member) {
             if ($member->category) {
                 $categoryName = $member->category->name;
-                if (!isset($categoryStats[$categoryName])) {
-                    $categoryStats[$categoryName] = [
-                        'name' => $categoryName,
-                        'count' => 0,
-                    ];
+                if (isset($categoryStats[$categoryName])) {
+                    $categoryStats[$categoryName]['count']++;
                 }
-                $categoryStats[$categoryName]['count']++;
             }
         }
 
-        // Sort by count descending
+        // Convert to array and sort by category name alphabetically
+        $categoryStats = array_values($categoryStats);
         usort($categoryStats, function($a, $b) {
-            return $b['count'] - $a['count'];
+            return strcmp($a['name'], $b['name']);
         });
 
         return [

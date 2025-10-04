@@ -2,6 +2,13 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.6.4] - 2025-01-05
+
+### Changed
+- Category distribution chart now shows ALL categories (not just those with members)
+- Categories sorted alphabetically on X-axis
+- Y-axis shows member count (0 or more)
+
 ## [0.6.3] - 2025-01-05
 
 ### Added
