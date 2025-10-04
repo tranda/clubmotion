@@ -68,7 +68,7 @@ export default function Layout({ children }) {
                             )}
 
                             <Link
-                                href={canManage ? route('payments.index') : route('payments.mine')}
+                                href={canManage ? '/payments' : '/my-payments'}
                                 className="flex items-center px-4 py-2 text-gray-800 font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
                             >
                                 <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -190,7 +190,7 @@ export default function Layout({ children }) {
                         )}
 
                         <Link
-                            href={canManage ? route('payments.index') : route('payments.mine')}
+                            href={canManage ? '/payments' : '/my-payments'}
                             onClick={closeMenu}
                             className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
                         >

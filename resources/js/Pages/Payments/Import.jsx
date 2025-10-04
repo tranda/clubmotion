@@ -19,7 +19,7 @@ export default function Import({ availableYears }) {
         formData.append('year', year);
         formData.append('csv_file', file);
 
-        router.post(route('payments.import.store'), formData, {
+        router.post('/payments/import', formData, {
             forceFormData: true,
         });
     };
@@ -129,7 +129,7 @@ export default function Import({ availableYears }) {
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"
-                                    onClick={() => router.get(route('payments.index'))}
+                                    onClick={() => router.get('/payments')}
                                     className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
                                 >
                                     Cancel

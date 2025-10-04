@@ -18,7 +18,7 @@ export default function InitializeYear({ year, memberCount }) {
         e.preventDefault();
 
         if (confirm(`This will create ${memberCount * 12} payment records for ${year}. Continue?`)) {
-            router.post(route('payments.initialize.store'), {
+            router.post('/payments/initialize', {
                 year,
                 monthly_rates: monthlyRates
             });
@@ -125,7 +125,7 @@ export default function InitializeYear({ year, memberCount }) {
                         <div className="flex gap-3">
                             <button
                                 type="button"
-                                onClick={() => router.get(route('payments.index'))}
+                                onClick={() => router.get('/payments')}
                                 className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
                             >
                                 Cancel

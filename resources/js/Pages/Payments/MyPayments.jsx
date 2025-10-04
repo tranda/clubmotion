@@ -58,7 +58,7 @@ export default function MyPayments({ member, year, payments, availableYears }) {
                 <div className="mb-4">
                     <select
                         value={year}
-                        onChange={(e) => window.location.href = route('payments.mine', { year: e.target.value })}
+                        onChange={(e) => window.location.href = `/my-payments?year=${e.target.value}`}
                         className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     >
                         {availableYears.map(y => (

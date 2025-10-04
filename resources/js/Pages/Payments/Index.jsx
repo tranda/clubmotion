@@ -10,7 +10,7 @@ export default function Index({ year, members, stats, availableYears }) {
     const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
     const handleYearChange = (newYear) => {
-        router.get(route('payments.index', { year: newYear }));
+        router.get(`/payments?year=${newYear}`);
     };
 
     const handleCellClick = (member, month, payment) => {
@@ -74,21 +74,21 @@ export default function Index({ year, members, stats, availableYears }) {
                         </select>
 
                         <Link
-                            href={route('payments.export.template', { year })}
+                            href={`/payments/export-template/${year}`}
                             className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
                         >
                             📥 Download Template
                         </Link>
 
                         <Link
-                            href={route('payments.import')}
+                            href="/payments/import"
                             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                         >
                             📤 Import CSV
                         </Link>
 
                         <Link
-                            href={route('payments.initialize', { year: year + 1 })}
+                            href={`/payments/initialize?year=${year + 1}`}
                             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                         >
                             ➕ Initialize Year
@@ -220,7 +220,7 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
         e.preventDefault();
 
         if (payment?.id) {
-            router.put(route('payments.update', payment.id), formData, {
+            router.put(`/payments/${payment.id}`, formData, {
                 onSuccess: () => onClose(),
             });
         }
@@ -228,7 +228,7 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
 
     const handleDelete = () => {
         if (confirm('Are you sure you want to delete this payment record?')) {
-            router.delete(route('payments.destroy', payment.id), {
+            router.delete(`/payments/${payment.id}`, {
                 onSuccess: () => onClose(),
             });
         }

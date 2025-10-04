@@ -37,7 +37,7 @@ export default function MemberHistory({ member, year, payments, availableYears }
         <Layout>
             <div className="py-4 max-w-6xl mx-auto">
                 <Link
-                    href={route('payments.index')}
+                    href="/payments"
                     className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
                 >
                     <svg className="w-5 h-5 mr-1" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,7 +62,7 @@ export default function MemberHistory({ member, year, payments, availableYears }
                             <div className="text-sm text-gray-600">Year</div>
                             <select
                                 value={year}
-                                onChange={(e) => router.get(route('payments.member', { member: member.id, year: e.target.value }))}
+                                onChange={(e) => router.get(`/payments/member/${member.id}?year=${e.target.value}`)}
                                 className="mt-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             >
                                 {availableYears.map(y => (

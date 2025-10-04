@@ -179,14 +179,14 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                             <h2 className="text-lg font-semibold text-gray-900">Recent Payments ({currentYear})</h2>
                             {canManage ? (
                                 <Link
-                                    href={route('payments.member', member.id)}
+                                    href={`/payments/member/${member.id}`}
                                     className="text-sm text-blue-600 hover:text-blue-800"
                                 >
                                     View All →
                                 </Link>
                             ) : (
                                 <Link
-                                    href={route('payments.mine')}
+                                    href="/my-payments"
                                     className="text-sm text-blue-600 hover:text-blue-800"
                                 >
                                     View All →
