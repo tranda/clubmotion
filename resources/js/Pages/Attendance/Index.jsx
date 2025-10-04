@@ -13,7 +13,12 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
     const [selectedFilter, setSelectedFilter] = useState(filter);
     const [attendanceGrid, setAttendanceGrid] = useState(initialGrid);
     const [sessionTotals, setSessionTotals] = useState(initialTotals);
-    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'calendar'
+
+    // Default view mode: calendar for mobile, grid for desktop
+    const getDefaultViewMode = () => {
+        return window.innerWidth < 768 ? 'calendar' : 'grid';
+    };
+    const [viewMode, setViewMode] = useState(getDefaultViewMode());
     const [selectedDate, setSelectedDate] = useState(null);
     const [showDayModal, setShowDayModal] = useState(false);
     const [showNewSessionModal, setShowNewSessionModal] = useState(false);
