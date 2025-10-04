@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.6.3] - 2025-01-05
+
+### Added
+- Category distribution bar chart in Attendance Stats view
+  - Visual breakdown of active members by category
+  - Color-coded bars with member counts
+  - Sorted by count (most members first)
+
 ## [0.6.2] - 2025-01-05
 
 ### Fixed

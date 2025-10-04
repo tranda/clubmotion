@@ -459,6 +459,28 @@ class AttendanceController extends Controller
             ];
         }
 
+        // Category distribution
+        $categoryStats = [];
+        $members = Member::with('category')->where('is_active', 1)->get();
+
+        foreach ($members as $member) {
+            if ($member->category) {
+                $categoryName = $member->category->name;
+                if (!isset($categoryStats[$categoryName])) {
+                    $categoryStats[$categoryName] = [
+                        'name' => $categoryName,
+                        'count' => 0,
+                    ];
+                }
+                $categoryStats[$categoryName]['count']++;
+            }
+        }
+
+        // Sort by count descending
+        usort($categoryStats, function($a, $b) {
+            return $b['count'] - $a['count'];
+        });
+
         return [
             'total_sessions' => $totalSessions,
             'total_members' => $totalMembers,
@@ -470,6 +492,7 @@ class AttendanceController extends Controller
             'prev_month_rate' => $prevMonthRate,
             'rate_change' => round($attendanceRate - $prevMonthRate, 1),
             'monthly_data' => $monthlyData,
+            'category_stats' => $categoryStats,
         ];
     }
 }
