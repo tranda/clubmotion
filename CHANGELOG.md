@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.8] - 2025-01-05
+
+### Changed
+- Replaced ClubMotion text title with logo image on login screen
+
 ## [0.5.7] - 2025-01-05
 
 ### Changed
