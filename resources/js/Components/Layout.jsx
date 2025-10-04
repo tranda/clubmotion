@@ -254,13 +254,6 @@ export default function Layout({ children }) {
             <main className="pt-20 px-4 pb-4 max-w-7xl mx-auto">
                 {children}
             </main>
-
-            {/* Footer */}
-            <footer className="bg-white border-t border-gray-200 py-4 mt-8">
-                <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
-                    ClubMotion v0.5.18
-                </div>
-            </footer>
         </div>
     );
 }
