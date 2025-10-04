@@ -126,9 +126,7 @@ export default function Show({ member, recentPayments = [], currentYear }) {
 
                             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                                 <dt className="text-sm font-medium text-gray-500">Medical Validity</dt>
-                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    {member.medical_validity ? new Date(member.medical_validity).toLocaleDateString('en-CA') : 'N/A'}
-                                </dd>
+                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{member.medical_validity || 'N/A'}</dd>
                             </div>
 
                             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
