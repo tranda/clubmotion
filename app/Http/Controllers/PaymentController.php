@@ -211,7 +211,7 @@ class PaymentController extends Controller
             'payment_date' => 'nullable|date',
             'payment_method' => 'nullable|in:cash,card,bank_transfer',
             'notes' => 'nullable|string',
-            'exemption_reason' => 'nullable|in:pocasni,saradnik',
+            'exemption_reason' => 'nullable|in:pocasni,saradnik,other',
         ]);
 
         MembershipPayment::updateOrCreate(
@@ -245,7 +245,7 @@ class PaymentController extends Controller
             'payment_date' => 'nullable|date',
             'payment_method' => 'nullable|in:cash,card,bank_transfer',
             'notes' => 'nullable|string',
-            'exemption_reason' => 'nullable|in:pocasni,saradnik',
+            'exemption_reason' => 'nullable|in:pocasni,saradnik,other',
         ]);
 
         $payment->update([
