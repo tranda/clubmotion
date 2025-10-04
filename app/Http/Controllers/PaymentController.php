@@ -24,7 +24,7 @@ class PaymentController extends Controller
         }
 
         // Get all active members with their payments for the year
-        $members = Member::with(['category', 'paymentsForYear' => function($query) use ($year) {
+        $members = Member::with(['category', 'payments' => function($query) use ($year) {
             $query->where('payment_year', $year);
         }])
         ->where('is_active', true)
@@ -45,7 +45,7 @@ class PaymentController extends Controller
 
         // Transform data for grid display
         $gridData = $members->map(function ($member) use ($year) {
-            $payments = $member->paymentsForYear($year)->get()->keyBy('payment_month');
+            $payments = $member->payments->keyBy('payment_month');
 
             $months = [];
             for ($month = 1; $month <= 12; $month++) {
