@@ -109,7 +109,7 @@ export default function Home({ stats }) {
 
                             {/* My Payments Card - Regular users */}
                             <Link
-                                href="/payments"
+                                href="/my-payments"
                                 className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
                             >
                                 <div className="flex items-center justify-between mb-4">

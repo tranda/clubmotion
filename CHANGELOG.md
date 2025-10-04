@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.3] - 2025-01-05
+
+### Fixed
+- Fixed My Payments dashboard card link for regular users (was /payments, now /my-payments)
+
 ## [0.5.2] - 2025-01-05
 
 ### Fixed
