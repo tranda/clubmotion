@@ -24,7 +24,7 @@ class MembershipPayment extends Model
     ];
 
     protected $casts = [
-        'payment_date' => 'date',
+        'payment_date' => 'date:Y-m-d',
         'expected_amount' => 'decimal:2',
         'paid_amount' => 'decimal:2',
         'payment_year' => 'integer',

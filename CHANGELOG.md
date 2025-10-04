@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.6] - 2025-01-05
+
+### Changed
+- Moved date formatting to backend using Laravel Carbon (date:Y-m-d cast)
+- Removed frontend date parsing logic - cleaner and more maintainable
+
 ## [0.5.5] - 2025-01-05
 
 ### Fixed
