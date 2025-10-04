@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.7] - 2025-01-05
+
+### Changed
+- Removed "Expected" column from My Payments view for regular users
+- Simplified table to show: Month, Amount, Status, Date, Method
+
 ## [0.5.6] - 2025-01-05
 
 ### Changed

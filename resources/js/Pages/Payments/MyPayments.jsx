@@ -76,10 +76,7 @@ export default function MyPayments({ member, year, payments, availableYears }) {
                                     Month
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Expected
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Paid
+                                    Amount
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     Status
@@ -99,9 +96,6 @@ export default function MyPayments({ member, year, payments, availableYears }) {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {monthNames[payment.payment_month]}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {payment.expected_amount ? `${parseFloat(payment.expected_amount).toLocaleString()} RSD` : '−'}
-                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {payment.paid_amount ? `${parseFloat(payment.paid_amount).toLocaleString()} RSD` : '−'}
                                         </td>
@@ -118,7 +112,7 @@ export default function MyPayments({ member, year, payments, availableYears }) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
                                         No payment records found for {year}
                                     </td>
                                 </tr>
