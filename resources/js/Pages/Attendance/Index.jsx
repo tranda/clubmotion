@@ -38,6 +38,10 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
         }, {
             preserveScroll: true,
             preserveState: true,
+            only: ['attendanceGrid', 'sessionTotals'],
+            onSuccess: () => {
+                // Silently reload only the data we need
+            },
         });
     };
 
