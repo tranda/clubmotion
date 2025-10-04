@@ -78,6 +78,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-achievements', [AchievementsController::class, 'index'])
         ->name('achievements.index');
 
+    // Admin & Superuser: Achievements import
+    Route::middleware('role:admin,superuser')->group(function () {
+        Route::get('/achievements/import', [AchievementsController::class, 'showImport'])
+            ->name('achievements.import');
+        Route::post('/achievements/import', [AchievementsController::class, 'import'])
+            ->name('achievements.import.store');
+    });
+
     // Payments - My payments for all authenticated users
     Route::get('/my-payments', [App\Http\Controllers\PaymentController::class, 'myPayments'])
         ->name('payments.mine');
