@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.4] - 2025-01-05
+
+### Fixed
+- Payment dates now display only date without time (YYYY-MM-DD format)
+- Applied to My Payments, Member History, and Member Details pages
+
 ## [0.5.3] - 2025-01-05
 
 ### Fixed

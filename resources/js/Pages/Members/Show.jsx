@@ -216,7 +216,7 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                                                 {getStatusBadge(payment.payment_status)}
                                             </td>
                                             <td className="py-3 text-sm text-gray-500">
-                                                {payment.payment_date || '−'}
+                                                {payment.payment_date ? payment.payment_date.split(' ')[0] : '−'}
                                             </td>
                                         </tr>
                                     ))}
