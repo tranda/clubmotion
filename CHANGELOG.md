@@ -2,6 +2,26 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.6.1] - 2025-01-05
+
+### Added
+- Age-based category calculation system
+  - Member categories now automatically calculated based on age
+  - Categories update dynamically as members age without manual edits
+  - Support for age ranges (min_age, max_age) in membership_categories table
+  - Non-age-based categories (BCP, ACP, Paradragons) remain manual
+
+### Changed
+- Categories now recalculate on every member fetch, not just on create/update
+- Category matching prioritizes narrowest age ranges first to avoid conflicts
+- Category assignment happens automatically for age-based categories
+
+### Technical
+- Added is_age_based, min_age, max_age columns to membership_categories table
+- Implemented calculateCategory() method in Member model with range size sorting
+- Updated MemberController index() and show() methods to recalculate categories on fetch
+- Auto-update database category when age-based category changes
+
 ## [0.6.0] - 2025-01-05
 
 ### Major Features

@@ -30,9 +30,19 @@ class MemberController extends Controller
             $members = Member::with('category')->orderBy('membership_number')->get();
         }
 
-        // Add calculated category to each member
+        // Calculate and update category for each member if needed
         $members = $members->map(function ($member) {
-            $member->calculated_category = $member->getCalculatedCategoryAttribute();
+            if ($member->date_of_birth) {
+                $calculatedCategoryId = $member->calculateCategory();
+                $currentCategory = MembershipCategory::find($member->category_id);
+
+                // Auto-update if current category is age-based and category has changed
+                if ($currentCategory && $currentCategory->is_age_based && $calculatedCategoryId && $calculatedCategoryId !== $member->category_id) {
+                    $member->category_id = $calculatedCategoryId;
+                    $member->save();
+                    $member->load('category'); // Reload the category relationship
+                }
+            }
             return $member;
         });
 
@@ -132,8 +142,18 @@ class MemberController extends Controller
             ->limit(6)
             ->get();
 
-        // Add calculated category
-        $member->calculated_category = $member->getCalculatedCategoryAttribute();
+        // Calculate and update category if needed
+        if ($member->date_of_birth) {
+            $calculatedCategoryId = $member->calculateCategory();
+            $currentCategory = MembershipCategory::find($member->category_id);
+
+            // Auto-update if current category is age-based and category has changed
+            if ($currentCategory && $currentCategory->is_age_based && $calculatedCategoryId && $calculatedCategoryId !== $member->category_id) {
+                $member->category_id = $calculatedCategoryId;
+                $member->save();
+                $member->load('category'); // Reload the category relationship
+            }
+        }
 
         return Inertia::render('Members/Show', [
             'member' => $member,

@@ -81,8 +81,15 @@ class Member extends Model
         // Calculate age
         $age = \Carbon\Carbon::parse($this->date_of_birth)->age;
 
-        // Get all age-based categories
-        $ageBasedCategories = MembershipCategory::where('is_age_based', true)->get();
+        // Get all age-based categories ordered by range size (narrowest first)
+        // This ensures specific categories like "Kadeti" (14-15) match before broader ones like "Premiere" (0-99)
+        $ageBasedCategories = MembershipCategory::where('is_age_based', true)
+            ->get()
+            ->sortBy(function ($category) {
+                $minAge = $category->min_age ?? 0;
+                $maxAge = $category->max_age ?? 999;
+                return $maxAge - $minAge; // Sort by range size (ascending)
+            });
 
         // Find matching category based on age range
         foreach ($ageBasedCategories as $category) {
