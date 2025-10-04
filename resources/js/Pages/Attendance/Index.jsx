@@ -13,6 +13,9 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
     const [selectedFilter, setSelectedFilter] = useState(filter);
     const [attendanceGrid, setAttendanceGrid] = useState(initialGrid);
     const [sessionTotals, setSessionTotals] = useState(initialTotals);
+    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'calendar'
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [showDayModal, setShowDayModal] = useState(false);
     const [showNewSessionModal, setShowNewSessionModal] = useState(false);
     const [newSession, setNewSession] = useState({
         date: '',
@@ -110,12 +113,85 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
         return sessionType?.color || '#3B82F6';
     };
 
+    // Generate calendar days for the selected month
+    const generateCalendarDays = () => {
+        const firstDay = new Date(selectedYear, selectedMonth - 1, 1);
+        const lastDay = new Date(selectedYear, selectedMonth, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
+
+        const days = [];
+
+        // Add empty cells for days before the month starts
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            days.push(null);
+        }
+
+        // Add days of the month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const daySessions = sessions.filter(s => s.date === dateStr);
+
+            let attendanceCount = 0;
+            daySessions.forEach(session => {
+                attendanceCount += sessionTotals[session.id] || 0;
+            });
+
+            days.push({
+                day,
+                date: dateStr,
+                sessions: daySessions,
+                attendanceCount,
+                totalMembers: attendanceGrid.length
+            });
+        }
+
+        return days;
+    };
+
+    const handleDayClick = (dayData) => {
+        if (dayData && dayData.sessions.length > 0) {
+            setSelectedDate(dayData);
+            setShowDayModal(true);
+        }
+    };
+
     return (
         <Layout>
             <div className="py-6">
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Attendance Tracking</h1>
-                    <p className="text-gray-600 mt-1">Track member attendance for training sessions</p>
+                <div className="mb-6 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Attendance Tracking</h1>
+                        <p className="text-gray-600 mt-1">Track member attendance for training sessions</p>
+                    </div>
+
+                    {/* View Toggle */}
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={`px-4 py-2 rounded-md transition-colors ${
+                                viewMode === 'grid'
+                                    ? 'bg-white text-blue-600 shadow'
+                                    : 'text-gray-600 hover:text-gray-900'
+                            }`}
+                        >
+                            <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={() => setViewMode('calendar')}
+                            className={`px-4 py-2 rounded-md transition-colors ${
+                                viewMode === 'calendar'
+                                    ? 'bg-white text-blue-600 shadow'
+                                    : 'text-gray-600 hover:text-gray-900'
+                            }`}
+                        >
+                            <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Filters */}
@@ -260,8 +336,8 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                     </div>
                 </div>
 
-                {/* Attendance Grid */}
-                {sessions.length > 0 ? (
+                {/* Grid View */}
+                {viewMode === 'grid' && sessions.length > 0 && (
                     <div className="bg-white rounded-lg shadow overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
@@ -331,7 +407,9 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                             </table>
                         </div>
                     </div>
-                ) : (
+                )}
+
+                {viewMode === 'grid' && sessions.length === 0 && (
                     <div className="bg-white rounded-lg shadow p-12 text-center">
                         <p className="text-gray-500">No sessions found for {monthNames[selectedMonth - 1]} {selectedYear}</p>
                         {canManage && (
@@ -342,6 +420,60 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                 Create First Session
                             </button>
                         )}
+                    </div>
+                )}
+
+                {/* Calendar View */}
+                {viewMode === 'calendar' && (
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="grid grid-cols-7 gap-2">
+                            {/* Week day headers */}
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                <div key={day} className="text-center font-semibold text-gray-600 py-2">
+                                    {day}
+                                </div>
+                            ))}
+
+                            {/* Calendar days */}
+                            {generateCalendarDays().map((dayData, idx) => (
+                                <div
+                                    key={idx}
+                                    onClick={() => handleDayClick(dayData)}
+                                    className={`min-h-24 border rounded-lg p-2 ${
+                                        dayData
+                                            ? dayData.sessions.length > 0
+                                                ? 'bg-blue-50 border-blue-200 cursor-pointer hover:bg-blue-100'
+                                                : 'bg-gray-50 border-gray-200'
+                                            : 'bg-transparent border-transparent'
+                                    }`}
+                                >
+                                    {dayData && (
+                                        <>
+                                            <div className="text-sm font-semibold text-gray-700 mb-1">
+                                                {dayData.day}
+                                            </div>
+                                            {dayData.sessions.length > 0 && (
+                                                <div className="space-y-1">
+                                                    <div className="flex gap-1 mb-1">
+                                                        {dayData.sessions.map(session => (
+                                                            <div
+                                                                key={session.id}
+                                                                className="w-2 h-2 rounded-full"
+                                                                style={{ backgroundColor: getSessionTypeColor(session.session_type_id) }}
+                                                                title={sessionTypes.find(t => t.id === session.session_type_id)?.name}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                    <div className="text-xs text-gray-600">
+                                                        {dayData.attendanceCount}/{dayData.totalMembers}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -403,6 +535,127 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Day Detail Modal */}
+                {showDayModal && selectedDate && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                            {/* Header */}
+                            <div className="p-6 border-b border-gray-200">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-gray-900">
+                                            {new Date(selectedDate.date).toLocaleDateString('en-US', {
+                                                weekday: 'long',
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            })}
+                                        </h2>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            {selectedDate.sessions.length} session{selectedDate.sessions.length !== 1 ? 's' : ''} • {selectedDate.attendanceCount}/{selectedDate.totalMembers} total attended
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowDayModal(false)}
+                                        className="text-gray-400 hover:text-gray-600"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 overflow-y-auto p-6">
+                                {selectedDate.sessions.map((session) => {
+                                    const sessionType = sessionTypes.find(t => t.id === session.session_type_id);
+                                    const attendedCount = sessionTotals[session.id] || 0;
+
+                                    return (
+                                        <div key={session.id} className="mb-6 last:mb-0">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div
+                                                        className="w-4 h-4 rounded-full"
+                                                        style={{ backgroundColor: sessionType?.color }}
+                                                    />
+                                                    <h3 className="text-lg font-semibold text-gray-900">{sessionType?.name}</h3>
+                                                    <span className="text-sm text-gray-600">
+                                                        {attendedCount}/{selectedDate.totalMembers} attended
+                                                    </span>
+                                                </div>
+                                                {canManage && (
+                                                    <button
+                                                        onClick={() => handleDeleteSession(session.id)}
+                                                        className="text-red-600 hover:text-red-700 text-sm"
+                                                    >
+                                                        Delete Session
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {session.notes && (
+                                                <p className="text-sm text-gray-600 mb-4 italic">{session.notes}</p>
+                                            )}
+
+                                            {/* Member List */}
+                                            <div className="bg-gray-50 rounded-lg p-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                    {attendanceGrid.map(member => {
+                                                        const memberSession = member.sessions.find(s => s.session_id === session.id);
+                                                        const isPresent = memberSession?.present || false;
+
+                                                        return (
+                                                            <label
+                                                                key={member.id}
+                                                                className={`flex items-center gap-3 p-2 rounded cursor-pointer transition-colors ${
+                                                                    isPresent ? 'bg-green-100' : 'hover:bg-gray-100'
+                                                                } ${!canManage ? 'cursor-default' : ''}`}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={isPresent}
+                                                                    onChange={() => handleAttendanceToggle(member.id, session.id, isPresent)}
+                                                                    disabled={!canManage}
+                                                                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
+                                                                />
+                                                                <div className="flex items-center gap-2 flex-1">
+                                                                    <span className="text-sm font-medium text-gray-900">
+                                                                        {member.membership_number}
+                                                                    </span>
+                                                                    <span className="text-sm text-gray-700">{member.name}</span>
+                                                                    {member.exempt_display && (
+                                                                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                                                                            {member.exempt_display}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-6 border-t border-gray-200 bg-gray-50">
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={() => setShowDayModal(false)}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
