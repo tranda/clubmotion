@@ -2,7 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import Layout from '../Components/Layout';
 
 export default function Home({ stats }) {
-    const { auth } = usePage().props;
+    const { auth, appVersion } = usePage().props;
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
 
@@ -192,7 +192,7 @@ export default function Home({ stats }) {
                 <div className="mt-auto pt-8 border-t border-gray-200">
                     <div className="flex justify-between items-center text-sm text-gray-600">
                         <span>Made by Zoran Trandafilovic</span>
-                        <span>Version 0.6.0</span>
+                        <span>Version {appVersion}</span>
                     </div>
                 </div>
             </div>

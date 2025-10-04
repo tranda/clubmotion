@@ -17,3 +17,15 @@ ClubMotion follows semantic versioning: **x.y.z**
 ## Current Version
 
 **0.6.0**
+
+## Version Files
+
+The version number is stored in two locations:
+
+1. **version.json** - Source of truth, read by the application at runtime
+2. **VERSION.md** - Documentation file (this file) for reference
+
+When updating the version, you must update:
+- `version.json` - Update the version field
+- `VERSION.md` - Update the "Current Version" section
+- `CHANGELOG.md` - Add new entry with changes

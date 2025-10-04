@@ -29,15 +29,21 @@ When the user says:
 
 ### Process for Version Changes
 
-1. Update the version number in **VERSION.md** (Current Version section)
-2. Add new entry to **CHANGELOG.md** with:
+1. Update the version number in **version.json** (main source of truth)
+2. Update the version number in **VERSION.md** (Current Version section)
+3. Add new entry to **CHANGELOG.md** with:
    - Version number and date
    - Summary of changes under appropriate categories (Added, Changed, Fixed, etc.)
-3. Commit with message: `Release vX.Y.Z` or `Bump version to vX.Y.Z`
-4. Push to repository
+4. Commit with message: `Release vX.Y.Z` or `Bump version to vX.Y.Z`
+5. Push to repository
+
+### Version Files
+- **version.json** - Source of truth, read by the application at runtime (Laravel reads this and shares with frontend)
+- **VERSION.md** - Documentation file for reference
+- **CHANGELOG.md** - Detailed change history
 
 ## Current Version
-**0.5.1** (as of 2025-01-05)
+**0.6.0** (as of 2025-01-05)
 
 See VERSION.md and CHANGELOG.md for detailed versioning instructions and change history.
 
@@ -65,7 +71,7 @@ Use these ONLY when user explicitly asks:
 - Project deploys via Git auto-pull on shared hosting (no SSH access)
 - Always run `npm run build` before committing
 - Committed files include `/public/build` artifacts
-- Version must be updated in VERSION.md, CHANGELOG.md and Layout.jsx footer before each deployment
+- Version must be updated in version.json, VERSION.md, and CHANGELOG.md before each deployment
 
 ## Tech Stack
 - **Backend**: Laravel 9.x with Sanctum for authentication

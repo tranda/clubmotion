@@ -36,6 +36,14 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        // Read version from version.json
+        $versionFile = base_path('version.json');
+        $version = '0.0.0'; // Default fallback
+        if (file_exists($versionFile)) {
+            $versionData = json_decode(file_get_contents($versionFile), true);
+            $version = $versionData['version'] ?? $version;
+        }
+
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $request->user() ? [
@@ -52,6 +60,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            'appVersion' => $version,
         ]);
     }
 }
