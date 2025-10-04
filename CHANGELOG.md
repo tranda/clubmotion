@@ -2,6 +2,13 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.2] - 2025-01-05
+
+### Fixed
+- Fixed regular user redirect to /my-payments page
+- Fixed year dropdown in My Payments to show only user's payment years
+- Improved route handling to use plain paths instead of route() helper
+
 ## [0.5.1] - 2025-01-05
 
 ### Added

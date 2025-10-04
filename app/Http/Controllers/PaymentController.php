@@ -20,7 +20,7 @@ class PaymentController extends Controller
 
         // Regular users see only their own payments
         if ($user->role_id == 3) {
-            return redirect()->route('payments.mine');
+            return redirect('/my-payments');
         }
 
         // Get all active members with their payments for the year
@@ -106,11 +106,19 @@ class PaymentController extends Controller
             ->orderBy('payment_month')
             ->get();
 
+        // Get available years from member's payment data
+        $yearsInDb = MembershipPayment::where('member_id', $user->member->id)
+            ->select('payment_year')
+            ->distinct()
+            ->orderBy('payment_year', 'desc')
+            ->pluck('payment_year')
+            ->toArray();
+
         return Inertia::render('Payments/MyPayments', [
             'member' => $user->member,
             'year' => (int)$year,
             'payments' => $payments,
-            'availableYears' => range(date('Y'), 2024),
+            'availableYears' => !empty($yearsInDb) ? $yearsInDb : [date('Y')],
         ]);
     }
 

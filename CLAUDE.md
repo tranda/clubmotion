@@ -37,7 +37,7 @@ When the user says:
 4. Push to repository
 
 ## Current Version
-**0.5.0** (as of 2025-01-04)
+**0.5.1** (as of 2025-01-05)
 
 See VERSION.md and CHANGELOG.md for detailed versioning instructions and change history.
 
@@ -49,19 +49,23 @@ See VERSION.md and CHANGELOG.md for detailed versioning instructions and change 
 
 1. **Make your code changes**
 2. **Run build**: `npm run build`
-3. **Increase version** (use appropriate command):
-   - `increase version` - For bug fixes/patches
-   - `increase minor version` - For new features
-   - `increase major version` - For breaking changes
+3. **Increase version**: Always use `increase version` command
+   - This increments the build number (z): `0.5.1` → `0.5.2`
+   - Use for ALL changes: bug fixes, patches, features, improvements
 4. **Commit changes**: Include version bump and code changes
 5. **Push to Git**: `git push origin main`
 6. **Auto-deploy**: Server pulls changes automatically
+
+### Version Commands (User Explicit Request Only)
+Use these ONLY when user explicitly asks:
+- `increase minor version` - For new features/enhancements (resets build to 0)
+- `increase major version` - For breaking changes/major features (resets minor and build to 0)
 
 ### Deployment Details
 - Project deploys via Git auto-pull on shared hosting (no SSH access)
 - Always run `npm run build` before committing
 - Committed files include `/public/build` artifacts
-- Version must be updated in VERSION.md and footer before each deployment
+- Version must be updated in VERSION.md, CHANGELOG.md and Layout.jsx footer before each deployment
 
 ## Tech Stack
 - **Backend**: Laravel 9.x with Sanctum for authentication
