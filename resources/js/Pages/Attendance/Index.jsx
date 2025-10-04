@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { router, usePage, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
+import axios from 'axios';
 
 export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions, sessionTotals: initialTotals, sessionTypes, year, month, sessionTypeFilter, filter }) {
     const { auth } = usePage().props;
@@ -66,20 +67,16 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
             };
         });
 
-        // Send to backend (no UI update needed, already done optimistically)
-        router.post('/attendance/mark', {
+        // Send to backend using axios (no page reload)
+        axios.post('/attendance/mark', {
             records: [{
                 member_id: memberId,
                 session_id: sessionId,
                 present: newValue,
             }]
-        }, {
-            preserveScroll: true,
-            preserveState: true,
-            onError: () => {
-                // If error, reload to get correct state from server
-                router.reload({ only: ['attendanceGrid', 'sessionTotals'] });
-            },
+        }).catch(() => {
+            // If error, reload to get correct state from server
+            router.reload({ only: ['attendanceGrid', 'sessionTotals'] });
         });
     };
 
