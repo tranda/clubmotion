@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.17] - 2025-01-05
+
+### Fixed
+- Fixed bug where member image was deleted when updating is_active status
+
 ## [0.5.16] - 2025-01-05
 
 ### Added
