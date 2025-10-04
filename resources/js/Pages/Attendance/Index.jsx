@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
@@ -24,18 +24,6 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
-
-    const handleFilterChange = () => {
-        router.get('/attendance', {
-            year: selectedYear,
-            month: selectedMonth,
-            session_type_id: selectedSessionType || undefined,
-        });
-    };
-
-    useEffect(() => {
-        handleFilterChange();
-    }, [selectedYear, selectedMonth, selectedSessionType]);
 
     const handleAttendanceToggle = (memberId, sessionId, currentValue) => {
         if (!canManage) return;
@@ -91,7 +79,18 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
                             <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
                             <select
                                 value={selectedYear}
-                                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                                onChange={(e) => {
+                                    const newYear = parseInt(e.target.value);
+                                    setSelectedYear(newYear);
+                                    router.get('/attendance', {
+                                        year: newYear,
+                                        month: selectedMonth,
+                                        session_type_id: selectedSessionType || undefined,
+                                    }, {
+                                        preserveState: true,
+                                        preserveScroll: true,
+                                    });
+                                }}
                                 className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                             >
                                 {yearOptions.map(y => (
@@ -104,7 +103,18 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
                             <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
                             <select
                                 value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                                onChange={(e) => {
+                                    const newMonth = parseInt(e.target.value);
+                                    setSelectedMonth(newMonth);
+                                    router.get('/attendance', {
+                                        year: selectedYear,
+                                        month: newMonth,
+                                        session_type_id: selectedSessionType || undefined,
+                                    }, {
+                                        preserveState: true,
+                                        preserveScroll: true,
+                                    });
+                                }}
                                 className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                             >
                                 {monthNames.map((name, idx) => (
@@ -117,7 +127,18 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
                             <label className="block text-sm font-medium text-gray-700 mb-1">Session Type</label>
                             <select
                                 value={selectedSessionType || ''}
-                                onChange={(e) => setSelectedSessionType(e.target.value ? parseInt(e.target.value) : null)}
+                                onChange={(e) => {
+                                    const newType = e.target.value ? parseInt(e.target.value) : null;
+                                    setSelectedSessionType(newType);
+                                    router.get('/attendance', {
+                                        year: selectedYear,
+                                        month: selectedMonth,
+                                        session_type_id: newType || undefined,
+                                    }, {
+                                        preserveState: true,
+                                        preserveScroll: true,
+                                    });
+                                }}
                                 className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="">All Types</option>
