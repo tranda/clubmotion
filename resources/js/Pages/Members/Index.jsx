@@ -4,7 +4,7 @@ import Layout from '../../Components/Layout';
 export default function Index({ members, filter }) {
     const handleFilterChange = (e) => {
         const value = e.target.value;
-        router.get('/members', value ? { filter: value } : {}, {
+        router.get('/members', { filter: value }, {
             preserveState: true,
             preserveScroll: true,
         });
