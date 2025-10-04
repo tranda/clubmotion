@@ -34,13 +34,27 @@ class MemberController extends Controller
         $members = $members->map(function ($member) {
             if ($member->date_of_birth) {
                 $calculatedCategoryId = $member->calculateCategory();
-                $currentCategory = MembershipCategory::find($member->category_id);
 
-                // Auto-update if current category is age-based and category has changed
-                if ($currentCategory && $currentCategory->is_age_based && $calculatedCategoryId && $calculatedCategoryId !== $member->category_id) {
-                    $member->category_id = $calculatedCategoryId;
-                    $member->save();
-                    $member->load('category'); // Reload the category relationship
+                // Update if: 1) category is null, OR 2) current category is age-based and has changed
+                if ($calculatedCategoryId) {
+                    $shouldUpdate = false;
+
+                    if (!$member->category_id) {
+                        // No category set, assign the calculated one
+                        $shouldUpdate = true;
+                    } else {
+                        $currentCategory = MembershipCategory::find($member->category_id);
+                        // Only update if current category is age-based and has changed
+                        if ($currentCategory && $currentCategory->is_age_based && $calculatedCategoryId !== $member->category_id) {
+                            $shouldUpdate = true;
+                        }
+                    }
+
+                    if ($shouldUpdate) {
+                        $member->category_id = $calculatedCategoryId;
+                        $member->save();
+                        $member->load('category'); // Reload the category relationship
+                    }
                 }
             }
             return $member;
@@ -145,13 +159,27 @@ class MemberController extends Controller
         // Calculate and update category if needed
         if ($member->date_of_birth) {
             $calculatedCategoryId = $member->calculateCategory();
-            $currentCategory = MembershipCategory::find($member->category_id);
 
-            // Auto-update if current category is age-based and category has changed
-            if ($currentCategory && $currentCategory->is_age_based && $calculatedCategoryId && $calculatedCategoryId !== $member->category_id) {
-                $member->category_id = $calculatedCategoryId;
-                $member->save();
-                $member->load('category'); // Reload the category relationship
+            // Update if: 1) category is null, OR 2) current category is age-based and has changed
+            if ($calculatedCategoryId) {
+                $shouldUpdate = false;
+
+                if (!$member->category_id) {
+                    // No category set, assign the calculated one
+                    $shouldUpdate = true;
+                } else {
+                    $currentCategory = MembershipCategory::find($member->category_id);
+                    // Only update if current category is age-based and has changed
+                    if ($currentCategory && $currentCategory->is_age_based && $calculatedCategoryId !== $member->category_id) {
+                        $shouldUpdate = true;
+                    }
+                }
+
+                if ($shouldUpdate) {
+                    $member->category_id = $calculatedCategoryId;
+                    $member->save();
+                    $member->load('category'); // Reload the category relationship
+                }
             }
         }
 

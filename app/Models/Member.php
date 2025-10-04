@@ -101,8 +101,8 @@ class Member extends Model
             }
         }
 
-        // If no age-based category matches, return current category
-        return $this->category_id;
+        // If no match found, return null (no category assigned)
+        return null;
     }
 
     /**

@@ -2,6 +2,13 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.6.2] - 2025-01-05
+
+### Fixed
+- Fixed age-based category calculation for members with null category_id
+- Categories now auto-assign to members without existing categories
+- System properly handles both null categories and age-based category updates
+
 ## [0.6.1] - 2025-01-05
 
 ### Added
