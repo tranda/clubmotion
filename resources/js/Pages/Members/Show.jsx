@@ -2,11 +2,37 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
 
-export default function Show({ member }) {
+export default function Show({ member, recentPayments = [], currentYear }) {
     const { auth } = usePage().props;
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    const monthNames = {
+        1: 'JAN', 2: 'FEB', 3: 'MAR', 4: 'APR',
+        5: 'MAY', 6: 'JUN', 7: 'JUL', 8: 'AUG',
+        9: 'SEP', 10: 'OCT', 11: 'NOV', 12: 'DEC'
+    };
+
+    const getStatusBadge = (status) => {
+        const styles = {
+            paid: 'bg-green-100 text-green-800',
+            pending: 'bg-yellow-100 text-yellow-800',
+            overdue: 'bg-red-100 text-red-800',
+            exempt: 'bg-gray-100 text-gray-800',
+        };
+        const labels = {
+            paid: '✓ Paid',
+            pending: '○ Pending',
+            overdue: '! Overdue',
+            exempt: '− Exempt',
+        };
+        return (
+            <span className={`px-2 py-1 rounded text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-800'}`}>
+                {labels[status] || status}
+            </span>
+        );
+    };
 
     const handleDelete = () => {
         router.delete(`/members/${member.id}`, {
@@ -145,6 +171,60 @@ export default function Show({ member }) {
                         </div>
                     )}
                 </div>
+
+                {/* Payment History Section */}
+                {recentPayments && recentPayments.length > 0 && (
+                    <div className="mt-6 bg-white rounded-lg shadow-md overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h2 className="text-lg font-semibold text-gray-900">Recent Payments ({currentYear})</h2>
+                            {canManage ? (
+                                <Link
+                                    href={route('payments.member', member.id)}
+                                    className="text-sm text-blue-600 hover:text-blue-800"
+                                >
+                                    View All →
+                                </Link>
+                            ) : (
+                                <Link
+                                    href={route('payments.mine')}
+                                    className="text-sm text-blue-600 hover:text-blue-800"
+                                >
+                                    View All →
+                                </Link>
+                            )}
+                        </div>
+                        <div className="p-6">
+                            <table className="min-w-full">
+                                <thead>
+                                    <tr className="border-b border-gray-200">
+                                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Month</th>
+                                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Status</th>
+                                        <th className="text-left py-2 text-xs font-medium text-gray-500 uppercase">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {recentPayments.map((payment) => (
+                                        <tr key={payment.id}>
+                                            <td className="py-3 text-sm font-medium text-gray-900">
+                                                {monthNames[payment.payment_month]}
+                                            </td>
+                                            <td className="py-3 text-sm text-gray-900">
+                                                {payment.paid_amount ? `${parseFloat(payment.paid_amount).toLocaleString()} RSD` : '−'}
+                                            </td>
+                                            <td className="py-3">
+                                                {getStatusBadge(payment.payment_status)}
+                                            </td>
+                                            <td className="py-3 text-sm text-gray-500">
+                                                {payment.payment_date || '−'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 {/* Delete Confirmation Modal */}
                 {showDeleteConfirm && (

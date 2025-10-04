@@ -104,8 +104,17 @@ class MemberController extends Controller
             }
         }
 
+        // Get recent payments (last 6 months)
+        $currentYear = date('Y');
+        $recentPayments = $member->paymentsForYear($currentYear)
+            ->orderBy('payment_month', 'desc')
+            ->limit(6)
+            ->get();
+
         return Inertia::render('Members/Show', [
             'member' => $member,
+            'recentPayments' => $recentPayments,
+            'currentYear' => $currentYear,
         ]);
     }
 

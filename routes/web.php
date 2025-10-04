@@ -60,8 +60,44 @@ Route::middleware('auth')->group(function () {
         Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('members.destroy');
     });
 
-    // Payments - accessible to all authenticated users
-    Route::get('/payments', function () {
-        return Inertia::render('Payments/Index');
-    })->name('payments.index');
+    // Payments - My payments for all authenticated users
+    Route::get('/my-payments', [App\Http\Controllers\PaymentController::class, 'myPayments'])
+        ->name('payments.mine');
+
+    // Admin & Superuser: Full payment management
+    Route::middleware('role:admin,superuser')->group(function () {
+        // Payment grid
+        Route::get('/payments', [App\Http\Controllers\PaymentController::class, 'index'])
+            ->name('payments.index');
+
+        // Initialize year
+        Route::get('/payments/initialize', [App\Http\Controllers\PaymentController::class, 'showInitialize'])
+            ->name('payments.initialize');
+        Route::post('/payments/initialize', [App\Http\Controllers\PaymentController::class, 'initialize'])
+            ->name('payments.initialize.store');
+
+        // Import/Export
+        Route::get('/payments/import', [App\Http\Controllers\PaymentController::class, 'showImport'])
+            ->name('payments.import');
+        Route::post('/payments/import', [App\Http\Controllers\PaymentController::class, 'import'])
+            ->name('payments.import.store');
+        Route::get('/payments/export-template/{year}', [App\Http\Controllers\PaymentController::class, 'exportTemplate'])
+            ->name('payments.export.template');
+
+        // Member payment history
+        Route::get('/payments/member/{member}', [App\Http\Controllers\PaymentController::class, 'memberHistory'])
+            ->name('payments.member');
+
+        // Update payment
+        Route::put('/payments/{payment}', [App\Http\Controllers\PaymentController::class, 'update'])
+            ->name('payments.update');
+
+        // Delete payment
+        Route::delete('/payments/{payment}', [App\Http\Controllers\PaymentController::class, 'destroy'])
+            ->name('payments.destroy');
+
+        // Bulk actions
+        Route::post('/payments/bulk-mark-paid', [App\Http\Controllers\PaymentController::class, 'bulkMarkPaid'])
+            ->name('payments.bulk.paid');
+    });
 });

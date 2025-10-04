@@ -9,5 +9,70 @@ class MembershipPayment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['member_id', 'payment_date', 'payment_amount', 'payment_status'];
+    protected $fillable = [
+        'member_id',
+        'payment_year',
+        'payment_month',
+        'expected_amount',
+        'paid_amount',
+        'payment_status',
+        'exemption_reason',
+        'payment_date',
+        'payment_method',
+        'notes',
+        'created_by'
+    ];
+
+    protected $casts = [
+        'payment_date' => 'date',
+        'expected_amount' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
+        'payment_year' => 'integer',
+        'payment_month' => 'integer',
+    ];
+
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function isOverdue()
+    {
+        return $this->payment_status === 'overdue';
+    }
+
+    public function isPaid()
+    {
+        return $this->payment_status === 'paid';
+    }
+
+    public function isExempt()
+    {
+        return $this->payment_status === 'exempt';
+    }
+
+    public function markAsPaid($amount, $method, $date = null)
+    {
+        $this->update([
+            'paid_amount' => $amount,
+            'payment_status' => 'paid',
+            'payment_method' => $method,
+            'payment_date' => $date ?? now(),
+        ]);
+    }
+
+    public function getMonthNameAttribute()
+    {
+        $months = [
+            1 => 'JAN', 2 => 'FEB', 3 => 'MAR', 4 => 'APR',
+            5 => 'MAY', 6 => 'JUN', 7 => 'JUL', 8 => 'AUG',
+            9 => 'SEP', 10 => 'OCT', 11 => 'NOV', 12 => 'DEC'
+        ];
+        return $months[$this->payment_month] ?? '';
+    }
 }

@@ -14,12 +14,22 @@ return new class extends Migration
     public function up()
     {
         Schema::create('membership_payments', function (Blueprint $table) {
-            $table->id(); // Auto-incrementing primary key
-            $table->foreignId('member_id')->constrained()->onDelete('cascade'); // Foreign key to members table
-            $table->date('payment_date'); // Column for payment date
-            $table->decimal('payment_amount', 10, 2); // Column for payment amount
-            $table->enum('payment_status', ['pending', 'completed', 'failed'])->default('pending'); // Column for payment status
-            $table->timestamps(); // Automatically created `created_at` and `updated_at` columns
+            $table->id();
+            $table->foreignId('member_id')->constrained()->onDelete('cascade');
+            $table->integer('payment_year');
+            $table->tinyInteger('payment_month');
+            $table->decimal('expected_amount', 10, 2)->nullable();
+            $table->decimal('paid_amount', 10, 2)->nullable();
+            $table->enum('payment_status', ['pending', 'paid', 'exempt', 'overdue'])->default('pending');
+            $table->string('exemption_reason', 50)->nullable();
+            $table->date('payment_date')->nullable();
+            $table->enum('payment_method', ['cash', 'card', 'bank_transfer'])->nullable();
+            $table->text('notes')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamps();
+
+            $table->unique(['member_id', 'payment_year', 'payment_month']);
+            $table->index('member_id');
         });
     }
 

@@ -11,7 +11,7 @@ class Member extends Model
 
     protected $fillable = [
         'name', 'membership_number', 'date_of_birth', 'address', 'phone', 'email',
-        'category_id', 'medical_validity', 'profile_image_url', 'password_hash', 'is_active', 'image', 'user_id'
+        'category_id', 'medical_validity', 'profile_image_url', 'password_hash', 'is_active', 'image', 'user_id', 'exemption_status'
     ];
 
     protected $casts = [
@@ -31,5 +31,28 @@ class Member extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(MembershipPayment::class)
+            ->orderBy('payment_year', 'desc')
+            ->orderBy('payment_month', 'desc');
+    }
+
+    public function paymentsForYear($year)
+    {
+        return $this->payments()->where('payment_year', $year);
+    }
+
+    public function isExempt()
+    {
+        return in_array($this->exemption_status, ['pocasni', 'saradnik']);
+    }
+
+    public function getExemptDisplayAttribute()
+    {
+        return $this->exemption_status === 'pocasni' ? 'POC' :
+               ($this->exemption_status === 'saradnik' ? 'SAR' : null);
     }
 }
