@@ -10,11 +10,19 @@ export default function Login({ status }) {
     });
 
     const [showPassword, setShowPassword] = useState(false);
+    const [csrfError, setCsrfError] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
         post('/login', {
             onFinish: () => reset('password'),
+            onError: (errors) => {
+                // If 419 CSRF error on login page, reload to get fresh token
+                if (errors && Object.keys(errors).length === 0) {
+                    setCsrfError(true);
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            },
         });
     };
 
@@ -30,6 +38,13 @@ export default function Login({ status }) {
 
                 {/* Login Card */}
                 <div className="bg-white rounded-2xl shadow-xl p-8">
+                    {/* CSRF Error Message */}
+                    {csrfError && (
+                        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                            Security token expired. Refreshing page...
+                        </div>
+                    )}
+
                     {/* Session Expired Message */}
                     {expired && (
                         <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg text-sm">
