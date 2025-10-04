@@ -65,9 +65,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/members', [MemberController::class, 'index'])->name('members.index');
     });
 
-    Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
-
-    // Admin and Superuser only routes (create, edit, delete)
+    // Admin and Superuser only routes (create, edit, delete) - MUST come before {id} route
     Route::middleware('role:admin,superuser')->group(function () {
         Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
         Route::post('/members', [MemberController::class, 'store'])->name('members.store');
@@ -75,6 +73,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/members/{member}', [MemberController::class, 'update'])->name('members.update');
         Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('members.destroy');
     });
+
+    // Show member - accessible to all authenticated users (must come AFTER /members/create)
+    Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');
 
     // Attendance - All users can view, Admin/Superuser can edit
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
