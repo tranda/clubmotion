@@ -30,6 +30,12 @@ class MemberController extends Controller
             $members = Member::with('category')->orderBy('membership_number')->get();
         }
 
+        // Add calculated category to each member
+        $members = $members->map(function ($member) {
+            $member->calculated_category = $member->getCalculatedCategoryAttribute();
+            return $member;
+        });
+
         return Inertia::render('Members/Index', [
             'members' => $members,
             'filter' => $filter,
@@ -86,7 +92,17 @@ class MemberController extends Controller
             $data['image'] = $imagePath;
         }
 
-        Member::create($data);
+        // Create member first
+        $member = Member::create($data);
+
+        // Auto-calculate and assign category based on age (if birth date provided and category is age-based)
+        if ($member->date_of_birth) {
+            $calculatedCategoryId = $member->calculateCategory();
+            if ($calculatedCategoryId && $calculatedCategoryId !== $member->category_id) {
+                $member->category_id = $calculatedCategoryId;
+                $member->save();
+            }
+        }
 
         return redirect()->route('members.index')->with('success', 'Member added successfully.');
     }
@@ -115,6 +131,9 @@ class MemberController extends Controller
             ->orderBy('payment_month', 'desc')
             ->limit(6)
             ->get();
+
+        // Add calculated category
+        $member->calculated_category = $member->getCalculatedCategoryAttribute();
 
         return Inertia::render('Members/Show', [
             'member' => $member,
@@ -179,6 +198,18 @@ class MemberController extends Controller
         }
 
         $member->update($data);
+
+        // Recalculate category if birth date changed and category is age-based
+        if ($member->date_of_birth) {
+            $calculatedCategoryId = $member->calculateCategory();
+            $currentCategory = MembershipCategory::find($member->category_id);
+
+            // Only auto-update if current category is age-based
+            if ($currentCategory && $currentCategory->is_age_based && $calculatedCategoryId !== $member->category_id) {
+                $member->category_id = $calculatedCategoryId;
+                $member->save();
+            }
+        }
 
         return redirect()->route('members.show', $member)->with('success', 'Member updated successfully.');
     }
