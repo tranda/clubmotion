@@ -61,6 +61,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'appVersion' => $version,
+            'csrf_token' => csrf_token(), // Share fresh CSRF token on every request
         ]);
     }
 }

@@ -54,3 +54,22 @@ createInertiaApp({
         color: '#4B5563',
     },
 });
+
+// Update CSRF token in meta tag after each Inertia page load
+router.on('success', (event) => {
+    // Get the fresh CSRF token from Inertia page props
+    const csrfToken = event.detail.page.props.csrf_token;
+
+    if (csrfToken) {
+        // Update meta tag
+        const metaTag = document.head.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+            metaTag.content = csrfToken;
+        }
+
+        // Update axios header
+        if (window.axios) {
+            window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+        }
+    }
+});

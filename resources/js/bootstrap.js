@@ -15,10 +15,19 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 /**
  * Set up CSRF token for axios and Inertia requests
  */
-const token = document.head.querySelector('meta[name="csrf-token"]');
-if (token) {
-    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+const getCsrfToken = () => {
+    const token = document.head.querySelector('meta[name="csrf-token"]');
+    return token ? token.content : null;
+};
+
+// Set initial CSRF token for axios
+const initialToken = getCsrfToken();
+if (initialToken) {
+    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = initialToken;
 }
+
+// Make getCsrfToken available globally for Inertia
+window.getCsrfToken = getCsrfToken;
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
