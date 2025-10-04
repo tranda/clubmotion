@@ -18,6 +18,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
+// CSRF token refresh endpoint (accessible without auth to prevent issues)
+Route::get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+});
+
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     // Logout
