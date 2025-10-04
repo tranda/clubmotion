@@ -1,8 +1,9 @@
 import { Link, router } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../../Components/Layout';
 
-export default function Index({ members, filter }) {
+export default function Index({ members, filter, categoryStats }) {
+    const [viewMode, setViewMode] = useState('list');
     const handleFilterChange = (e) => {
         const value = e.target.value;
         router.get('/members', { filter: value }, {
@@ -57,7 +58,7 @@ export default function Index({ members, filter }) {
             <div className="py-4">
                 {/* Header with Filter */}
                 <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h1 className="text-2xl font-bold text-gray-800">Members List</h1>
+                    <h1 className="text-2xl font-bold text-gray-800">Members</h1>
 
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         <label htmlFor="filter" className="text-sm text-gray-600">Show:</label>
@@ -73,20 +74,48 @@ export default function Index({ members, filter }) {
                     </div>
                 </div>
 
-                {/* Add Member Button */}
-                <div className="mb-4">
-                    <Link
-                        href="/members/create"
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
-                    >
-                        <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M12 4v16m8-8H4" />
-                        </svg>
-                        Add New Member
-                    </Link>
+                {/* View Toggle and Add Member Button */}
+                <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    {/* View Toggle */}
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                viewMode === 'list'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                        >
+                            List
+                        </button>
+                        <button
+                            onClick={() => setViewMode('stats')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                viewMode === 'stats'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                        >
+                            Stats
+                        </button>
+                    </div>
+
+                    {/* Add Member Button */}
+                    {viewMode === 'list' && (
+                        <Link
+                            href="/members/create"
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+                        >
+                            <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M12 4v16m8-8H4" />
+                            </svg>
+                            Add New Member
+                        </Link>
+                    )}
                 </div>
 
-                {/* Mobile Cards / Desktop Table */}
+                {/* List View */}
+                {viewMode === 'list' && (
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                     {/* Desktop Table View (hidden on mobile) */}
                     <div className="hidden md:block overflow-x-auto">
@@ -199,6 +228,67 @@ export default function Index({ members, filter }) {
                         </div>
                     )}
                 </div>
+                )}
+
+                {/* Stats View */}
+                {viewMode === 'stats' && categoryStats && (
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-6">Members by Category</h3>
+                        <div className="relative">
+                            {(() => {
+                                const maxCount = Math.max(...categoryStats.map(c => c.count));
+                                const chartHeight = 300;
+
+                                return (
+                                    <div>
+                                        <div className="flex items-end justify-between gap-2" style={{ height: `${chartHeight}px` }}>
+                                            {categoryStats.map((category, idx) => {
+                                                const barHeight = maxCount > 0 ? (category.count / maxCount) * (chartHeight - 40) : 0;
+                                                const colors = [
+                                                    'bg-blue-500',
+                                                    'bg-green-500',
+                                                    'bg-purple-500',
+                                                    'bg-orange-500',
+                                                    'bg-pink-500',
+                                                    'bg-indigo-500',
+                                                    'bg-teal-500',
+                                                    'bg-red-500'
+                                                ];
+                                                const color = colors[idx % colors.length];
+
+                                                return (
+                                                    <div key={idx} className="flex-1 flex flex-col items-center justify-end">
+                                                        {/* Count on top */}
+                                                        <div className="text-sm font-semibold text-gray-700 mb-1">
+                                                            {category.count}
+                                                        </div>
+                                                        {/* Bar */}
+                                                        <div
+                                                            className={`w-full rounded-t-lg transition-all hover:opacity-80 ${color}`}
+                                                            style={{ height: `${barHeight}px`, minHeight: category.count > 0 ? '20px' : '0' }}
+                                                            title={`${category.name}: ${category.count} members`}
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        {/* Category names on X-axis */}
+                                        <div className="flex justify-between gap-2 mt-3">
+                                            {categoryStats.map((category, idx) => (
+                                                <div key={idx} className="flex-1 text-center text-sm font-medium text-gray-900">
+                                                    {category.name}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                        <div className="mt-6 text-sm text-gray-500 text-center">
+                            Distribution of {filter === 'active' ? 'active' : 'all'} members across categories
+                        </div>
+                    </div>
+                )}
             </div>
         </Layout>
     );

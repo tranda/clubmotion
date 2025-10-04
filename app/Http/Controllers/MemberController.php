@@ -60,9 +60,35 @@ class MemberController extends Controller
             return $member;
         });
 
+        // Calculate category statistics
+        $allCategories = MembershipCategory::all();
+        $categoryStats = [];
+
+        // Initialize all categories with count 0
+        foreach ($allCategories as $category) {
+            $categoryStats[$category->id] = [
+                'name' => $category->name,
+                'count' => 0,
+            ];
+        }
+
+        // Count members by category
+        foreach ($members as $member) {
+            if ($member->category_id && isset($categoryStats[$member->category_id])) {
+                $categoryStats[$member->category_id]['count']++;
+            }
+        }
+
+        // Convert to array and sort by category name alphabetically
+        $categoryStats = array_values($categoryStats);
+        usort($categoryStats, function($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+
         return Inertia::render('Members/Index', [
             'members' => $members,
             'filter' => $filter,
+            'categoryStats' => $categoryStats,
         ]);
     }
 
