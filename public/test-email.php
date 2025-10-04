@@ -9,7 +9,7 @@ $app = require_once __DIR__.'/../bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 // EDIT THIS: Put your email address here to receive test email
-$testEmailTo = 'zoran.trandafilovic@gmail.com'; // <-- CHANGE THIS
+$testEmailTo = 'tranda@gmail.com'; // <-- CHANGE THIS
 
 try {
     // Test email sending
