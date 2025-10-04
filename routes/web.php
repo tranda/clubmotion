@@ -23,6 +23,15 @@ Route::get('/csrf-token', function () {
     return response()->json(['token' => csrf_token()]);
 });
 
+// Clear cache endpoint (for debugging on shared hosting)
+Route::get('/clear-cache', function () {
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    return 'Cache cleared successfully!';
+});
+
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     // Logout
