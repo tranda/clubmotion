@@ -3,6 +3,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AchievementsController;
 use App\Models\Member;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -72,6 +73,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/attendance/mark', [AttendanceController::class, 'markAttendance'])->name('attendance.mark');
         Route::delete('/attendance/sessions/{id}', [AttendanceController::class, 'deleteSession'])->name('attendance.sessions.delete');
     });
+
+    // Achievements - Personal achievements for all authenticated users
+    Route::get('/my-achievements', [AchievementsController::class, 'index'])
+        ->name('achievements.index');
 
     // Payments - My payments for all authenticated users
     Route::get('/my-payments', [App\Http\Controllers\PaymentController::class, 'myPayments'])

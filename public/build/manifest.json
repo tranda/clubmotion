@@ -1,6 +1,6 @@
 {
-  "_Layout-974eaf49.js": {
-    "file": "assets/Layout-974eaf49.js",
+  "_Layout-059bc9e0.js": {
+    "file": "assets/Layout-059bc9e0.js",
     "imports": [
       "resources/js/app.jsx"
     ]
@@ -10,14 +10,26 @@
     "isEntry": true,
     "src": "resources/css/app.css"
   },
+  "resources/js/Pages/Achievements/Index.jsx": {
+    "css": [
+      "assets/app-6fd69b07.css"
+    ],
+    "file": "assets/Index-ecd10e86.js",
+    "imports": [
+      "resources/js/app.jsx",
+      "_Layout-059bc9e0.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "resources/js/Pages/Achievements/Index.jsx"
+  },
   "resources/js/Pages/Attendance/Import.jsx": {
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/Import-6387d092.js",
+    "file": "assets/Import-ee22cfff.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Attendance/Import.jsx"
@@ -26,10 +38,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/Index-8d8d412d.js",
+    "file": "assets/Index-8531828d.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Attendance/Index.jsx"
@@ -38,7 +50,7 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/ForgotPassword-72bf4f70.js",
+    "file": "assets/ForgotPassword-1f2c7005.js",
     "imports": [
       "resources/js/app.jsx"
     ],
@@ -49,7 +61,7 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/Login-ffd02552.js",
+    "file": "assets/Login-033f360f.js",
     "imports": [
       "resources/js/app.jsx"
     ],
@@ -60,7 +72,7 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/ResetPassword-88409d49.js",
+    "file": "assets/ResetPassword-f31ff02a.js",
     "imports": [
       "resources/js/app.jsx"
     ],
@@ -71,10 +83,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/Home-71b8bf09.js",
+    "file": "assets/Home-5d42068e.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Home.jsx"
@@ -83,10 +95,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/Create-a902d9cc.js",
+    "file": "assets/Create-b596905b.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Members/Create.jsx"
@@ -95,10 +107,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/Edit-8f9bee9a.js",
+    "file": "assets/Edit-40966e90.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Members/Edit.jsx"
@@ -107,10 +119,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/Index-a41b26ad.js",
+    "file": "assets/Index-5424bf64.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Members/Index.jsx"
@@ -119,10 +131,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/Show-caeeeb9c.js",
+    "file": "assets/Show-560be925.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Members/Show.jsx"
@@ -131,10 +143,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/Import-536c7454.js",
+    "file": "assets/Import-2f16c764.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/Import.jsx"
@@ -143,10 +155,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/Index-023841c9.js",
+    "file": "assets/Index-914df933.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/Index.jsx"
@@ -155,10 +167,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/InitializeYear-83fd7a36.js",
+    "file": "assets/InitializeYear-82f8eb67.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/InitializeYear.jsx"
@@ -167,10 +179,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/MemberHistory-5cb019f4.js",
+    "file": "assets/MemberHistory-d10d4996.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/MemberHistory.jsx"
@@ -179,10 +191,10 @@
     "css": [
       "assets/app-6fd69b07.css"
     ],
-    "file": "assets/MyPayments-8265e067.js",
+    "file": "assets/MyPayments-1c3911c8.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-974eaf49.js"
+      "_Layout-059bc9e0.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/MyPayments.jsx"
@@ -192,6 +204,7 @@
       "assets/app-6fd69b07.css"
     ],
     "dynamicImports": [
+      "resources/js/Pages/Achievements/Index.jsx",
       "resources/js/Pages/Attendance/Import.jsx",
       "resources/js/Pages/Attendance/Index.jsx",
       "resources/js/Pages/Auth/ForgotPassword.jsx",
@@ -208,7 +221,7 @@
       "resources/js/Pages/Payments/MemberHistory.jsx",
       "resources/js/Pages/Payments/MyPayments.jsx"
     ],
-    "file": "assets/app-d7ac6992.js",
+    "file": "assets/app-d3218e33.js",
     "isEntry": true,
     "src": "resources/js/app.jsx"
   }
