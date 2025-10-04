@@ -88,6 +88,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/payments/member/{member}', [App\Http\Controllers\PaymentController::class, 'memberHistory'])
             ->name('payments.member');
 
+        // Store or update payment (using updateOrCreate)
+        Route::post('/payments', [App\Http\Controllers\PaymentController::class, 'store'])
+            ->name('payments.store');
+
         // Update payment
         Route::put('/payments/{payment}', [App\Http\Controllers\PaymentController::class, 'update'])
             ->name('payments.update');
