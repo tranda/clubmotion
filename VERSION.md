@@ -16,7 +16,7 @@ ClubMotion follows semantic versioning: **x.y.z**
 
 ## Current Version
 
-**0.6.5**
+**0.6.6**
 
 ## Version Files
 

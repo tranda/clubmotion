@@ -2,6 +2,13 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.6.6] - 2025-01-05
+
+### Fixed
+- Category distribution chart now uses fetched member categories correctly
+- Added category data to attendance grid for proper stats calculation
+- Chart displays actual category distribution from loaded members
+
 ## [0.6.5] - 2025-01-05
 
 ### Fixed

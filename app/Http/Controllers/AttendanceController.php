@@ -26,15 +26,17 @@ class AttendanceController extends Controller
         // Default to 'active' if filter is not present in query at all
         $filter = $request->has('filter') ? $request->query('filter') : 'active';
 
-        // Get members based on filter
+        // Get members based on filter (with category for stats)
         if ($filter === 'active') {
-            $members = Member::where('is_active', 1)
+            $members = Member::with('category')
+                ->where('is_active', 1)
                 ->orderBy('membership_number')
-                ->get(['id', 'name', 'membership_number']);
+                ->get();
         } else {
             // 'all' or any other value shows all members
-            $members = Member::orderBy('membership_number')
-                ->get(['id', 'name', 'membership_number']);
+            $members = Member::with('category')
+                ->orderBy('membership_number')
+                ->get();
         }
 
         // Get sessions for the selected month
@@ -63,6 +65,8 @@ class AttendanceController extends Controller
                 'id' => $member->id,
                 'name' => $member->name,
                 'membership_number' => $member->membership_number,
+                'category_id' => $member->category_id,
+                'category_name' => $member->category ? $member->category->name : null,
                 'sessions' => [],
                 'total' => 0,
             ];
@@ -460,26 +464,22 @@ class AttendanceController extends Controller
             ];
         }
 
-        // Category distribution - include ALL categories
+        // Category distribution - use categories from fetched members
         $allCategories = MembershipCategory::all();
         $categoryStats = [];
 
         // Initialize all categories with count 0
         foreach ($allCategories as $category) {
-            $categoryStats[$category->name] = [
+            $categoryStats[$category->id] = [
                 'name' => $category->name,
                 'count' => 0,
             ];
         }
 
-        // Count members per category
-        $members = Member::with('category')->where('is_active', 1)->get();
-        foreach ($members as $member) {
-            if ($member->category) {
-                $categoryName = $member->category->name;
-                if (isset($categoryStats[$categoryName])) {
-                    $categoryStats[$categoryName]['count']++;
-                }
+        // Count members by category from attendance grid
+        foreach ($attendanceGrid as $member) {
+            if ($member['category_id'] && isset($categoryStats[$member['category_id']])) {
+                $categoryStats[$member['category_id']]['count']++;
             }
         }
 
