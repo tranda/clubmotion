@@ -344,7 +344,7 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
 
                     <div className="mt-6 flex justify-between">
                         <div>
-                            {canDelete && payment?.id && (
+                            {payment?.id && (
                                 <button
                                     type="button"
                                     onClick={handleDelete}
