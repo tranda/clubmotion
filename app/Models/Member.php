@@ -67,4 +67,43 @@ class Member extends Model
             ->withPivot('present')
             ->withTimestamps();
     }
+
+    /**
+     * Calculate and return the appropriate category based on age
+     */
+    public function calculateCategory()
+    {
+        // If no birth date, return current category or null
+        if (!$this->date_of_birth) {
+            return $this->category_id;
+        }
+
+        // Calculate age
+        $age = \Carbon\Carbon::parse($this->date_of_birth)->age;
+
+        // Get all age-based categories
+        $ageBasedCategories = MembershipCategory::where('is_age_based', true)->get();
+
+        // Find matching category based on age range
+        foreach ($ageBasedCategories as $category) {
+            $minAge = $category->min_age ?? 0;
+            $maxAge = $category->max_age ?? 999;
+
+            if ($age >= $minAge && $age <= $maxAge) {
+                return $category->id;
+            }
+        }
+
+        // If no age-based category matches, return current category
+        return $this->category_id;
+    }
+
+    /**
+     * Get the calculated category relationship
+     */
+    public function getCalculatedCategoryAttribute()
+    {
+        $categoryId = $this->calculateCategory();
+        return MembershipCategory::find($categoryId);
+    }
 }
