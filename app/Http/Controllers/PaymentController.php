@@ -352,9 +352,10 @@ class PaymentController extends Controller
                         $paymentData['payment_status'] = 'exempt';
                         $paymentData['exemption_reason'] = $exemptionType;
 
-                        // Update member exemption status
-                        if ($member->exemption_status !== $exemptionType) {
-                            $member->update(['exemption_status' => $exemptionType]);
+                        // Update member exemption status (map 'free' to valid enum values)
+                        $memberExemptionStatus = in_array($exemptionType, ['pocasni', 'saradnik']) ? $exemptionType : 'none';
+                        if ($member->exemption_status !== $memberExemptionStatus) {
+                            $member->update(['exemption_status' => $memberExemptionStatus]);
                         }
                     }
 
