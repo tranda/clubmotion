@@ -332,30 +332,15 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
                             </>
                         )}
 
-                        {formData.payment_status === 'exempt' && formData.exemption_reason === 'other' && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Notes (Required for Other)</label>
-                                <textarea
-                                    value={formData.notes}
-                                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                                    rows={3}
-                                    placeholder="Explain the reason for exemption..."
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                />
-                            </div>
-                        )}
-
-                        {(formData.payment_status !== 'exempt' || formData.exemption_reason !== 'other') && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Notes</label>
-                                <textarea
-                                    value={formData.notes}
-                                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                                    rows={2}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                />
-                            </div>
-                        )}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Notes</label>
+                            <textarea
+                                value={formData.notes}
+                                onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                rows={2}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                        </div>
                     </div>
 
                     <div className="mt-6 flex justify-between">
