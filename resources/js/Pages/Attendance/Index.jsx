@@ -352,7 +352,11 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                         {canManage && (
                             <div>
                                 <button
-                                    onClick={() => setShowNewSessionModal(true)}
+                                    onClick={() => {
+                                        const today = new Date().toISOString().split('T')[0];
+                                        setNewSession({ date: today, session_type_id: 1, notes: '' });
+                                        setShowNewSessionModal(true);
+                                    }}
                                     className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                                 >
                                     + Add Session
@@ -509,7 +513,11 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                         <p className="text-gray-500">No sessions found for {monthNames[selectedMonth - 1]} {selectedYear}</p>
                         {canManage && (
                             <button
-                                onClick={() => setShowNewSessionModal(true)}
+                                onClick={() => {
+                                    const today = new Date().toISOString().split('T')[0];
+                                    setNewSession({ date: today, session_type_id: 1, notes: '' });
+                                    setShowNewSessionModal(true);
+                                }}
                                 className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
                             >
                                 Create First Session
