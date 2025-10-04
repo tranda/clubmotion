@@ -7,6 +7,7 @@ use App\Models\AttendanceSession;
 use App\Models\AttendanceRecord;
 use App\Models\SessionType;
 use App\Models\Member;
+use App\Models\MembershipCategory;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.6.5] - 2025-01-05
+
+### Fixed
+- Added missing MembershipCategory import in AttendanceController
+
 ## [0.6.4] - 2025-01-05
 
 ### Changed
