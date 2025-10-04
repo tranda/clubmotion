@@ -782,24 +782,24 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                         const chartHeight = 300;
 
                                         return (
-                                            <div className="flex items-end justify-between gap-3">
-                                                {stats.category_stats.map((category, idx) => {
-                                                    const barHeight = maxCount > 0 ? (category.count / maxCount) * (chartHeight - 40) : 0;
-                                                    const colors = [
-                                                        'bg-blue-500',
-                                                        'bg-green-500',
-                                                        'bg-purple-500',
-                                                        'bg-orange-500',
-                                                        'bg-pink-500',
-                                                        'bg-indigo-500',
-                                                        'bg-teal-500',
-                                                        'bg-red-500'
-                                                    ];
-                                                    const color = colors[idx % colors.length];
+                                            <div>
+                                                <div className="flex items-end justify-between gap-2" style={{ height: `${chartHeight}px` }}>
+                                                    {stats.category_stats.map((category, idx) => {
+                                                        const barHeight = maxCount > 0 ? (category.count / maxCount) * (chartHeight - 40) : 0;
+                                                        const colors = [
+                                                            'bg-blue-500',
+                                                            'bg-green-500',
+                                                            'bg-purple-500',
+                                                            'bg-orange-500',
+                                                            'bg-pink-500',
+                                                            'bg-indigo-500',
+                                                            'bg-teal-500',
+                                                            'bg-red-500'
+                                                        ];
+                                                        const color = colors[idx % colors.length];
 
-                                                    return (
-                                                        <div key={idx} className="flex-1 flex flex-col items-center">
-                                                            <div className="flex-1 flex flex-col items-center justify-end" style={{ height: `${chartHeight}px` }}>
+                                                        return (
+                                                            <div key={idx} className="flex-1 flex flex-col items-center justify-end">
                                                                 {/* Count on top */}
                                                                 <div className="text-sm font-semibold text-gray-700 mb-1">
                                                                     {category.count}
@@ -811,13 +811,17 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                                                     title={`${category.name}: ${category.count} members`}
                                                                 />
                                                             </div>
-                                                            {/* Category name on X-axis */}
-                                                            <div className="text-sm mt-2 font-medium text-gray-700 text-center">
-                                                                {category.name}
-                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                {/* Category names on X-axis */}
+                                                <div className="flex justify-between gap-2 mt-3">
+                                                    {stats.category_stats.map((category, idx) => (
+                                                        <div key={idx} className="flex-1 text-center text-sm font-medium text-gray-900">
+                                                            {category.name}
                                                         </div>
-                                                    );
-                                                })}
+                                                    ))}
+                                                </div>
                                             </div>
                                         );
                                     })()}
