@@ -782,7 +782,7 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                         const chartHeight = 300;
 
                                         return (
-                                            <div className="flex items-end justify-between gap-3" style={{ height: `${chartHeight}px` }}>
+                                            <div className="flex items-end justify-between gap-3">
                                                 {stats.category_stats.map((category, idx) => {
                                                     const barHeight = maxCount > 0 ? (category.count / maxCount) * (chartHeight - 40) : 0;
                                                     const colors = [
@@ -798,19 +798,21 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                                     const color = colors[idx % colors.length];
 
                                                     return (
-                                                        <div key={idx} className="flex-1 flex flex-col items-center justify-end">
-                                                            {/* Count on top */}
-                                                            <div className="text-sm font-semibold text-gray-700 mb-1">
-                                                                {category.count}
+                                                        <div key={idx} className="flex-1 flex flex-col items-center">
+                                                            <div className="flex-1 flex flex-col items-center justify-end" style={{ height: `${chartHeight}px` }}>
+                                                                {/* Count on top */}
+                                                                <div className="text-sm font-semibold text-gray-700 mb-1">
+                                                                    {category.count}
+                                                                </div>
+                                                                {/* Bar */}
+                                                                <div
+                                                                    className={`w-full rounded-t-lg transition-all hover:opacity-80 ${color}`}
+                                                                    style={{ height: `${barHeight}px`, minHeight: category.count > 0 ? '20px' : '0' }}
+                                                                    title={`${category.name}: ${category.count} members`}
+                                                                />
                                                             </div>
-                                                            {/* Bar */}
-                                                            <div
-                                                                className={`w-full rounded-t-lg transition-all hover:opacity-80 ${color}`}
-                                                                style={{ height: `${barHeight}px`, minHeight: category.count > 0 ? '20px' : '0' }}
-                                                                title={`${category.name}: ${category.count} members`}
-                                                            />
-                                                            {/* Category name */}
-                                                            <div className="text-xs mt-2 font-medium text-gray-600 text-center">
+                                                            {/* Category name on X-axis */}
+                                                            <div className="text-sm mt-2 font-medium text-gray-700 text-center">
                                                                 {category.name}
                                                             </div>
                                                         </div>

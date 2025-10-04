@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.6.7] - 2025-01-05
+
+### Changed
+- Improved category chart X-axis labels with larger, clearer text
+- Category names now displayed prominently below each bar
+
 ## [0.6.6] - 2025-01-05
 
 ### Fixed
