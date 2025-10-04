@@ -128,6 +128,14 @@ export default function Home({ stats }) {
                         </>
                     )}
                 </div>
+
+                {/* Footer - Only on Home page */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                    <div className="flex justify-between items-center text-sm text-gray-600">
+                        <span>Made by Zoran Trandafilovic</span>
+                        <span>Version 0.5.17</span>
+                    </div>
+                </div>
             </div>
         </Layout>
     );

@@ -230,17 +230,9 @@ export default function Layout({ children }) {
             )}
 
             {/* Main Content */}
-            <main className="pt-20 px-4 pb-20 max-w-7xl mx-auto">
+            <main className="pt-20 px-4 pb-4 max-w-7xl mx-auto">
                 {children}
             </main>
-
-            {/* Footer */}
-            <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-4">
-                <div className="max-w-7xl mx-auto flex justify-between items-center text-sm text-gray-600">
-                    <span>Made by Zoran Trandafilovic</span>
-                    <span>Version 0.5.17</span>
-                </div>
-            </footer>
         </div>
     );
 }
