@@ -67,7 +67,7 @@ class MemberController extends Controller
         // Initialize all categories with count 0
         foreach ($allCategories as $category) {
             $categoryStats[$category->id] = [
-                'name' => $category->name,
+                'name' => $category->category_name,
                 'count' => 0,
             ];
         }
