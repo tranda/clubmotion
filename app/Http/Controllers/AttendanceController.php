@@ -205,19 +205,10 @@ class AttendanceController extends Controller
         for ($i = 2; $i < count($headers); $i++) {
             $dateStr = trim($headers[$i]);
 
-            // Parse date format like "4-Sep", "5-Sep", etc.
-            if (preg_match('/^(\d+)-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/i', $dateStr, $matches)) {
-                $day = $matches[1];
-                $month = $matches[2];
-
-                // Convert month name to number
-                $monthNum = date('m', strtotime($month));
-
-                // Use current year (you can make this configurable)
-                $year = date('Y');
-
+            // Parse date format YYYY-MM-DD (e.g., "2025-09-04")
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateStr)) {
                 try {
-                    $date = Carbon::createFromFormat('Y-m-d', "$year-$monthNum-$day");
+                    $date = Carbon::createFromFormat('Y-m-d', $dateStr);
                     $dateColumns[$i] = $date->format('Y-m-d');
                 } catch (\Exception $e) {
                     $errors[] = "Invalid date format in column: $dateStr";
@@ -226,7 +217,7 @@ class AttendanceController extends Controller
         }
 
         if (empty($dateColumns)) {
-            return redirect()->back()->with('error', 'No valid date columns found. Expected format: DD-MMM (e.g., 4-Sep)');
+            return redirect()->back()->with('error', 'No valid date columns found. Expected format: YYYY-MM-DD (e.g., 2025-09-04)');
         }
 
         // Process each row

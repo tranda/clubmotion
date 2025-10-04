@@ -69,14 +69,14 @@ export default function ImportAttendance() {
                                     <div>
                                         <p className="font-medium mb-1">Expected Format:</p>
                                         <code className="bg-white px-2 py-1 rounded text-xs block">
-                                            Ime i prezime, Članski broj, 4-Sep, 5-Sep, 6-Sep, 7-Sep, ...
+                                            Ime i prezime, Članski broj, 2025-09-04, 2025-09-05, 2025-09-06, ...
                                         </code>
                                     </div>
 
                                     <div className="bg-white rounded p-3 mt-2">
                                         <p className="font-medium mb-2">Example:</p>
                                         <code className="text-xs block">
-                                            Ime i prezime,Članski broj,4-Sep,5-Sep,6-Sep<br/>
+                                            Ime i prezime,Članski broj,2025-09-04,2025-09-05,2025-09-06<br/>
                                             Zoran Trandafilović,6,TRUE,TRUE,TRUE<br/>
                                             Snežana Rajh,5,TRUE,FALSE,TRUE
                                         </code>
@@ -85,7 +85,7 @@ export default function ImportAttendance() {
                                     <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2">
                                         <p className="font-medium">✨ Import Features:</p>
                                         <ul className="list-disc ml-5 mt-1">
-                                            <li>Date columns auto-detected (format: DD-MMM, e.g., 4-Sep)</li>
+                                            <li>Date columns auto-detected (format: YYYY-MM-DD, e.g., 2025-09-04)</li>
                                             <li>Matches members by membership number (second column)</li>
                                             <li>Creates sessions with "Training" type by default</li>
                                             <li>TRUE/FALSE values mark attendance</li>
