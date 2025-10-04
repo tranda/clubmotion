@@ -42,9 +42,26 @@ When the user says:
 See VERSION.md and CHANGELOG.md for detailed versioning instructions and change history.
 
 ## Deployment
+
+**IMPORTANT: Always increase version before pushing to Git!**
+
+### Deployment Workflow (Required Steps)
+
+1. **Make your code changes**
+2. **Run build**: `npm run build`
+3. **Increase version** (use appropriate command):
+   - `increase version` - For bug fixes/patches
+   - `increase minor version` - For new features
+   - `increase major version` - For breaking changes
+4. **Commit changes**: Include version bump and code changes
+5. **Push to Git**: `git push origin main`
+6. **Auto-deploy**: Server pulls changes automatically
+
+### Deployment Details
 - Project deploys via Git auto-pull on shared hosting (no SSH access)
 - Always run `npm run build` before committing
 - Committed files include `/public/build` artifacts
+- Version must be updated in VERSION.md and footer before each deployment
 
 ## Tech Stack
 - **Backend**: Laravel 9.x with Sanctum for authentication
