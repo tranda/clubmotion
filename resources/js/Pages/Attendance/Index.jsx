@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { router, usePage, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotals, sessionTypes, year, month, sessionTypeFilter, filter }) {
+export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions, sessionTotals: initialTotals, sessionTypes, year, month, sessionTypeFilter, filter }) {
     const { auth } = usePage().props;
     const canManage = auth.user?.role?.name === 'admin' || auth.user?.role?.name === 'superuser';
 
@@ -10,6 +10,8 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
     const [selectedMonth, setSelectedMonth] = useState(month);
     const [selectedSessionType, setSelectedSessionType] = useState(sessionTypeFilter);
     const [selectedFilter, setSelectedFilter] = useState(filter);
+    const [attendanceGrid, setAttendanceGrid] = useState(initialGrid);
+    const [sessionTotals, setSessionTotals] = useState(initialTotals);
     const [showNewSessionModal, setShowNewSessionModal] = useState(false);
     const [newSession, setNewSession] = useState({
         date: '',
@@ -29,18 +31,54 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
     const handleAttendanceToggle = (memberId, sessionId, currentValue) => {
         if (!canManage) return;
 
+        const newValue = !currentValue;
+
+        // Optimistically update the UI immediately
+        setAttendanceGrid(prevGrid => {
+            return prevGrid.map(member => {
+                if (member.id === memberId) {
+                    const updatedSessions = member.sessions.map(session => {
+                        if (session.session_id === sessionId) {
+                            return { ...session, present: newValue };
+                        }
+                        return session;
+                    });
+
+                    // Recalculate total
+                    const total = updatedSessions.filter(s => s.present).length;
+
+                    return {
+                        ...member,
+                        sessions: updatedSessions,
+                        total: total
+                    };
+                }
+                return member;
+            });
+        });
+
+        // Update session totals
+        setSessionTotals(prevTotals => {
+            const currentTotal = prevTotals[sessionId] || 0;
+            return {
+                ...prevTotals,
+                [sessionId]: newValue ? currentTotal + 1 : currentTotal - 1
+            };
+        });
+
+        // Send to backend (no UI update needed, already done optimistically)
         router.post('/attendance/mark', {
             records: [{
                 member_id: memberId,
                 session_id: sessionId,
-                present: !currentValue,
+                present: newValue,
             }]
         }, {
             preserveScroll: true,
             preserveState: true,
-            only: ['attendanceGrid', 'sessionTotals'],
-            onSuccess: () => {
-                // Silently reload only the data we need
+            onError: () => {
+                // If error, reload to get correct state from server
+                router.reload({ only: ['attendanceGrid', 'sessionTotals'] });
             },
         });
     };
