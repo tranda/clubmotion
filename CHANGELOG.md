@@ -2,6 +2,16 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.9] - 2025-01-05
+
+### Changed
+- Increased logo size on login screen (h-20 to h-40)
+
+### Fixed
+- Fixed 419 CSRF token error on logout
+- Added CSRF token meta tag to app layout
+- Excluded logout route from CSRF verification
+
 ## [0.5.8] - 2025-01-05
 
 ### Changed

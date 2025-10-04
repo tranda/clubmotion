@@ -22,7 +22,7 @@ export default function Login({ status }) {
             <div className="max-w-md w-full">
                 {/* Logo/Title */}
                 <div className="text-center mb-8">
-                    <img src="/images/logo.png" alt="ClubMotion" className="h-20 mx-auto mb-4" />
+                    <img src="/images/logo.png" alt="ClubMotion" className="h-40 mx-auto mb-4" />
                     <p className="text-gray-600">Sign in to your account</p>
                     <p className="text-sm text-gray-500 mt-2">First time signing in? Enter your email and choose a password to create your account.</p>
                 </div>
