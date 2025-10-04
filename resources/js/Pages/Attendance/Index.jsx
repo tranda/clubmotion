@@ -356,8 +356,9 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                             <div>
                                 <button
                                     onClick={() => {
-                                        const today = new Date().toISOString().split('T')[0];
-                                        setNewSession({ date: today, session_type_id: 1, notes: '' });
+                                        const today = new Date();
+                                        const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                                        setNewSession({ date: localDate, session_type_id: 1, notes: '' });
                                         setShowNewSessionModal(true);
                                     }}
                                     className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
@@ -517,8 +518,9 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                         {canManage && (
                             <button
                                 onClick={() => {
-                                    const today = new Date().toISOString().split('T')[0];
-                                    setNewSession({ date: today, session_type_id: 1, notes: '' });
+                                    const today = new Date();
+                                    const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                                    setNewSession({ date: localDate, session_type_id: 1, notes: '' });
                                     setShowNewSessionModal(true);
                                 }}
                                 className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
