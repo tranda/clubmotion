@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 
 export default function Layout({ children }) {
-    const { auth } = usePage().props;
+    const { auth, clubName } = usePage().props;
     const [menuOpen, setMenuOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -30,7 +30,7 @@ export default function Layout({ children }) {
                     <div className="flex items-center justify-between h-16">
                         {/* Logo */}
                         <Link href="/" className="text-xl font-bold text-gray-800">
-                            ClubMotion
+                            {clubName || 'ClubMotion'}
                         </Link>
 
                         {/* Desktop Navigation - Hidden on Mobile */}
