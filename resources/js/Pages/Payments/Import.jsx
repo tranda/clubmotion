@@ -3,11 +3,15 @@ import { router, usePage } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 export default function Import() {
-    const { flash } = usePage().props;
+    const { flash, errors } = usePage().props;
     const [file, setFile] = useState(null);
+    const [processing, setProcessing] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        console.log('Form submitted');
+        console.log('File:', file);
 
         if (!file) {
             alert('Please select a CSV file to import');
@@ -17,8 +21,27 @@ export default function Import() {
         const formData = new FormData();
         formData.append('csv_file', file);
 
+        console.log('Starting import...');
+        setProcessing(true);
+
         router.post('/payments/import', formData, {
             forceFormData: true,
+            onStart: () => {
+                console.log('Request started');
+            },
+            onSuccess: (response) => {
+                console.log('Success:', response);
+                setProcessing(false);
+            },
+            onError: (errors) => {
+                console.error('Import errors:', errors);
+                setProcessing(false);
+                alert('Import failed. Check console and error messages.');
+            },
+            onFinish: () => {
+                console.log('Request finished');
+                setProcessing(false);
+            },
         });
     };
 
@@ -110,18 +133,41 @@ export default function Import() {
                                     type="button"
                                     onClick={() => router.get('/payments')}
                                     className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                                    disabled={processing}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                                    disabled={processing}
                                 >
-                                    Import Payments
+                                    {processing ? 'Importing...' : 'Import Payments'}
                                 </button>
                             </div>
                         </div>
                     </form>
+
+                    {/* Success Message */}
+                    {flash?.success && (
+                        <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p className="text-green-800">{flash.success}</p>
+                        </div>
+                    )}
+
+                    {/* Error Message */}
+                    {flash?.error && (
+                        <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                            <p className="text-red-800">{flash.error}</p>
+                        </div>
+                    )}
+
+                    {/* Validation Errors */}
+                    {errors?.csv_file && (
+                        <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                            <p className="text-red-800">{errors.csv_file}</p>
+                        </div>
+                    )}
 
                     {/* Show import errors if any */}
                     {flash?.import_errors && flash.import_errors.length > 0 && (

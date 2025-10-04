@@ -2,6 +2,39 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.1] - 2025-01-05
+
+### Added
+- Complete payment management system with Excel-like grid interface
+- Payment tracking by year and month for all members
+- Multi-year CSV import with auto-detection of year/month from column headers
+- Support for exempt members (pocasni, saradnik) with exemption tracking
+- Payment initialization wizard for new years
+- CSV export template generation
+- Role-based payment access (admin/superuser manage all, users view own)
+- Payment statistics dashboard (total collected, paid, pending, overdue, exempt)
+- Click-to-edit modal for individual payment records
+- Member payment history view
+- Recent payments section on member detail page
+
+### Changed
+- Updated members table to include exemption_status field
+- Removed Ziggy route() helper dependency, using plain URL paths
+- Enhanced member matching in CSV import (membership_number first, then email)
+- Improved migration system with browser-accessible /migrate route for shared hosting
+
+### Fixed
+- Resolved route() helper JavaScript errors by using plain paths
+- Fixed eager loading issues with payment relationships
+- Corrected database column mapping in payment queries
+- Added Serbian month name support in CSV import (MAJ→MAY, OKT→OCT)
+
+### Technical
+- New MembershipPayment model with relationships and helper methods
+- PaymentController with full CRUD and bulk operations
+- Multi-year import parser supporting various date formats
+- Migration system compatible with shared hosting (no SSH)
+
 ## [0.5.0] - 2025-01-04
 
 ### Added
