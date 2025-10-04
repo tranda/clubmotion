@@ -16,7 +16,8 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         $year = $request->input('year', date('Y'));
-        $filter = $request->input('filter', 'active');
+        // Only default to 'active' if filter is not present in query at all
+        $filter = $request->has('filter') ? $request->input('filter') : 'active';
         $user = auth()->user();
 
         // Regular users see only their own payments

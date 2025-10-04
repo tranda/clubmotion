@@ -20,7 +20,8 @@ class MemberController extends Controller
      */
     public function index(Request $request)
     {
-        $filter = $request->query('filter', 'active');
+        // Only default to 'active' if filter is not present in query at all
+        $filter = $request->has('filter') ? $request->query('filter') : 'active';
 
         if ($filter === 'active') {
             $members = Member::with('category')->where('is_active', 1)->orderBy('membership_number')->get();
