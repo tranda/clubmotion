@@ -192,7 +192,7 @@ export default function Home({ stats }) {
                 <div className="mt-auto pt-8 border-t border-gray-200">
                     <div className="flex justify-between items-center text-sm text-gray-600">
                         <span>Made by Zoran Trandafilovic</span>
-                        <span>Version 0.5.18</span>
+                        <span>Version 0.6.0</span>
                     </div>
                 </div>
             </div>

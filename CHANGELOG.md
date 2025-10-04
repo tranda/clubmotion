@@ -2,6 +2,83 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.6.0] - 2025-01-05
+
+### Major Features
+
+#### Complete Attendance Tracking System
+- **Grid View**: Excel-like spreadsheet interface for marking attendance
+  - Spreadsheet-style layout with members in rows and sessions in columns
+  - Click checkbox to mark attendance (present/absent)
+  - Real-time attendance counting per member and per session
+  - Session type editing and deletion directly from grid headers
+  - Sticky member name and number columns for easy scrolling
+  - Color-coded session columns by type
+
+- **Calendar View**: Monthly calendar visualization
+  - Visual calendar grid showing all sessions per day
+  - Click on any day to see detailed session information
+  - Color-coded session indicators matching session types
+  - Attendance count displayed for each day
+  - Mobile-optimized with pull-to-refresh
+
+- **Session Management**
+  - Create sessions with date, type, and notes
+  - Edit session types inline from grid view or calendar modal
+  - Delete sessions with confirmation
+  - Session types: Training (Blue), Competition (Green), Other (Orange)
+  - Color-coding throughout the interface
+
+- **Advanced Filtering**
+  - Filter by year (current year ± 2 years)
+  - Filter by month (all 12 months)
+  - Filter by session type (Training, Competition, Other, or All)
+  - Filter by member status (Active or All)
+  - Filters persist across view changes
+
+- **CSV Import**
+  - Bulk import attendance data from CSV files
+  - Auto-detection of members and sessions
+  - Import validation and error reporting
+
+- **Role-Based Access**
+  - Admin and Superuser: Full edit access
+  - Regular Users: View-only access
+  - Mobile and desktop responsive design
+
+#### Member Achievements System
+- **Achievement Tracking**
+  - Record member achievements with title, description, date, and category
+  - Categories: Tournament, Competition, Award, Other
+  - Display achievements on member profile pages
+  - Group achievements by category with color coding
+  - Chronological display of achievements
+
+- **Achievement Management**
+  - Add achievements to member profiles
+  - Edit existing achievements
+  - Delete achievements with confirmation
+  - Category-based organization and filtering
+
+### Minor Features & Enhancements
+
+- **Session Types**: Simplified from 4 types to 3 (Training, Competition, Other)
+- **Database Migration**: Update existing session types automatically
+- **Mobile Optimization**: Pull-to-refresh on attendance calendar view
+- **UI Improvements**: Enhanced hover effects and visual feedback
+- **Performance**: Optimistic UI updates for instant feedback
+- **Navigation**: Added Attendance link to main menu (desktop and mobile)
+
+### Technical Improvements
+
+- New database tables: `session_types`, `attendance_sessions`, `attendance_records`, `achievements`
+- New models: SessionType, AttendanceSession, AttendanceRecord, Achievement
+- New controllers: AttendanceController, AchievementsController
+- Session type seeder with color definitions
+- Database migrations for attendance and achievements systems
+- React components with Inertia.js integration
+- Real-time UI updates without page reloads
+
 ## [0.5.18] - 2025-01-05
 
 ### Added
