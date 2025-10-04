@@ -172,10 +172,13 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
         const daysInMonth = lastDay.getDate();
         const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
 
+        // Convert Sunday (0) to 7, so Monday becomes 0
+        const mondayBasedDay = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+
         const days = [];
 
         // Add empty cells for days before the month starts
-        for (let i = 0; i < startingDayOfWeek; i++) {
+        for (let i = 0; i < mondayBasedDay; i++) {
             days.push(null);
         }
 
@@ -530,8 +533,8 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                 {viewMode === 'calendar' && (
                     <div className="bg-white rounded-lg shadow p-6">
                         <div className="grid grid-cols-7 gap-2">
-                            {/* Week day headers */}
-                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                            {/* Week day headers - Monday first */}
+                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
                                 <div key={day} className="text-center font-semibold text-gray-600 py-2">
                                     {day}
                                 </div>
