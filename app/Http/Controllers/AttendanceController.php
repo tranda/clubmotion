@@ -294,13 +294,16 @@ class AttendanceController extends Controller
 
                 $isPresent = ($attendance === 'TRUE' || $attendance === '1');
 
-                // Create or get session for this date
-                $session = AttendanceSession::firstOrCreate(
-                    [
+                // Get session for this date (ignore session type to avoid duplicates)
+                $session = AttendanceSession::where('date', $date)->first();
+
+                // If no session exists for this date, create one with Training type
+                if (!$session) {
+                    $session = AttendanceSession::create([
                         'date' => $date,
                         'session_type_id' => $trainingType->id,
-                    ]
-                );
+                    ]);
+                }
 
                 // Create or update attendance record
                 AttendanceRecord::updateOrCreate(
