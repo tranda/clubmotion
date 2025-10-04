@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.15] - 2025-01-05
+
+### Changed
+- Increased session lifetime from 120 minutes (2 hours) to 1440 minutes (24 hours)
+
 ## [0.5.14] - 2025-01-05
 
 ### Changed
