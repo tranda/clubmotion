@@ -16,10 +16,29 @@ class AchievementsController extends Controller
     {
         $user = auth()->user();
 
-        // For now, just render the page
-        // We'll add achievement data later when you share the sheet structure
+        // Get user's member record
+        $member = $user->member;
+
+        if (!$member) {
+            return Inertia::render('Achievements/Index', [
+                'achievements' => [],
+                'achievementsByEvent' => [],
+            ]);
+        }
+
+        // Fetch achievements for this member, ordered by year (newest first) and event name
+        $achievements = Achievement::where('member_id', $member->id)
+            ->orderByDesc('year')
+            ->orderBy('event_name')
+            ->orderBy('competition_class')
+            ->get();
+
+        // Group achievements by event name
+        $achievementsByEvent = $achievements->groupBy('event_name');
+
         return Inertia::render('Achievements/Index', [
-            'user' => $user,
+            'achievements' => $achievements,
+            'achievementsByEvent' => $achievementsByEvent,
         ]);
     }
 
