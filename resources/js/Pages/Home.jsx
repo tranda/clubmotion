@@ -87,7 +87,7 @@ export default function Home({ stats }) {
                                 <p className="text-gray-600">Track membership payments</p>
                             </Link>
 
-                            {/* Add Member Card - Admin/Superuser only */}
+                            {/* Add Member Card - Admin/Superuser only - LAST */}
                             <Link
                                 href="/members/create"
                                 className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-dashed border-gray-300 hover:border-blue-500"
