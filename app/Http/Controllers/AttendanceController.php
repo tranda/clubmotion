@@ -437,6 +437,28 @@ class AttendanceController extends Controller
         $prevMonthTotal = count($prevMonthSessions) * $totalMembers;
         $prevMonthRate = $prevMonthTotal > 0 ? round(($prevMonthAttendance / $prevMonthTotal) * 100, 1) : 0;
 
+        // Monthly attendance for the whole year (for bar chart)
+        $monthlyData = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $monthSessions = AttendanceSession::whereYear('date', $year)
+                ->whereMonth('date', $m)
+                ->get();
+
+            $monthAttendance = 0;
+            foreach ($monthSessions as $session) {
+                $monthAttendance += AttendanceRecord::where('session_id', $session->id)
+                    ->where('present', true)
+                    ->count();
+            }
+
+            $monthlyData[] = [
+                'month' => $m,
+                'month_name' => date('M', mktime(0, 0, 0, $m, 1)),
+                'attendance' => $monthAttendance,
+                'sessions' => count($monthSessions),
+            ];
+        }
+
         return [
             'total_sessions' => $totalSessions,
             'total_members' => $totalMembers,
@@ -447,6 +469,7 @@ class AttendanceController extends Controller
             'most_attended_session' => $mostAttendedSession,
             'prev_month_rate' => $prevMonthRate,
             'rate_change' => round($attendanceRate - $prevMonthRate, 1),
+            'monthly_data' => $monthlyData,
         ];
     }
 }
