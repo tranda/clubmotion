@@ -36,7 +36,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended('/');
+            return redirect('/');
         }
 
         // Check if user exists
@@ -66,7 +66,7 @@ class AuthController extends Controller
                 Auth::login($newUser, $request->boolean('remember'));
                 $request->session()->regenerate();
 
-                return redirect()->intended('/');
+                return redirect('/');
             }
 
             throw ValidationException::withMessages([
