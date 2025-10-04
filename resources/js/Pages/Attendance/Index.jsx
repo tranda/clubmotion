@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { router, usePage, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import axios from 'axios';
@@ -19,6 +19,12 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
         session_type_id: 1,
         notes: '',
     });
+
+    // Update local state when props change (e.g., filter changes)
+    useEffect(() => {
+        setAttendanceGrid(initialGrid);
+        setSessionTotals(initialTotals);
+    }, [initialGrid, initialTotals]);
 
     // Generate year options (current year ± 2 years)
     const currentYear = new Date().getFullYear();
