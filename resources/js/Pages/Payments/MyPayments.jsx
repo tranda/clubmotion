@@ -109,7 +109,7 @@ export default function MyPayments({ member, year, payments, availableYears }) {
                                             {getStatusBadge(payment.payment_status)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {payment.payment_date ? payment.payment_date.split(' ')[0] : '−'}
+                                            {payment.payment_date ? payment.payment_date.split('T')[0] : '−'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
                                             {payment.payment_method ? payment.payment_method.replace('_', ' ') : '−'}

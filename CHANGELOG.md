@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.5] - 2025-01-05
+
+### Fixed
+- Fixed ISO date parsing to correctly extract date from timestamp (split by 'T' instead of space)
+
 ## [0.5.4] - 2025-01-05
 
 ### Fixed
