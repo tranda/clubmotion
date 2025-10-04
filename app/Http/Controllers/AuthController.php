@@ -86,10 +86,11 @@ class AuthController extends Controller
     {
         Auth::logout();
 
-        $request->session()->regenerateToken();
         $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        return redirect('/login');
+        // Force a full page reload to get fresh CSRF token
+        return Inertia::location('/login');
     }
 
     /**
