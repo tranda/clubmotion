@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { router, usePage, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
@@ -6,6 +6,43 @@ export default function Import() {
     const { flash } = usePage().props;
     const [file, setFile] = useState(null);
     const [processing, setProcessing] = useState(false);
+
+    // Pull to refresh
+    useEffect(() => {
+        let startY = 0;
+        let isPulling = false;
+
+        const handleTouchStart = (e) => {
+            if (window.scrollY === 0) {
+                startY = e.touches[0].pageY;
+                isPulling = true;
+            }
+        };
+
+        const handleTouchMove = (e) => {
+            if (!isPulling) return;
+            const currentY = e.touches[0].pageY;
+            const pullDistance = currentY - startY;
+            if (pullDistance > 100) {
+                isPulling = false;
+                router.reload();
+            }
+        };
+
+        const handleTouchEnd = () => {
+            isPulling = false;
+        };
+
+        document.addEventListener('touchstart', handleTouchStart);
+        document.addEventListener('touchmove', handleTouchMove);
+        document.addEventListener('touchend', handleTouchEnd);
+
+        return () => {
+            document.removeEventListener('touchstart', handleTouchStart);
+            document.removeEventListener('touchmove', handleTouchMove);
+            document.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, []);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
