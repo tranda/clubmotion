@@ -33,6 +33,7 @@ class PaymentController extends Controller
         if ($filter === 'active') {
             $membersQuery->where('is_active', true);
         }
+        // 'all' or any other value shows all members
 
         $members = $membersQuery->orderBy('membership_number')->get();
 

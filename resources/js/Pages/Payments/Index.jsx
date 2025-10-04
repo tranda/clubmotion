@@ -74,7 +74,7 @@ export default function Index({ year, members, stats, availableYears, filter }) 
                             onChange={handleFilterChange}
                             className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                         >
-                            <option value="">All</option>
+                            <option value="all">All</option>
                             <option value="active">Active</option>
                         </select>
 

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.14] - 2025-01-05
+
+### Changed
+- Changed "All" filter value from empty string to "all" for better clarity
+
 ## [0.5.13] - 2025-01-05
 
 ### Fixed

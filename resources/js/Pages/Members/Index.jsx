@@ -29,7 +29,7 @@ export default function Index({ members, filter }) {
                             onChange={handleFilterChange}
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
-                            <option value="">All</option>
+                            <option value="all">All</option>
                             <option value="active">Active</option>
                         </select>
                     </div>
