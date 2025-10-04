@@ -8,25 +8,26 @@ export default function Home({ stats }) {
 
     return (
         <Layout>
-            <div className="py-8">
+            <div className="min-h-[calc(100vh-5rem)] flex flex-col py-8">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to ClubMotion</h1>
                     <p className="text-gray-600">{canManage ? 'Manage your club members and payments efficiently' : 'Your club member portal'}</p>
                 </div>
 
-                {/* Quick Stats */}
-                <div className="mb-8 bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Overview</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                        <div className="text-center p-4 bg-green-50 rounded-lg">
-                            <p className="text-4xl font-bold text-green-600">{stats.activeMembers}</p>
-                            <p className="text-sm text-gray-600 mt-2">Active Members</p>
+                <div className="flex-1">
+                    {/* Quick Stats */}
+                    <div className="mb-8 bg-white rounded-lg shadow-md p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Overview</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                            <div className="text-center p-4 bg-green-50 rounded-lg">
+                                <p className="text-4xl font-bold text-green-600">{stats.activeMembers}</p>
+                                <p className="text-sm text-gray-600 mt-2">Active Members</p>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Dashboard Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Dashboard Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {canManage ? (
                         <>
                             {/* Members Card - Admin/Superuser only */}
@@ -127,10 +128,11 @@ export default function Home({ stats }) {
                             </Link>
                         </>
                     )}
+                    </div>
                 </div>
 
-                {/* Footer - Only on Home page */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
+                {/* Footer - Only on Home page, aligned to bottom */}
+                <div className="mt-auto pt-8 border-t border-gray-200">
                     <div className="flex justify-between items-center text-sm text-gray-600">
                         <span>Made by Zoran Trandafilovic</span>
                         <span>Version 0.5.17</span>
