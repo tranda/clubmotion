@@ -188,24 +188,32 @@ class AttendanceController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:5120', // 5MB max
+            'csv_files' => 'required|array',
+            'csv_files.*' => 'required|file|mimes:csv,txt|max:5120', // 5MB max per file
         ]);
 
-        $file = $request->file('csv_file');
-        $path = $file->getRealPath();
-        $data = array_map('str_getcsv', file($path));
+        $allErrors = [];
+        $totalImported = 0;
+        $totalSkipped = 0;
+        $filesProcessed = 0;
 
-        if (count($data) < 3) {
-            return redirect()->back()->with('error', 'CSV file is empty or invalid.');
-        }
+        foreach ($request->file('csv_files') as $file) {
+            $filesProcessed++;
+            $path = $file->getRealPath();
+            $data = array_map('str_getcsv', file($path));
 
-        // Skip first row (totals row)
-        array_shift($data);
+            if (count($data) < 3) {
+                $allErrors[] = "File '{$file->getClientOriginalName()}': CSV file is empty or invalid.";
+                continue;
+            }
 
-        $headers = array_shift($data); // Get actual header row
-        $errors = [];
-        $imported = 0;
-        $skipped = 0;
+            // Skip first row (totals row)
+            array_shift($data);
+
+            $headers = array_shift($data); // Get actual header row
+            $errors = [];
+            $imported = 0;
+            $skipped = 0;
 
         // Get default Training session type
         $trainingType = SessionType::where('name', 'Training')->first();
@@ -290,14 +298,23 @@ class AttendanceController extends Controller
             }
         }
 
-        $message = "Import completed: $imported records imported";
-        if ($skipped > 0) {
-            $message .= ", $skipped rows skipped";
+            $totalImported += $imported;
+            $totalSkipped += $skipped;
+
+            // Add file-specific errors with filename prefix
+            foreach ($errors as $error) {
+                $allErrors[] = "File '{$file->getClientOriginalName()}': {$error}";
+            }
+        }
+
+        $message = "Import completed: {$filesProcessed} file(s) processed, {$totalImported} records imported";
+        if ($totalSkipped > 0) {
+            $message .= ", {$totalSkipped} rows skipped";
         }
 
         return redirect()
             ->route('attendance.index')
             ->with('success', $message)
-            ->with('import_errors', $errors);
+            ->with('import_errors', $allErrors);
     }
 }

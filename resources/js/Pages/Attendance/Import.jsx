@@ -4,19 +4,26 @@ import Layout from '../../Components/Layout';
 
 export default function ImportAttendance() {
     const { flash, errors } = usePage().props;
-    const [file, setFile] = useState(null);
+    const [files, setFiles] = useState([]);
     const [processing, setProcessing] = useState(false);
+
+    const handleFileChange = (e) => {
+        const selectedFiles = Array.from(e.target.files);
+        setFiles(selectedFiles);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        if (!file) {
-            alert('Please select a CSV file to import');
+        if (files.length === 0) {
+            alert('Please select at least one CSV file to import');
             return;
         }
 
         const formData = new FormData();
-        formData.append('csv_file', file);
+        files.forEach((file, index) => {
+            formData.append(`csv_files[${index}]`, file);
+        });
 
         setProcessing(true);
 
@@ -24,6 +31,7 @@ export default function ImportAttendance() {
             forceFormData: true,
             onSuccess: () => {
                 setProcessing(false);
+                setFiles([]);
             },
             onError: () => {
                 setProcessing(false);
@@ -46,18 +54,24 @@ export default function ImportAttendance() {
                             {/* File Upload */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Upload CSV File
+                                    Upload CSV Files (Multiple)
                                 </label>
                                 <input
                                     type="file"
                                     accept=".csv,.txt"
-                                    onChange={(e) => setFile(e.target.files[0])}
+                                    multiple
+                                    onChange={handleFileChange}
                                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                 />
-                                {file && (
-                                    <p className="mt-2 text-sm text-green-600">
-                                        Selected: {file.name}
-                                    </p>
+                                {files.length > 0 && (
+                                    <div className="mt-2 text-sm text-green-600">
+                                        <p className="font-semibold">Selected {files.length} file{files.length > 1 ? 's' : ''}:</p>
+                                        <ul className="list-disc ml-5 mt-1">
+                                            {files.map((file, idx) => (
+                                                <li key={idx}>{file.name}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 )}
                             </div>
 
