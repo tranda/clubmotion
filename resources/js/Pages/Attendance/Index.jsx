@@ -777,6 +777,7 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Members by Category</h3>
                                 <div className="relative">
                                     {(() => {
+                                        console.log('Category stats:', stats.category_stats);
                                         const maxCount = Math.max(...stats.category_stats.map(c => c.count));
                                         const chartHeight = 300;
 
