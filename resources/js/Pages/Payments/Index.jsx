@@ -241,17 +241,10 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
             payment_year: year,
         };
 
-        if (payment?.id) {
-            // Update existing payment
-            router.put(`/payments/${payment.id}`, submitData, {
-                onSuccess: () => onClose(),
-            });
-        } else {
-            // Create new payment
-            router.post('/payments', submitData, {
-                onSuccess: () => onClose(),
-            });
-        }
+        // Always POST - backend handles create or update with updateOrCreate
+        router.post('/payments', submitData, {
+            onSuccess: () => onClose(),
+        });
     };
 
     const handleDelete = () => {

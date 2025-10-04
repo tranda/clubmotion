@@ -198,6 +198,43 @@ class PaymentController extends Controller
     }
 
     /**
+     * Store or update a payment record
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'member_id' => 'required|exists:members,id',
+            'payment_month' => 'required|integer|min:1|max:12',
+            'payment_year' => 'required|integer',
+            'paid_amount' => 'nullable|numeric|min:0',
+            'payment_status' => 'required|in:pending,paid,exempt,overdue',
+            'payment_date' => 'nullable|date',
+            'payment_method' => 'nullable|in:cash,card,bank_transfer',
+            'notes' => 'nullable|string',
+            'exemption_reason' => 'nullable|in:pocasni,saradnik',
+        ]);
+
+        MembershipPayment::updateOrCreate(
+            [
+                'member_id' => $request->member_id,
+                'payment_month' => $request->payment_month,
+                'payment_year' => $request->payment_year,
+            ],
+            [
+                'paid_amount' => $request->paid_amount,
+                'payment_status' => $request->payment_status,
+                'payment_date' => $request->payment_date ?? ($request->payment_status === 'paid' ? now() : null),
+                'payment_method' => $request->payment_method,
+                'notes' => $request->notes,
+                'exemption_reason' => $request->exemption_reason,
+                'created_by' => auth()->id(),
+            ]
+        );
+
+        return back()->with('success', 'Payment saved successfully');
+    }
+
+    /**
      * Update a payment record
      */
     public function update(Request $request, MembershipPayment $payment)
