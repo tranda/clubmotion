@@ -72,93 +72,119 @@ export default function Import() {
 
     return (
         <Layout>
-            <div className="py-6">
-                <div className="mb-6 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Import Achievements</h1>
-                        <p className="text-gray-600 mt-1">Upload a CSV file with member achievements</p>
-                    </div>
-                    <Link
-                        href="/my-achievements"
-                        className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                        ← Back to Achievements
-                    </Link>
-                </div>
+            <div className="py-4 max-w-4xl mx-auto">
+                <h1 className="text-2xl font-bold text-gray-800 mb-6">Import Achievements from CSV</h1>
 
-                {/* Flash Messages */}
-                {flash?.success && (
-                    <div className="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-                        {flash.success}
-                    </div>
-                )}
-                {flash?.error && (
-                    <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-                        {flash.error}
-                    </div>
-                )}
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Upload Form */}
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Upload CSV File</h2>
-
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-4">
+                <div className="bg-white rounded-lg shadow p-6">
+                    <form onSubmit={handleSubmit}>
+                        <div className="space-y-6">
+                            {/* File Upload */}
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Select File
+                                    Upload CSV File
                                 </label>
                                 <input
                                     type="file"
-                                    accept=".csv"
+                                    accept=".csv,.txt"
                                     onChange={handleFileChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                 />
                                 {file && (
-                                    <p className="mt-2 text-sm text-gray-600">
-                                        Selected: {file.name}
-                                    </p>
+                                    <div className="mt-2 text-sm text-green-600">
+                                        <p className="font-semibold">Selected: {file.name}</p>
+                                    </div>
                                 )}
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={!file || processing}
-                                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                            >
-                                {processing ? 'Processing...' : 'Upload and Import'}
-                            </button>
-                        </form>
-                    </div>
+                            {/* CSV Format Instructions */}
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h3 className="font-medium text-blue-900 mb-3">📋 CSV Format</h3>
 
-                    {/* Instructions */}
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">CSV Format</h2>
-                        <p className="text-gray-600 mb-4">
-                            Your CSV file should contain the following columns:
-                        </p>
-                        <ul className="list-disc list-inside text-gray-600 space-y-2 mb-4">
-                            <li><strong>membership_number</strong> - Member's ID number</li>
-                            <li><strong>competition class</strong> - Competition category</li>
-                            <li><strong>medal</strong> - Medal type (GOLD, SILVER, BRONZE)</li>
-                            <li><strong>Event name</strong> - Name of the event/competition</li>
-                        </ul>
+                                <div className="space-y-3 text-sm text-blue-800">
+                                    <div>
+                                        <p className="font-medium mb-1">Expected Format:</p>
+                                        <code className="bg-white px-2 py-1 rounded text-xs block">
+                                            membership_number, competition class, medal, Event name
+                                        </code>
+                                    </div>
 
-                        <div className="bg-gray-50 rounded p-4">
-                            <p className="text-sm font-semibold text-gray-700 mb-2">Example:</p>
-                            <pre className="text-xs text-gray-600 overflow-x-auto">
-membership_number,competition class,medal,Event name
-4,SM Premier Mixed 500m,GOLD,National 2025
-5,SM Premier Mixed 200m,SILVER,National 2025
-                            </pre>
+                                    <div className="bg-white rounded p-3 mt-2">
+                                        <p className="font-medium mb-2">Example:</p>
+                                        <code className="text-xs block">
+                                            membership_number,competition class,medal,Event name<br/>
+                                            4,SM Premier Mixed 500m,GOLD,National 2025<br/>
+                                            5,SM Premier Mixed 200m,SILVER,National 2025
+                                        </code>
+                                    </div>
+
+                                    <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2">
+                                        <p className="font-medium">✨ Import Features:</p>
+                                        <ul className="list-disc ml-5 mt-1">
+                                            <li>Matches members by membership number</li>
+                                            <li>Automatically extracts year from Event name (e.g., "National 2025" → 2025)</li>
+                                            <li>Medal types: GOLD, SILVER, BRONZE</li>
+                                            <li>Duplicate prevention (updates existing achievements)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Column Descriptions */}
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                <h3 className="font-medium text-gray-900 mb-3">📝 Column Details</h3>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li><strong>membership_number</strong> → Member's ID (must exist in system)</li>
+                                    <li><strong>competition class</strong> → Competition category/class</li>
+                                    <li><strong>medal</strong> → GOLD, SILVER, or BRONZE</li>
+                                    <li><strong>Event name</strong> → Event/competition name (include year)</li>
+                                </ul>
+                            </div>
+
+                            {/* Warning */}
+                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                <h3 className="font-medium text-orange-900 mb-2">⚠️ Important Notes</h3>
+                                <ul className="text-sm text-orange-800 space-y-1">
+                                    <li>• This will <strong>CREATE or UPDATE</strong> achievement records</li>
+                                    <li>• Ensure all membership numbers exist in the system</li>
+                                    <li>• First row must contain column headers</li>
+                                    <li>• Rows with missing data will be skipped</li>
+                                </ul>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => router.get('/my-achievements')}
+                                    className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                                    disabled={processing}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                                    disabled={processing || !file}
+                                >
+                                    {processing ? 'Importing...' : 'Import Achievements'}
+                                </button>
+                            </div>
                         </div>
+                    </form>
 
-                        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-sm text-blue-800">
-                                <strong>Note:</strong> The import will automatically match members by their membership number and extract the year from the event name.
-                            </p>
+                    {/* Success Message */}
+                    {flash?.success && (
+                        <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p className="text-green-800">{flash.success}</p>
                         </div>
-                    </div>
+                    )}
+
+                    {/* Error Message */}
+                    {flash?.error && (
+                        <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                            <p className="text-red-800">{flash.error}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </Layout>
