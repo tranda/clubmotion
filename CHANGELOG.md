@@ -2,6 +2,34 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.5.18] - 2025-01-05
+
+### Added
+- Complete attendance tracking system with session types
+- Excel-like grid view for marking attendance
+- Session types (Training, Match, Event, Tournament) with color coding
+- Year and month selection filters for attendance view
+- Session type filter to view specific session types
+- Quick checkbox toggle for marking attendance
+- Automatic counting of attendances per member and per session
+- Add/delete session functionality for admin and superuser
+- Attendance navigation link in main menu (desktop and mobile)
+
+### Features
+- **Attendance Grid**: Spreadsheet-style interface matching existing workflow
+- **Session Types**: Color-coded sessions (Training-Blue, Match-Green, Event-Orange, Tournament-Purple)
+- **Role-Based Access**: Admin/Superuser can edit, all users can view
+- **Filtering**: Filter by year, month, and session type
+- **Statistics**: Total attendance per member and per session displayed in grid
+- **Responsive Design**: Works on desktop and mobile devices
+
+### Technical
+- New database tables: session_types, attendance_sessions, attendance_records
+- AttendanceController with grid data, session creation, and attendance marking endpoints
+- SessionType, AttendanceSession, AttendanceRecord models with relationships
+- SessionTypeSeeder for default session types
+- React Attendance/Index component with filtering and editing capabilities
+
 ## [0.5.17] - 2025-01-05
 
 ### Fixed

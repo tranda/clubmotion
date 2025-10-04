@@ -55,4 +55,16 @@ class Member extends Model
         return $this->exemption_status === 'pocasni' ? 'POC' :
                ($this->exemption_status === 'saradnik' ? 'SAR' : null);
     }
+
+    public function attendanceRecords()
+    {
+        return $this->hasMany(AttendanceRecord::class);
+    }
+
+    public function attendanceSessions()
+    {
+        return $this->belongsToMany(AttendanceSession::class, 'attendance_records', 'member_id', 'session_id')
+            ->withPivot('present')
+            ->withTimestamps();
+    }
 }

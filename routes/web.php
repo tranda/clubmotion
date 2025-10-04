@@ -2,6 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AttendanceController;
 use App\Models\Member;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -58,6 +59,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/members/{member}/edit', [MemberController::class, 'edit'])->name('members.edit');
         Route::put('/members/{member}', [MemberController::class, 'update'])->name('members.update');
         Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('members.destroy');
+    });
+
+    // Attendance - All users can view, Admin/Superuser can edit
+    Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+
+    Route::middleware('role:admin,superuser')->group(function () {
+        Route::post('/attendance/sessions', [AttendanceController::class, 'createSession'])->name('attendance.sessions.create');
+        Route::post('/attendance/mark', [AttendanceController::class, 'markAttendance'])->name('attendance.mark');
+        Route::delete('/attendance/sessions/{id}', [AttendanceController::class, 'deleteSession'])->name('attendance.sessions.delete');
     });
 
     // Payments - My payments for all authenticated users
