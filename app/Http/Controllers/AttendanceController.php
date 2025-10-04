@@ -96,6 +96,9 @@ class AttendanceController extends Controller
         // Get all session types for filter dropdown
         $sessionTypes = SessionType::all();
 
+        // Calculate statistics for the selected period
+        $stats = $this->calculateStatistics($year, $month, $sessions, $attendanceGrid, $sessionTotals);
+
         return Inertia::render('Attendance/Index', [
             'attendanceGrid' => $attendanceGrid,
             'sessions' => $sessions,
@@ -105,6 +108,7 @@ class AttendanceController extends Controller
             'month' => (int) $month,
             'sessionTypeFilter' => $sessionTypeFilter ? (int) $sessionTypeFilter : null,
             'filter' => $filter,
+            'stats' => $stats,
         ]);
     }
 
@@ -339,5 +343,110 @@ class AttendanceController extends Controller
             ->route('attendance.index')
             ->with('success', $message)
             ->with('import_errors', $allErrors);
+    }
+
+    /**
+     * Calculate attendance statistics
+     */
+    private function calculateStatistics($year, $month, $sessions, $attendanceGrid, $sessionTotals)
+    {
+        $totalSessions = count($sessions);
+        $totalMembers = count($attendanceGrid);
+
+        // Calculate total attendance records
+        $totalAttendance = 0;
+        $possibleAttendance = $totalSessions * $totalMembers;
+
+        foreach ($attendanceGrid as $member) {
+            $totalAttendance += $member['total'];
+        }
+
+        // Overall attendance rate
+        $attendanceRate = $possibleAttendance > 0 ? round(($totalAttendance / $possibleAttendance) * 100, 1) : 0;
+
+        // Top attendees (sorted by total attendance)
+        $topAttendees = collect($attendanceGrid)
+            ->sortByDesc('total')
+            ->take(5)
+            ->map(function ($member) use ($totalSessions) {
+                $rate = $totalSessions > 0 ? round(($member['total'] / $totalSessions) * 100, 1) : 0;
+                return [
+                    'name' => $member['name'],
+                    'total' => $member['total'],
+                    'rate' => $rate
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        // Session type breakdown
+        $sessionTypeStats = [];
+        foreach ($sessions as $session) {
+            $typeId = $session->session_type_id;
+            if (!isset($sessionTypeStats[$typeId])) {
+                $sessionTypeStats[$typeId] = [
+                    'type_id' => $typeId,
+                    'type_name' => $session->sessionType->name,
+                    'count' => 0,
+                    'total_attendance' => 0,
+                    'color' => $session->sessionType->color,
+                ];
+            }
+            $sessionTypeStats[$typeId]['count']++;
+            $sessionTypeStats[$typeId]['total_attendance'] += $sessionTotals[$session->id] ?? 0;
+        }
+
+        // Calculate average attendance per session type
+        foreach ($sessionTypeStats as &$stat) {
+            $stat['avg_attendance'] = $stat['count'] > 0 ? round($stat['total_attendance'] / $stat['count'], 1) : 0;
+        }
+
+        // Most attended session
+        $mostAttendedSession = null;
+        $maxAttendance = 0;
+        foreach ($sessions as $session) {
+            if (($sessionTotals[$session->id] ?? 0) > $maxAttendance) {
+                $maxAttendance = $sessionTotals[$session->id] ?? 0;
+                $mostAttendedSession = [
+                    'date' => $session->date,
+                    'attendance' => $maxAttendance,
+                    'type' => $session->sessionType->name,
+                ];
+            }
+        }
+
+        // Previous month comparison
+        $prevMonth = $month - 1;
+        $prevYear = $year;
+        if ($prevMonth < 1) {
+            $prevMonth = 12;
+            $prevYear = $year - 1;
+        }
+
+        $prevMonthSessions = AttendanceSession::whereYear('date', $prevYear)
+            ->whereMonth('date', $prevMonth)
+            ->get();
+
+        $prevMonthAttendance = 0;
+        foreach ($prevMonthSessions as $session) {
+            $prevMonthAttendance += AttendanceRecord::where('session_id', $session->id)
+                ->where('present', true)
+                ->count();
+        }
+
+        $prevMonthTotal = count($prevMonthSessions) * $totalMembers;
+        $prevMonthRate = $prevMonthTotal > 0 ? round(($prevMonthAttendance / $prevMonthTotal) * 100, 1) : 0;
+
+        return [
+            'total_sessions' => $totalSessions,
+            'total_members' => $totalMembers,
+            'total_attendance' => $totalAttendance,
+            'attendance_rate' => $attendanceRate,
+            'top_attendees' => $topAttendees,
+            'session_type_stats' => array_values($sessionTypeStats),
+            'most_attended_session' => $mostAttendedSession,
+            'prev_month_rate' => $prevMonthRate,
+            'rate_change' => round($attendanceRate - $prevMonthRate, 1),
+        ];
     }
 }
