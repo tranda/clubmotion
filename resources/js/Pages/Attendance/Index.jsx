@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { router, usePage, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotals, sessionTypes, year, month, sessionTypeFilter }) {
+export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotals, sessionTypes, year, month, sessionTypeFilter, filter }) {
     const { auth } = usePage().props;
     const canManage = auth.user?.role?.name === 'admin' || auth.user?.role?.name === 'superuser';
 
     const [selectedYear, setSelectedYear] = useState(year);
     const [selectedMonth, setSelectedMonth] = useState(month);
     const [selectedSessionType, setSelectedSessionType] = useState(sessionTypeFilter);
+    const [selectedFilter, setSelectedFilter] = useState(filter);
     const [showNewSessionModal, setShowNewSessionModal] = useState(false);
     const [newSession, setNewSession] = useState({
         date: '',
@@ -74,7 +75,31 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
 
                 {/* Filters */}
                 <div className="bg-white rounded-lg shadow p-4 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Members</label>
+                            <select
+                                value={selectedFilter}
+                                onChange={(e) => {
+                                    const newFilter = e.target.value;
+                                    setSelectedFilter(newFilter);
+                                    router.get('/attendance', {
+                                        year: selectedYear,
+                                        month: selectedMonth,
+                                        session_type_id: selectedSessionType || undefined,
+                                        filter: newFilter,
+                                    }, {
+                                        preserveState: true,
+                                        preserveScroll: true,
+                                    });
+                                }}
+                                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="active">Active</option>
+                                <option value="all">All</option>
+                            </select>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
                             <select
@@ -86,6 +111,7 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
                                         year: newYear,
                                         month: selectedMonth,
                                         session_type_id: selectedSessionType || undefined,
+                                        filter: selectedFilter,
                                     }, {
                                         preserveState: true,
                                         preserveScroll: true,
@@ -110,6 +136,7 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
                                         year: selectedYear,
                                         month: newMonth,
                                         session_type_id: selectedSessionType || undefined,
+                                        filter: selectedFilter,
                                     }, {
                                         preserveState: true,
                                         preserveScroll: true,
@@ -134,6 +161,7 @@ export default function AttendanceIndex({ attendanceGrid, sessions, sessionTotal
                                         year: selectedYear,
                                         month: selectedMonth,
                                         session_type_id: newType || undefined,
+                                        filter: selectedFilter,
                                     }, {
                                         preserveState: true,
                                         preserveScroll: true,

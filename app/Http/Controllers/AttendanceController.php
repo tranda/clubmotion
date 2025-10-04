@@ -22,10 +22,19 @@ class AttendanceController extends Controller
         $month = $request->input('month', date('m'));
         $sessionTypeFilter = $request->input('session_type_id', null);
 
-        // Get all active members
-        $members = Member::where('is_active', 1)
-            ->orderBy('membership_number')
-            ->get(['id', 'name', 'membership_number']);
+        // Default to 'active' if filter is not present in query at all
+        $filter = $request->has('filter') ? $request->query('filter') : 'active';
+
+        // Get members based on filter
+        if ($filter === 'active') {
+            $members = Member::where('is_active', 1)
+                ->orderBy('membership_number')
+                ->get(['id', 'name', 'membership_number']);
+        } else {
+            // 'all' or any other value shows all members
+            $members = Member::orderBy('membership_number')
+                ->get(['id', 'name', 'membership_number']);
+        }
 
         // Get sessions for the selected month
         $sessionsQuery = AttendanceSession::with('sessionType')
@@ -95,6 +104,7 @@ class AttendanceController extends Controller
             'year' => (int) $year,
             'month' => (int) $month,
             'sessionTypeFilter' => $sessionTypeFilter ? (int) $sessionTypeFilter : null,
+            'filter' => $filter,
         ]);
     }
 
