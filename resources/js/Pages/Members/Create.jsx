@@ -5,7 +5,6 @@ import Layout from '../../Components/Layout';
 export default function Create({ categories }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
-        membership_number: '',
         date_of_birth: '',
         address: '',
         phone: '',
@@ -100,20 +99,15 @@ export default function Create({ categories }) {
                             {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
                         </div>
 
-                        {/* Membership Number */}
+                        {/* Membership Number - Auto-generated */}
                         <div>
-                            <label htmlFor="membership_number" className="block text-sm font-medium text-gray-700 mb-2">
-                                Membership ID <span className="text-red-500">*</span>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Membership ID
                             </label>
-                            <input
-                                type="text"
-                                id="membership_number"
-                                value={data.membership_number}
-                                onChange={(e) => setData('membership_number', e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                required
-                            />
-                            {errors.membership_number && <p className="mt-1 text-sm text-red-600">{errors.membership_number}</p>}
+                            <div className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+                                Auto-generated
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500">Membership ID will be automatically assigned</p>
                         </div>
 
                         {/* Date of Birth */}

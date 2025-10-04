@@ -59,7 +59,6 @@ class MemberController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'membership_number' => 'required|unique:members',
             'date_of_birth' => 'nullable|date',
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
@@ -71,6 +70,10 @@ class MemberController extends Controller
         ]);
 
         $data = $request->all();
+
+        // Auto-generate membership number (highest existing number + 1)
+        $maxMembershipNumber = Member::max('membership_number');
+        $data['membership_number'] = $maxMembershipNumber ? $maxMembershipNumber + 1 : 1;
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
