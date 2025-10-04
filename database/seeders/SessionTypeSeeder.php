@@ -16,9 +16,8 @@ class SessionTypeSeeder extends Seeder
     {
         $sessionTypes = [
             ['name' => 'Training', 'color' => '#3B82F6'], // Blue
-            ['name' => 'Match', 'color' => '#10B981'], // Green
-            ['name' => 'Event', 'color' => '#F59E0B'], // Orange
-            ['name' => 'Tournament', 'color' => '#8B5CF6'], // Purple
+            ['name' => 'Competition', 'color' => '#10B981'], // Green
+            ['name' => 'Other', 'color' => '#F59E0B'], // Orange
         ];
 
         foreach ($sessionTypes as $type) {
