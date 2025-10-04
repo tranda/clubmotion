@@ -401,30 +401,73 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                         <th className="sticky left-0 z-10 bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ left: '200px' }}>
                                             #
                                         </th>
-                                        {sessions.map(session => (
-                                            <th
-                                                key={session.id}
-                                                className="px-4 py-3 text-center text-xs font-medium text-white uppercase tracking-wider relative group"
-                                                style={{ backgroundColor: getSessionTypeColor(session.session_type_id) }}
-                                            >
-                                                <div>
-                                                    {new Date(session.date).getDate()}
-                                                    <br />
-                                                    <span className="text-xs opacity-90">
-                                                        ({sessionTotals[session.id] || 0})
-                                                    </span>
-                                                </div>
-                                                {canManage && (
-                                                    <button
-                                                        onClick={() => handleDeleteSession(session.id)}
-                                                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-opacity"
-                                                        title="Delete session"
-                                                    >
-                                                        ×
-                                                    </button>
-                                                )}
-                                            </th>
-                                        ))}
+                                        {sessions.map(session => {
+                                            const isEditingThisSession = editingSession?.id === session.id;
+                                            return (
+                                                <th
+                                                    key={session.id}
+                                                    className="px-4 py-3 text-center text-xs font-medium text-white uppercase tracking-wider relative group"
+                                                    style={{ backgroundColor: getSessionTypeColor(session.session_type_id) }}
+                                                >
+                                                    {isEditingThisSession ? (
+                                                        <div className="flex flex-col gap-1">
+                                                            <select
+                                                                value={editingSession.session_type_id}
+                                                                onChange={(e) => setEditingSession({ ...editingSession, session_type_id: parseInt(e.target.value) })}
+                                                                className="text-xs text-gray-900 border-gray-300 rounded px-1 py-0.5"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                {sessionTypes.map(type => (
+                                                                    <option key={type.id} value={type.id}>{type.name}</option>
+                                                                ))}
+                                                            </select>
+                                                            <div className="flex gap-1 justify-center">
+                                                                <button
+                                                                    onClick={() => handleUpdateSession(session.id)}
+                                                                    className="bg-green-500 text-white rounded px-2 py-0.5 text-xs hover:bg-green-600"
+                                                                    title="Save"
+                                                                >
+                                                                    ✓
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingSession(null)}
+                                                                    className="bg-gray-500 text-white rounded px-2 py-0.5 text-xs hover:bg-gray-600"
+                                                                    title="Cancel"
+                                                                >
+                                                                    ✗
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div>
+                                                            {new Date(session.date).getDate()}
+                                                            <br />
+                                                            <span className="text-xs opacity-90">
+                                                                ({sessionTotals[session.id] || 0})
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    {canManage && !isEditingThisSession && (
+                                                        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 flex gap-1">
+                                                            <button
+                                                                onClick={() => setEditingSession({ id: session.id, session_type_id: session.session_type_id, notes: session.notes || '' })}
+                                                                className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-blue-600 transition-opacity"
+                                                                title="Edit session type"
+                                                            >
+                                                                ✎
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteSession(session.id)}
+                                                                className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-opacity"
+                                                                title="Delete session"
+                                                            >
+                                                                ×
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </th>
+                                            );
+                                        })}
                                         <th className="bg-gray-50 px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Total
                                         </th>
