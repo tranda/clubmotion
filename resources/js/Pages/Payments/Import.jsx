@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-export default function Import({ availableYears }) {
+export default function Import() {
     const { flash } = usePage().props;
-    const [year, setYear] = useState(new Date().getFullYear());
     const [file, setFile] = useState(null);
 
     const handleSubmit = (e) => {
@@ -16,7 +15,6 @@ export default function Import({ availableYears }) {
         }
 
         const formData = new FormData();
-        formData.append('year', year);
         formData.append('csv_file', file);
 
         router.post('/payments/import', formData, {
@@ -32,22 +30,6 @@ export default function Import({ availableYears }) {
                 <div className="bg-white rounded-lg shadow p-6">
                     <form onSubmit={handleSubmit}>
                         <div className="space-y-6">
-                            {/* Year Selection */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Select Year
-                                </label>
-                                <select
-                                    value={year}
-                                    onChange={(e) => setYear(e.target.value)}
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                >
-                                    {availableYears.map(y => (
-                                        <option key={y} value={y}>{y}</option>
-                                    ))}
-                                </select>
-                            </div>
-
                             {/* File Upload */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -68,28 +50,24 @@ export default function Import({ availableYears }) {
 
                             {/* CSV Format Instructions */}
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h3 className="font-medium text-blue-900 mb-3">📋 CSV Format Options</h3>
+                                <h3 className="font-medium text-blue-900 mb-3">📋 CSV Format (Auto-Detects Year & Month)</h3>
 
                                 <div className="space-y-3 text-sm text-blue-800">
                                     <div>
-                                        <p className="font-medium mb-1">Option 1 (Email only):</p>
-                                        <code className="bg-white px-2 py-1 rounded text-xs">
-                                            Email, JAN_2025, FEB_2025, MAR_2025, ...
-                                        </code>
-                                    </div>
-
-                                    <div>
-                                        <p className="font-medium mb-1">Option 2 (Membership Number only):</p>
-                                        <code className="bg-white px-2 py-1 rounded text-xs">
-                                            Membership_Number, JAN_2025, FEB_2025, MAR_2025, ...
-                                        </code>
-                                    </div>
-
-                                    <div>
-                                        <p className="font-medium mb-1">Option 3 (Both - Recommended):</p>
+                                        <p className="font-medium mb-1">Column Format:</p>
                                         <code className="bg-white px-2 py-1 rounded text-xs block">
-                                            Email, Membership_Number, JAN_2025, FEB_2025, MAR_2025, ...
+                                            Članski broj, Email, jAN 2022, fEB 2022, mAR 2022, ..., JAN 2023, FEB 2023, ...
                                         </code>
+                                    </div>
+
+                                    <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2">
+                                        <p className="font-medium">✨ Smart Import:</p>
+                                        <ul className="list-disc ml-5 mt-1">
+                                            <li>Automatically detects year and month from column headers</li>
+                                            <li>Supports multiple years in one file (2022, 2023, 2024, 2025...)</li>
+                                            <li>Handles Serbian month names (mAJ, oKT, etc.)</li>
+                                            <li>First column: Membership Number, Second: Email</li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
@@ -101,7 +79,8 @@ export default function Import({ availableYears }) {
                                     <li><strong>Numbers</strong> (e.g., 2500, 1000) → Marked as <span className="text-green-600 font-semibold">paid</span></li>
                                     <li><strong>"pocasni"</strong> → Marked as <span className="text-gray-600 font-semibold">exempt</span> (honorary member)</li>
                                     <li><strong>"saradnik"</strong> → Marked as <span className="text-gray-600 font-semibold">exempt</span> (associate)</li>
-                                    <li><strong>Empty</strong> → Marked as <span className="text-yellow-600 font-semibold">pending</span></li>
+                                    <li><strong>"free"</strong> → Marked as <span className="text-gray-600 font-semibold">exempt</span></li>
+                                    <li><strong>Empty</strong> → Skipped (no record created)</li>
                                 </ul>
                             </div>
 
@@ -109,8 +88,8 @@ export default function Import({ availableYears }) {
                             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                                 <h3 className="font-medium text-yellow-900 mb-2">🔍 Member Matching Priority</h3>
                                 <ol className="text-sm text-yellow-800 space-y-1 list-decimal list-inside">
-                                    <li>Try to match by <strong>Email</strong> (if provided in CSV)</li>
-                                    <li>If not found, match by <strong>Membership Number</strong></li>
+                                    <li>Try to match by <strong>Membership Number</strong> (first column)</li>
+                                    <li>If not found, match by <strong>Email</strong> (second column)</li>
                                     <li>If neither matches, skip row and log error</li>
                                 </ol>
                             </div>

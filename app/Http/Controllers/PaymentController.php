@@ -249,17 +249,47 @@ class PaymentController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'year' => 'required|integer|min:2024|max:2030',
-            'csv_file' => 'required|file|mimes:csv,txt|max:5120',
+            'csv_file' => 'required|file|mimes:csv,txt|max:10240',
         ]);
 
-        $year = $request->year;
         $file = $request->file('csv_file');
-
         $csv = array_map('str_getcsv', file($file->getRealPath()));
         $header = array_shift($csv);
 
-        $stats = ['imported' => 0, 'skipped' => 0, 'errors' => []];
+        $stats = ['imported' => 0, 'skipped' => 0, 'errors' => [], 'years_processed' => []];
+
+        // Parse header to find year/month columns
+        $columnMap = [];
+        $monthMap = [
+            'JAN' => 1, 'FEB' => 2, 'MAR' => 3, 'APR' => 4, 'MAY' => 5, 'JUN' => 6,
+            'JUL' => 7, 'AUG' => 8, 'SEP' => 9, 'OCT' => 10, 'NOV' => 11, 'DEC' => 12,
+            'jAN' => 1, 'fEB' => 2, 'mAR' => 3, 'aPR' => 4, 'mAJ' => 5, 'jUN' => 6,
+            'jUL' => 7, 'aUG' => 8, 'sEP' => 9, 'oKT' => 10, 'nOV' => 11, 'dEC' => 12,
+            'MAJ' => 5, 'OKT' => 10, // Serbian names
+        ];
+
+        foreach ($header as $colIndex => $colName) {
+            $colName = trim($colName);
+
+            // Match patterns like "JAN 2024", "jAN 2022", "MAR_2023", etc.
+            if (preg_match('/^([a-zA-Z]+)\s*[_\s]?\s*(\d{4})$/i', $colName, $matches)) {
+                $monthName = strtoupper(trim($matches[1]));
+                $year = (int)$matches[2];
+
+                if (isset($monthMap[$monthName])) {
+                    $month = $monthMap[$monthName];
+                    $columnMap[$colIndex] = ['year' => $year, 'month' => $month];
+
+                    if (!in_array($year, $stats['years_processed'])) {
+                        $stats['years_processed'][] = $year;
+                    }
+                }
+            }
+        }
+
+        if (empty($columnMap)) {
+            return back()->with('error', 'No valid date columns found. Expected format: "JAN 2024", "FEB 2024", etc.');
+        }
 
         DB::beginTransaction();
         try {
@@ -268,35 +298,37 @@ class PaymentController extends Controller
                     continue; // Skip empty rows
                 }
 
-                $email = isset($row[0]) ? trim($row[0]) : null;
-                $membershipNumber = isset($row[1]) ? trim($row[1]) : null;
+                // First column is membership number (Članski broj)
+                $membershipNumber = isset($row[0]) ? trim($row[0]) : null;
+                // Second column is email
+                $email = isset($row[1]) ? trim($row[1]) : null;
 
-                // Try to find member by email first, then by membership number
+                // Try to find member by membership number first (more reliable), then email
                 $member = null;
 
-                if (!empty($email) && $email !== 'Email') {
-                    $member = Member::whereRaw('LOWER(email) = ?', [strtolower($email)])->first();
+                if (!empty($membershipNumber) && !in_array(strtolower($membershipNumber), ['clanski broj', 'članski broj', 'membership_number'])) {
+                    $member = Member::where('membership_number', $membershipNumber)->first();
                 }
 
-                if (!$member && !empty($membershipNumber) && !in_array($membershipNumber, ['Membership_Number', 'Clanski_Broj'])) {
-                    $member = Member::where('membership_number', $membershipNumber)->first();
+                if (!$member && !empty($email) && $email !== 'Email') {
+                    $member = Member::whereRaw('LOWER(email) = ?', [strtolower($email)])->first();
                 }
 
                 if (!$member) {
                     $stats['skipped']++;
-                    $stats['errors'][] = "Row " . ($rowIndex + 2) . ": Member not found (Email: {$email}, Number: {$membershipNumber})";
+                    $stats['errors'][] = "Row " . ($rowIndex + 2) . ": Member not found (Number: {$membershipNumber}, Email: {$email})";
                     continue;
                 }
 
-                // Process months (columns 2-13, assuming 0=email, 1=membership_number)
-                $startColumn = 2;
-                for ($month = 1; $month <= 12; $month++) {
-                    $columnIndex = $startColumn + $month - 1;
-                    if (!isset($row[$columnIndex])) {
+                // Process each date column
+                foreach ($columnMap as $colIndex => $dateInfo) {
+                    if (!isset($row[$colIndex])) {
                         continue;
                     }
 
-                    $value = trim($row[$columnIndex]);
+                    $value = trim($row[$colIndex]);
+                    $year = $dateInfo['year'];
+                    $month = $dateInfo['month'];
 
                     $paymentData = [
                         'member_id' => $member->id,
@@ -306,15 +338,15 @@ class PaymentController extends Controller
                     ];
 
                     if (empty($value)) {
-                        // Pending payment
-                        $paymentData['payment_status'] = 'pending';
+                        // Empty - skip or set as pending
+                        continue;
                     } elseif (is_numeric($value)) {
                         // Paid payment
                         $paymentData['paid_amount'] = $value;
                         $paymentData['payment_status'] = 'paid';
                         $paymentData['payment_date'] = "{$year}-{$month}-01";
                         $paymentData['payment_method'] = 'cash';
-                    } elseif (in_array(strtolower($value), ['pocasni', 'saradnik'])) {
+                    } elseif (in_array(strtolower($value), ['pocasni', 'saradnik', 'free', 'exempt'])) {
                         // Exempt payment
                         $exemptionType = strtolower($value);
                         $paymentData['payment_status'] = 'exempt';
@@ -341,8 +373,9 @@ class PaymentController extends Controller
 
             DB::commit();
 
-            return redirect()->route('payments.index', ['year' => $year])
-                ->with('success', "Imported {$stats['imported']} members. Skipped: {$stats['skipped']}")
+            $yearsText = implode(', ', $stats['years_processed']);
+            return redirect('/payments')
+                ->with('success', "Imported {$stats['imported']} members for years: {$yearsText}. Skipped: {$stats['skipped']}")
                 ->with('import_errors', $stats['errors']);
 
         } catch (\Exception $e) {
