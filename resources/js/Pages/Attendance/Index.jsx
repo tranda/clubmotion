@@ -17,6 +17,7 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
     const [selectedDate, setSelectedDate] = useState(null);
     const [showDayModal, setShowDayModal] = useState(false);
     const [showNewSessionModal, setShowNewSessionModal] = useState(false);
+    const [editingSession, setEditingSession] = useState(null);
     const [newSession, setNewSession] = useState({
         date: '',
         session_type_id: 1,
@@ -96,6 +97,15 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
             onSuccess: () => {
                 setShowNewSessionModal(false);
                 setNewSession({ date: '', session_type_id: 1, notes: '' });
+            }
+        });
+    };
+
+    const handleUpdateSession = (sessionId) => {
+        router.put(`/attendance/sessions/${sessionId}`, editingSession, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setEditingSession(null);
             }
         });
     };
@@ -576,6 +586,8 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                     const sessionType = sessionTypes.find(t => t.id === session.session_type_id);
                                     const attendedCount = sessionTotals[session.id] || 0;
 
+                                    const isEditing = editingSession?.id === session.id;
+
                                     return (
                                         <div key={session.id} className="mb-6 last:mb-0">
                                             <div className="flex items-center justify-between mb-4">
@@ -584,23 +596,72 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                                         className="w-4 h-4 rounded-full"
                                                         style={{ backgroundColor: sessionType?.color }}
                                                     />
-                                                    <h3 className="text-lg font-semibold text-gray-900">{sessionType?.name}</h3>
+                                                    {isEditing ? (
+                                                        <select
+                                                            value={editingSession.session_type_id}
+                                                            onChange={(e) => setEditingSession({ ...editingSession, session_type_id: parseInt(e.target.value) })}
+                                                            className="text-lg font-semibold border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                                        >
+                                                            {sessionTypes.map(type => (
+                                                                <option key={type.id} value={type.id}>{type.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        <h3 className="text-lg font-semibold text-gray-900">{sessionType?.name}</h3>
+                                                    )}
                                                     <span className="text-sm text-gray-600">
                                                         {attendedCount}/{selectedDate.totalMembers} attended
                                                     </span>
                                                 </div>
                                                 {canManage && (
-                                                    <button
-                                                        onClick={() => handleDeleteSession(session.id)}
-                                                        className="text-red-600 hover:text-red-700 text-sm"
-                                                    >
-                                                        Delete Session
-                                                    </button>
+                                                    <div className="flex gap-2">
+                                                        {isEditing ? (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleUpdateSession(session.id)}
+                                                                    className="text-blue-600 hover:text-blue-700 text-sm"
+                                                                >
+                                                                    Save
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingSession(null)}
+                                                                    className="text-gray-600 hover:text-gray-700 text-sm"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => setEditingSession({ id: session.id, session_type_id: session.session_type_id, notes: session.notes || '' })}
+                                                                    className="text-blue-600 hover:text-blue-700 text-sm"
+                                                                >
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteSession(session.id)}
+                                                                    className="text-red-600 hover:text-red-700 text-sm"
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
 
-                                            {session.notes && (
-                                                <p className="text-sm text-gray-600 mb-4 italic">{session.notes}</p>
+                                            {isEditing ? (
+                                                <textarea
+                                                    value={editingSession.notes}
+                                                    onChange={(e) => setEditingSession({ ...editingSession, notes: e.target.value })}
+                                                    placeholder="Notes (optional)"
+                                                    rows={2}
+                                                    className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mb-4"
+                                                />
+                                            ) : (
+                                                session.notes && (
+                                                    <p className="text-sm text-gray-600 mb-4 italic">{session.notes}</p>
+                                                )
                                             )}
 
                                             {/* Member List */}

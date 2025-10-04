@@ -156,6 +156,25 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Update a session
+     */
+    public function updateSession(Request $request, $id)
+    {
+        $request->validate([
+            'session_type_id' => 'required|exists:session_types,id',
+            'notes' => 'nullable|string',
+        ]);
+
+        $session = AttendanceSession::findOrFail($id);
+        $session->update([
+            'session_type_id' => $request->session_type_id,
+            'notes' => $request->notes,
+        ]);
+
+        return redirect()->back()->with('success', 'Session updated successfully.');
+    }
+
+    /**
      * Delete a session
      */
     public function deleteSession($id)
