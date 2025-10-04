@@ -100,4 +100,19 @@ Route::middleware('auth')->group(function () {
         Route::post('/payments/bulk-mark-paid', [App\Http\Controllers\PaymentController::class, 'bulkMarkPaid'])
             ->name('payments.bulk.paid');
     });
+
+    // Migration runner - Admin only (remove after first use)
+    Route::get('/migrate', function () {
+        if (auth()->user()->role_id !== 1) {
+            abort(403, 'Only admin can run migrations');
+        }
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            return response('<pre>' . $output . '</pre><br><a href="/payments">Go to Payments</a>');
+        } catch (\Exception $e) {
+            return response('<h2>Migration Error:</h2><pre>' . $e->getMessage() . '</pre>', 500);
+        }
+    })->middleware('role:admin');
 });
