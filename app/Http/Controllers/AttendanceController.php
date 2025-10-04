@@ -185,11 +185,14 @@ class AttendanceController extends Controller
         $path = $file->getRealPath();
         $data = array_map('str_getcsv', file($path));
 
-        if (count($data) < 2) {
+        if (count($data) < 3) {
             return redirect()->back()->with('error', 'CSV file is empty or invalid.');
         }
 
-        $headers = array_shift($data); // Remove header row
+        // Skip first row (totals row)
+        array_shift($data);
+
+        $headers = array_shift($data); // Get actual header row
         $errors = [];
         $imported = 0;
         $skipped = 0;
@@ -200,9 +203,10 @@ class AttendanceController extends Controller
             return redirect()->back()->with('error', 'Training session type not found. Please run the seeder.');
         }
 
-        // Parse date columns (skip first two columns: name and membership number)
+        // Parse date columns (skip first two columns: name and membership number, and last column: totals)
         $dateColumns = [];
-        for ($i = 2; $i < count($headers); $i++) {
+        $lastIndex = count($headers) - 1; // Index of last column (totals column)
+        for ($i = 2; $i < $lastIndex; $i++) {
             $dateStr = trim($headers[$i]);
 
             // Parse date format YYYY-MM-DD (e.g., "2025-09-04")

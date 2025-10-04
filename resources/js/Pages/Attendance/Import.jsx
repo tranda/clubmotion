@@ -89,6 +89,8 @@ export default function ImportAttendance() {
                                             <li>Matches members by membership number (second column)</li>
                                             <li>Creates sessions with "Training" type by default</li>
                                             <li>TRUE/FALSE values mark attendance</li>
+                                            <li>First row automatically skipped (for totals/summary)</li>
+                                            <li>Last column automatically ignored (for totals)</li>
                                         </ul>
                                     </div>
                                 </div>
