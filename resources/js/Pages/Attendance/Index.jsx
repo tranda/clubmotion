@@ -487,23 +487,28 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                             ))}
 
                             {/* Calendar days */}
-                            {generateCalendarDays().map((dayData, idx) => (
-                                <div
-                                    key={idx}
-                                    onClick={() => handleDayClick(dayData)}
-                                    className={`min-h-24 border rounded-lg p-2 ${
-                                        dayData
-                                            ? dayData.sessions.length > 0
-                                                ? 'bg-blue-50 border-blue-200 cursor-pointer hover:bg-blue-100'
-                                                : 'bg-gray-50 border-gray-200'
-                                            : 'bg-transparent border-transparent'
-                                    }`}
-                                >
-                                    {dayData && (
-                                        <>
-                                            <div className="text-sm font-semibold text-gray-700 mb-1">
-                                                {dayData.day}
-                                            </div>
+                            {generateCalendarDays().map((dayData, idx) => {
+                                const today = new Date();
+                                const isToday = dayData &&
+                                    dayData.date === `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        onClick={() => handleDayClick(dayData)}
+                                        className={`min-h-24 border rounded-lg p-2 ${
+                                            dayData
+                                                ? dayData.sessions.length > 0
+                                                    ? 'bg-blue-50 border-blue-200 cursor-pointer hover:bg-blue-100'
+                                                    : 'bg-gray-50 border-gray-200'
+                                                : 'bg-transparent border-transparent'
+                                        } ${isToday ? 'ring-2 ring-blue-500' : ''}`}
+                                    >
+                                        {dayData && (
+                                            <>
+                                                <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
+                                                    {dayData.day}
+                                                </div>
                                             {dayData.sessions.length > 0 && (
                                                 <div className="space-y-1">
                                                     <div className="flex gap-1 mb-1">
@@ -524,7 +529,8 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                         </>
                                     )}
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}
