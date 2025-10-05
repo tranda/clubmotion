@@ -36,8 +36,18 @@ export default function Login({ status }) {
                 {/* Logo/Title */}
                 <div className="text-center mb-8">
                     <img src="/images/logo.png" alt="ClubMotion" className="h-40 mx-auto mb-4" />
-                    <p className="text-gray-600">Sign in to your account</p>
-                    <p className="text-sm text-gray-500 mt-2">First time signing in? Enter your email and choose a password to create your account.</p>
+                    <p className="text-gray-600 text-lg">Sign in to your account</p>
+
+                    {/* Prominent First Time User Message */}
+                    <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                        <p className="text-blue-800 font-semibold">
+                            <span className="inline-block mr-2">ℹ️</span>
+                            First time signing in?
+                        </p>
+                        <p className="text-blue-700 text-sm mt-1">
+                            Enter your email and choose a password to create your account.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Login Card */}
