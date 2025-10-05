@@ -525,9 +525,10 @@ class AttendanceController extends Controller
                 ->whereMonth('date', $month)
                 ->pluck('id');
 
-            // Count user's attendance for this month
+            // Count user's attendance for this month (only present = true)
             $attendance = AttendanceRecord::whereIn('session_id', $sessions)
                 ->where('member_id', $memberId)
+                ->where('present', true)
                 ->count();
 
             $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
