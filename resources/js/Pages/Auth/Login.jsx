@@ -164,11 +164,6 @@ export default function Login({ status }) {
                         </button>
                     </form>
                 </div>
-
-                {/* Footer */}
-                <p className="mt-6 text-center text-sm text-gray-600">
-                    Protected by ClubMotion Security
-                </p>
             </div>
         </div>
     );
