@@ -26,7 +26,7 @@ export default function Layout({ children }) {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <header className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
-                <div className="max-w-7xl mx-auto px-4">
+                <div className="mx-auto px-4">
                     <div className="flex items-center justify-between h-16">
                         {/* Logo */}
                         <Link href="/" className="text-xl font-bold text-gray-800">
@@ -272,7 +272,7 @@ export default function Layout({ children }) {
             )}
 
             {/* Main Content */}
-            <main className="pt-20 px-4 pb-4 max-w-7xl mx-auto">
+            <main className="pt-20 px-4 pb-4 mx-auto">
                 {children}
             </main>
         </div>
