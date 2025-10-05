@@ -104,6 +104,13 @@ class AttendanceController extends Controller
         // Calculate statistics for the selected period
         $stats = $this->calculateStatistics($year, $month, $sessions, $attendanceGrid, $sessionTotals);
 
+        // Calculate monthly attendance for current user (for personal trend chart)
+        $userMonthlyData = [];
+        $currentUser = $request->user();
+        if ($currentUser && $currentUser->member_id) {
+            $userMonthlyData = $this->calculateUserMonthlyAttendance($currentUser->member_id, $year);
+        }
+
         return Inertia::render('Attendance/Index', [
             'attendanceGrid' => $attendanceGrid,
             'sessions' => $sessions,
@@ -114,6 +121,7 @@ class AttendanceController extends Controller
             'sessionTypeFilter' => $sessionTypeFilter ? (int) $sessionTypeFilter : null,
             'filter' => $filter,
             'stats' => $stats,
+            'userMonthlyData' => $userMonthlyData,
         ]);
     }
 
@@ -502,5 +510,36 @@ class AttendanceController extends Controller
             'monthly_data' => $monthlyData,
             'category_stats' => $categoryStats,
         ];
+    }
+
+    /**
+     * Calculate monthly attendance for a specific user
+     */
+    private function calculateUserMonthlyAttendance($memberId, $year)
+    {
+        $monthlyData = [];
+
+        for ($month = 1; $month <= 12; $month++) {
+            // Get sessions for this month
+            $sessions = AttendanceSession::whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->pluck('id');
+
+            // Count user's attendance for this month
+            $attendance = AttendanceRecord::whereIn('session_id', $sessions)
+                ->where('member_id', $memberId)
+                ->count();
+
+            $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            $monthlyData[] = [
+                'month' => $month,
+                'month_name' => $monthNames[$month - 1],
+                'attendance' => $attendance,
+                'sessions' => $sessions->count(),
+            ];
+        }
+
+        return $monthlyData;
     }
 }

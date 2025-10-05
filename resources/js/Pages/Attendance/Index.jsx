@@ -3,7 +3,7 @@ import { router, usePage, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import axios from 'axios';
 
-export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions, sessionTotals: initialTotals, sessionTypes, year, month, sessionTypeFilter, filter, stats }) {
+export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions, sessionTotals: initialTotals, sessionTypes, year, month, sessionTypeFilter, filter, stats, userMonthlyData }) {
     const { auth } = usePage().props;
     const canManage = auth.user?.role?.name === 'admin' || auth.user?.role?.name === 'superuser';
 
@@ -720,7 +720,57 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                             </div>
                         )}
 
-                        {/* Monthly Attendance Bar Chart */}
+                        {/* My Monthly Attendance Chart - For logged-in user */}
+                        {userMonthlyData && userMonthlyData.length > 0 && (
+                            <div className="bg-white rounded-lg shadow p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-6">My Monthly Attendance - {selectedYear}</h3>
+                                <div className="relative">
+                                    {(() => {
+                                        const maxAttendance = Math.max(...userMonthlyData.map(d => d.attendance), 1);
+                                        const chartHeight = 300;
+
+                                        return (
+                                            <div className="flex items-end justify-between gap-2" style={{ height: `${chartHeight}px` }}>
+                                                {userMonthlyData.map((data, idx) => {
+                                                    const barHeight = maxAttendance > 0 ? (data.attendance / maxAttendance) * (chartHeight - 40) : 0;
+                                                    const isCurrentMonth = data.month === selectedMonth;
+
+                                                    return (
+                                                        <div key={idx} className="flex-1 flex flex-col items-center justify-end">
+                                                            {/* Attendance value on top */}
+                                                            {data.attendance > 0 && (
+                                                                <div className="text-xs font-semibold text-gray-700 mb-1">
+                                                                    {data.attendance}
+                                                                </div>
+                                                            )}
+                                                            {/* Bar */}
+                                                            <div
+                                                                className={`w-full rounded-t-lg transition-all hover:opacity-80 ${
+                                                                    isCurrentMonth ? 'bg-green-600' : 'bg-green-400'
+                                                                }`}
+                                                                style={{ height: `${barHeight}px`, minHeight: data.attendance > 0 ? '20px' : '0' }}
+                                                                title={`${data.month_name}: ${data.attendance} sessions attended`}
+                                                            />
+                                                            {/* Month label */}
+                                                            <div className={`text-xs mt-2 font-medium ${
+                                                                isCurrentMonth ? 'text-green-600' : 'text-gray-600'
+                                                            }`}>
+                                                                {data.month_name}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                                <div className="mt-4 text-sm text-gray-500 text-center">
+                                    Your personal attendance throughout the year • Current month highlighted in darker green
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Monthly Attendance Bar Chart - All members */}
                         {stats.monthly_data && stats.monthly_data.length > 0 && (
                             <div className="bg-white rounded-lg shadow p-6">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Monthly Attendance Trend - {selectedYear}</h3>
