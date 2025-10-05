@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.7.0] - 2025-01-05
+
+### Changed
+- Removed "Protected by ClubMotion Security" footer from login page
+
 ## [0.6.9] - 2025-01-05
 
 ### Added
