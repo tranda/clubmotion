@@ -738,9 +738,9 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                                     return (
                                                         <div key={idx} className="flex-1 flex flex-col items-center justify-end">
                                                             {/* Attendance value on top */}
-                                                            {data.attendance > 0 && (
+                                                            {(data.attendance > 0 || data.sessions > 0) && (
                                                                 <div className="text-xs font-semibold text-gray-700 mb-1">
-                                                                    {data.attendance}
+                                                                    {data.attendance}/{data.sessions}
                                                                 </div>
                                                             )}
                                                             {/* Bar */}
@@ -749,7 +749,7 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                                                     isCurrentMonth ? 'bg-green-600' : 'bg-green-400'
                                                                 }`}
                                                                 style={{ height: `${barHeight}px`, minHeight: data.attendance > 0 ? '20px' : '0' }}
-                                                                title={`${data.month_name}: ${data.attendance} sessions attended`}
+                                                                title={`${data.month_name}: ${data.attendance}/${data.sessions} sessions attended`}
                                                             />
                                                             {/* Month label */}
                                                             <div className={`text-xs mt-2 font-medium ${
