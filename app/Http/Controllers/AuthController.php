@@ -34,6 +34,15 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            // Check if the user's associated member is inactive
+            $user = Auth::user();
+            if ($user->member && !$user->member->is_active) {
+                Auth::logout();
+                throw ValidationException::withMessages([
+                    'email' => 'Your account is inactive. Please contact the club administrator.',
+                ]);
+            }
+
             $request->session()->regenerate();
 
             return redirect('/');
@@ -47,6 +56,13 @@ class AuthController extends Controller
             $member = \App\Models\Member::where('email', $request->email)->first();
 
             if ($member) {
+                // Check if member is inactive
+                if (!$member->is_active) {
+                    throw ValidationException::withMessages([
+                        'email' => 'Your account is inactive. Please contact the club administrator.',
+                    ]);
+                }
+
                 // Member exists but no user account - create user with the password they entered
                 // Find the 'user' role (regular member role)
                 $userRole = \App\Models\Role::where('name', 'user')->first();
