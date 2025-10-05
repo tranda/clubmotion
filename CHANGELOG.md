@@ -2,6 +2,19 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.7.3] - 2025-01-05
+
+### Added
+- Personal attendance chart now shows ratio format (attended/total sessions) for each month
+- Inactive member login prevention with appropriate error message
+
+### Changed
+- Dynamic club name (CLUB_NAME) now used on Home page welcome message
+- Removed max-width constraint for full-width responsive design
+
+### Fixed
+- Personal attendance count now only includes present=true records
+
 ## [0.7.2] - 2025-01-05
 
 ### Fixed
