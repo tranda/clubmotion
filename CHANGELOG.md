@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.7.1] - 2025-01-05
+
+### Added
+- Personal monthly attendance chart for logged-in users on Attendance page
+  - Displays "My Monthly Attendance - {year}" above general attendance chart
+  - Green bars with current month highlighted in darker green
+  - Shows user's attendance count per month throughout the year
+  - Available for all users to track their own attendance
+
 ## [0.7.0] - 2025-01-05
 
 ### Changed
