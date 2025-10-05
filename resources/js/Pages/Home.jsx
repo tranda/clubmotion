@@ -2,7 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import Layout from '../Components/Layout';
 
 export default function Home({ stats }) {
-    const { auth, appVersion } = usePage().props;
+    const { auth, appVersion, clubName } = usePage().props;
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
 
@@ -10,7 +10,7 @@ export default function Home({ stats }) {
         <Layout>
             <div className="min-h-[calc(100vh-5rem)] flex flex-col py-8">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to ClubMotion</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to {clubName || 'ClubMotion'}</h1>
                     <p className="text-gray-600">{canManage ? 'Manage your club members and payments efficiently' : 'Your club member portal'}</p>
                 </div>
 
