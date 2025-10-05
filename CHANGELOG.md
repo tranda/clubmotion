@@ -2,6 +2,17 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.6.9] - 2025-01-05
+
+### Added
+- Dynamic club name from CLUB_NAME env variable
+- Prominent first-time user message on login page with info box
+
+### Changed
+- Browser tab title now reads from APP_NAME env (defaults to "Club Management")
+- Header logo displays custom club name from CLUB_NAME env
+- First-time sign-in instructions now in highlighted blue box with icon
+
 ## [0.6.8] - 2025-01-05
 
 ### Added
