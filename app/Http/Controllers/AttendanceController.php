@@ -107,8 +107,8 @@ class AttendanceController extends Controller
         // Calculate monthly attendance for current user (for personal trend chart)
         $userMonthlyData = [];
         $currentUser = $request->user();
-        if ($currentUser && $currentUser->member_id) {
-            $userMonthlyData = $this->calculateUserMonthlyAttendance($currentUser->member_id, $year);
+        if ($currentUser && $currentUser->member) {
+            $userMonthlyData = $this->calculateUserMonthlyAttendance($currentUser->member->id, $year);
         }
 
         return Inertia::render('Attendance/Index', [
