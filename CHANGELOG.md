@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.7.5] - 2025-01-06
+
+### Fixed
+- Payment exemption reason "Other" now displays as "OTH" instead of "SAR" in payments table
+
 ## [0.7.4] - 2025-01-06
 
 ### Changed

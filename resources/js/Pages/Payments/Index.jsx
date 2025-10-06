@@ -88,7 +88,9 @@ export default function Index({ year, members, stats, availableYears, filter }) 
         if (!payment) return '';
 
         if (payment.status === 'exempt') {
-            return payment.exemption === 'pocasni' ? 'POC' : 'SAR';
+            if (payment.exemption === 'pocasni') return 'POC';
+            if (payment.exemption === 'saradnik') return 'SAR';
+            return 'OTH'; // For 'other' or any other exemption type
         }
 
         if (payment.status === 'paid') {
