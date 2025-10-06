@@ -232,6 +232,8 @@ class AttendanceController extends Controller
         $totalImported = 0;
         $totalSkipped = 0;
         $filesProcessed = 0;
+        $firstImportedYear = null;
+        $firstImportedMonth = null;
 
         // Get default Training session type (outside loop for efficiency)
         $trainingType = SessionType::where('name', 'Training')->first();
@@ -323,6 +325,12 @@ class AttendanceController extends Controller
                         ]);
                     }
 
+                    // Track first imported date for redirect
+                    if (!$firstImportedYear) {
+                        $firstImportedYear = Carbon::parse($date)->year;
+                        $firstImportedMonth = Carbon::parse($date)->month;
+                    }
+
                     // Create or update attendance record
                     AttendanceRecord::updateOrCreate(
                         [
@@ -352,8 +360,12 @@ class AttendanceController extends Controller
             $message .= ", {$totalSkipped} rows skipped";
         }
 
+        // Redirect to the first imported year/month if available, otherwise current year
+        $redirectYear = $firstImportedYear ?? date('Y');
+        $redirectMonth = $firstImportedMonth ?? date('m');
+
         return redirect()
-            ->route('attendance.index')
+            ->route('attendance.index', ['year' => $redirectYear, 'month' => $redirectMonth])
             ->with('success', $message)
             ->with('import_errors', $allErrors);
     }

@@ -72,9 +72,11 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
         };
     }, []);
 
-    // Generate year options (current year ± 2 years)
+    // Generate year options (current year + 2 future years, and back to 2020)
     const currentYear = new Date().getFullYear();
-    const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
+    const startYear = 2020;
+    const endYear = currentYear + 2;
+    const yearOptions = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i).reverse();
 
     const monthNames = [
         'January', 'February', 'March', 'April', 'May', 'June',

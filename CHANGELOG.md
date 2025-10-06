@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.7.7] - 2025-01-06
+
+### Changed
+- Attendance year dropdown now includes years from 2020 to current year + 2 (previously only showed current year ± 2)
+- Attendance import now redirects to the imported year/month instead of current year
+
+### Fixed
+- Fixed issue where imported historical attendance data (e.g., 2022) wasn't visible because year wasn't in dropdown
+
 ## [0.7.6] - 2025-01-06
 
 ### Added
