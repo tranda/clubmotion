@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.7.6] - 2025-01-06
+
+### Added
+- Green checkmark (✓) displayed in front of member names in Members table for those who have registered in the app
+
 ## [0.7.5] - 2025-01-06
 
 ### Fixed

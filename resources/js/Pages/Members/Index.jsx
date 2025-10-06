@@ -147,7 +147,10 @@ export default function Index({ members, filter, categoryStats }) {
                                         className="hover:bg-gray-50 cursor-pointer transition-colors"
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{member.name}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {member.user_id && <span className="text-green-600 mr-2">✓</span>}
+                                            {member.name}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.membership_number}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {member.image ? (
@@ -206,7 +209,10 @@ export default function Index({ members, filter, categoryStats }) {
                                     {/* Member Info */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between">
-                                            <h3 className="text-lg font-semibold text-gray-900 truncate">{member.name}</h3>
+                                            <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                                {member.user_id && <span className="text-green-600 mr-2">✓</span>}
+                                                {member.name}
+                                            </h3>
                                             <span className="ml-2">{member.is_active ? '✅' : '❌'}</span>
                                         </div>
                                         <p className="text-sm text-gray-500">ID: {member.membership_number}</p>
