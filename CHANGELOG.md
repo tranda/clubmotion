@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.7.4] - 2025-01-06
+
+### Changed
+- Payment amounts in Payments page table now display as whole numbers instead of shortened "k" format
+
 ## [0.7.3] - 2025-01-05
 
 ### Added

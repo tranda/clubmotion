@@ -92,7 +92,7 @@ export default function Index({ year, members, stats, availableYears, filter }) 
         }
 
         if (payment.status === 'paid') {
-            return (payment.amount / 1000).toFixed(1) + 'k';
+            return Math.round(payment.amount);
         }
 
         return payment.status === 'overdue' ? '!' : '○';
