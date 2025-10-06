@@ -111,6 +111,9 @@ class AttendanceController extends Controller
             $userMonthlyData = $this->calculateUserMonthlyAttendance($currentUser->member->id, $year);
         }
 
+        // Calculate yearly attendance trend (all years with attendance > 0)
+        $yearlyData = $this->calculateYearlyAttendance();
+
         return Inertia::render('Attendance/Index', [
             'attendanceGrid' => $attendanceGrid,
             'sessions' => $sessions,
@@ -122,6 +125,7 @@ class AttendanceController extends Controller
             'filter' => $filter,
             'stats' => $stats,
             'userMonthlyData' => $userMonthlyData,
+            'yearlyData' => $yearlyData,
         ]);
     }
 
@@ -565,5 +569,40 @@ class AttendanceController extends Controller
         }
 
         return $monthlyData;
+    }
+
+    /**
+     * Calculate yearly attendance trend (all years with attendance > 0)
+     */
+    private function calculateYearlyAttendance()
+    {
+        // Get all distinct years that have sessions
+        $years = AttendanceSession::selectRaw('YEAR(date) as year')
+            ->distinct()
+            ->orderBy('year', 'asc')
+            ->pluck('year');
+
+        $yearlyData = [];
+
+        foreach ($years as $year) {
+            // Get all sessions for this year
+            $sessionIds = AttendanceSession::whereYear('date', $year)->pluck('id');
+
+            // Count total attendance for this year (only present = true)
+            $totalAttendance = AttendanceRecord::whereIn('session_id', $sessionIds)
+                ->where('present', true)
+                ->count();
+
+            // Only include years with attendance > 0
+            if ($totalAttendance > 0) {
+                $yearlyData[] = [
+                    'year' => (int) $year,
+                    'attendance' => $totalAttendance,
+                    'sessions' => $sessionIds->count(),
+                ];
+            }
+        }
+
+        return $yearlyData;
     }
 }

@@ -3,7 +3,7 @@ import { router, usePage, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import axios from 'axios';
 
-export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions, sessionTotals: initialTotals, sessionTypes, year, month, sessionTypeFilter, filter, stats, userMonthlyData }) {
+export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions, sessionTotals: initialTotals, sessionTypes, year, month, sessionTypeFilter, filter, stats, userMonthlyData, yearlyData }) {
     const { auth } = usePage().props;
     const canManage = auth.user?.role?.name === 'admin' || auth.user?.role?.name === 'superuser';
 
@@ -819,6 +819,56 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                 </div>
                                 <div className="mt-4 text-sm text-gray-500 text-center">
                                     Hover over bars to see details • Current month highlighted in darker blue
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Yearly Attendance Trend Chart */}
+                        {yearlyData && yearlyData.length > 0 && (
+                            <div className="bg-white rounded-lg shadow p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-6">Yearly Attendance Trend</h3>
+                                <div className="relative">
+                                    {(() => {
+                                        const maxAttendance = Math.max(...yearlyData.map(d => d.attendance));
+                                        const chartHeight = 300;
+
+                                        return (
+                                            <div className="flex items-end justify-between gap-2" style={{ height: `${chartHeight}px` }}>
+                                                {yearlyData.map((data, idx) => {
+                                                    const barHeight = maxAttendance > 0 ? (data.attendance / maxAttendance) * (chartHeight - 40) : 0;
+                                                    const isCurrentYear = data.year === selectedYear;
+
+                                                    return (
+                                                        <div key={idx} className="flex-1 flex flex-col items-center justify-end">
+                                                            {/* Attendance value on top */}
+                                                            {data.attendance > 0 && (
+                                                                <div className="text-xs font-semibold text-gray-700 mb-1">
+                                                                    {data.attendance}
+                                                                </div>
+                                                            )}
+                                                            {/* Bar */}
+                                                            <div
+                                                                className={`w-full rounded-t-lg transition-all hover:opacity-80 ${
+                                                                    isCurrentYear ? 'bg-green-600' : 'bg-green-400'
+                                                                }`}
+                                                                style={{ height: `${barHeight}px`, minHeight: data.attendance > 0 ? '20px' : '0' }}
+                                                                title={`${data.year}: ${data.attendance} total attendances (${data.sessions} sessions)`}
+                                                            />
+                                                            {/* Year label */}
+                                                            <div className={`text-sm mt-2 font-medium ${
+                                                                isCurrentYear ? 'text-green-600' : 'text-gray-600'
+                                                            }`}>
+                                                                {data.year}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                                <div className="mt-4 text-sm text-gray-500 text-center">
+                                    Total attendance records per year • Current year highlighted in darker green
                                 </div>
                             </div>
                         )}

@@ -2,6 +2,13 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.7.8] - 2025-01-06
+
+### Added
+- Yearly Attendance Trend chart on Attendance page showing total attendance for all years with data
+- Chart displays below Monthly Attendance Trend with green bars
+- Only shows years with attendance > 0
+
 ## [0.7.7] - 2025-01-06
 
 ### Changed
