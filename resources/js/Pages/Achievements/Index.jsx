@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { router, usePage, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-export default function AchievementsIndex({ achievementsByEvent }) {
+export default function AchievementsIndex({ myAchievementsByEvent, clubAchievementsByEvent, myAchievementKeys }) {
     const { auth } = usePage().props;
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
+
+    // Toggle between "my" and "club" view
+    const [view, setView] = useState('my'); // 'my' or 'club'
 
     const getMedalColor = (medal) => {
         switch (medal) {
@@ -31,6 +34,12 @@ export default function AchievementsIndex({ achievementsByEvent }) {
             default:
                 return '🏅';
         }
+    };
+
+    // Check if user has won this achievement
+    const hasWonAchievement = (achievement) => {
+        const key = `${achievement.event_name}|${achievement.competition_class}|${achievement.medal}`;
+        return myAchievementKeys.includes(key);
     };
 
     // Pull to refresh
@@ -70,13 +79,18 @@ export default function AchievementsIndex({ achievementsByEvent }) {
         };
     }, []);
 
+    // Current achievements to display
+    const achievementsByEvent = view === 'my' ? myAchievementsByEvent : clubAchievementsByEvent;
+
     return (
         <Layout>
             <div className="py-6">
                 <div className="mb-6 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">My Achievements</h1>
-                        <p className="text-gray-600 mt-1">Track your personal achievements and milestones</p>
+                        <h1 className="text-3xl font-bold text-gray-900">Achievements</h1>
+                        <p className="text-gray-600 mt-1">
+                            {view === 'my' ? 'Track your personal achievements and milestones' : 'All unique achievements earned by club members'}
+                        </p>
                     </div>
                     {canManage && (
                         <Link
@@ -86,9 +100,33 @@ export default function AchievementsIndex({ achievementsByEvent }) {
                             <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                                 <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
-                            Import Achievements
+                            Import
                         </Link>
                     )}
+                </div>
+
+                {/* Toggle Buttons */}
+                <div className="mb-6 flex gap-2">
+                    <button
+                        onClick={() => setView('my')}
+                        className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
+                            view === 'my'
+                                ? 'bg-purple-600 text-white shadow-md'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                        }`}
+                    >
+                        My Achievements
+                    </button>
+                    <button
+                        onClick={() => setView('club')}
+                        className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
+                            view === 'club'
+                                ? 'bg-indigo-600 text-white shadow-md'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                        }`}
+                    >
+                        Club Achievements
+                    </button>
                 </div>
 
                 {/* Achievements Display */}
@@ -99,7 +137,9 @@ export default function AchievementsIndex({ achievementsByEvent }) {
                                 <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                             </svg>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">No Achievements Yet</h3>
-                            <p className="text-gray-600">Your achievements will appear here once they are added</p>
+                            <p className="text-gray-600">
+                                {view === 'my' ? 'Your achievements will appear here once they are added' : 'Club achievements will appear here once they are added'}
+                            </p>
                         </div>
                     </div>
                 ) : (
@@ -116,20 +156,31 @@ export default function AchievementsIndex({ achievementsByEvent }) {
 
                                 {/* Achievements List */}
                                 <div className="space-y-2">
-                                    {achievements.map((achievement, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                                        >
-                                            <div className="flex-1">
-                                                <p className="text-gray-900 font-medium">{achievement.competition_class}</p>
+                                    {achievements.map((achievement, idx) => {
+                                        const iWonThis = view === 'club' && hasWonAchievement(achievement);
+
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
+                                                    iWonThis
+                                                        ? 'bg-green-50 border-2 border-green-300'
+                                                        : 'bg-gray-50 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-3 flex-1">
+                                                    {iWonThis && (
+                                                        <span className="text-green-600 font-bold text-lg">✓</span>
+                                                    )}
+                                                    <p className="text-gray-900 font-medium">{achievement.competition_class}</p>
+                                                </div>
+                                                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${getMedalColor(achievement.medal)}`}>
+                                                    <span className="text-lg">{getMedalIcon(achievement.medal)}</span>
+                                                    <span className="font-semibold text-sm">{achievement.medal}</span>
+                                                </div>
                                             </div>
-                                            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${getMedalColor(achievement.medal)}`}>
-                                                <span className="text-lg">{getMedalIcon(achievement.medal)}</span>
-                                                <span className="font-semibold text-sm">{achievement.medal}</span>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ))}

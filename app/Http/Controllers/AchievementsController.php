@@ -10,7 +10,7 @@ use Inertia\Inertia;
 class AchievementsController extends Controller
 {
     /**
-     * Display user's achievements
+     * Display combined achievements page (personal + club)
      */
     public function index()
     {
@@ -19,26 +19,44 @@ class AchievementsController extends Controller
         // Get user's member record
         $member = $user->member;
 
-        if (!$member) {
-            return Inertia::render('Achievements/Index', [
-                'achievements' => [],
-                'achievementsByEvent' => [],
-            ]);
+        // Personal achievements
+        $myAchievements = [];
+        $myAchievementsByEvent = [];
+        $myAchievementKeys = [];
+
+        if ($member) {
+            // Fetch achievements for this member
+            $myAchievements = Achievement::where('member_id', $member->id)
+                ->orderByDesc('year')
+                ->orderBy('event_name')
+                ->orderBy('competition_class')
+                ->get();
+
+            // Group by event name
+            $myAchievementsByEvent = $myAchievements->groupBy('event_name');
+
+            // Create keys for quick lookup (event_name|competition_class|medal)
+            $myAchievementKeys = $myAchievements->map(function($achievement) {
+                return $achievement->event_name . '|' . $achievement->competition_class . '|' . $achievement->medal;
+            })->toArray();
         }
 
-        // Fetch achievements for this member, ordered by year (newest first) and event name
-        $achievements = Achievement::where('member_id', $member->id)
+        // Club-wide unique achievements
+        $clubAchievements = Achievement::select('competition_class', 'medal', 'event_name', 'year')
+            ->distinct()
             ->orderByDesc('year')
             ->orderBy('event_name')
             ->orderBy('competition_class')
             ->get();
 
-        // Group achievements by event name
-        $achievementsByEvent = $achievements->groupBy('event_name');
+        $clubAchievementsByEvent = $clubAchievements->groupBy('event_name');
 
         return Inertia::render('Achievements/Index', [
-            'achievements' => $achievements,
-            'achievementsByEvent' => $achievementsByEvent,
+            'myAchievements' => $myAchievements,
+            'myAchievementsByEvent' => $myAchievementsByEvent,
+            'myAchievementKeys' => $myAchievementKeys,
+            'clubAchievements' => $clubAchievements,
+            'clubAchievementsByEvent' => $clubAchievementsByEvent,
         ]);
     }
 

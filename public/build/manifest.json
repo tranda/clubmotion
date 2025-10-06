@@ -1,80 +1,68 @@
 {
-  "_Layout-49aa5454.js": {
-    "file": "assets/Layout-49aa5454.js",
+  "_Layout-bfe64cb3.js": {
+    "file": "assets/Layout-bfe64cb3.js",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-fd8744bd.css",
+    "file": "assets/app-e928b5b9.css",
     "isEntry": true,
     "src": "resources/css/app.css"
   },
-  "resources/js/Pages/Achievements/Club.jsx": {
-    "css": [
-      "assets/app-fd8744bd.css"
-    ],
-    "file": "assets/Club-fc253c71.js",
-    "imports": [
-      "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
-    ],
-    "isDynamicEntry": true,
-    "src": "resources/js/Pages/Achievements/Club.jsx"
-  },
   "resources/js/Pages/Achievements/Import.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Import-e59e01e6.js",
+    "file": "assets/Import-377b3290.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Achievements/Import.jsx"
   },
   "resources/js/Pages/Achievements/Index.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Index-14d7abd3.js",
+    "file": "assets/Index-cf86ead4.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Achievements/Index.jsx"
   },
   "resources/js/Pages/Attendance/Import.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Import-c70088ea.js",
+    "file": "assets/Import-12194e97.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Attendance/Import.jsx"
   },
   "resources/js/Pages/Attendance/Index.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Index-b493758b.js",
+    "file": "assets/Index-58c1b10e.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Attendance/Index.jsx"
   },
   "resources/js/Pages/Auth/ForgotPassword.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/ForgotPassword-a3522512.js",
+    "file": "assets/ForgotPassword-3911f52b.js",
     "imports": [
       "resources/js/app.jsx"
     ],
@@ -83,9 +71,9 @@
   },
   "resources/js/Pages/Auth/Login.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Login-ee145c59.js",
+    "file": "assets/Login-f661875f.js",
     "imports": [
       "resources/js/app.jsx"
     ],
@@ -94,9 +82,9 @@
   },
   "resources/js/Pages/Auth/ResetPassword.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/ResetPassword-a36b9f28.js",
+    "file": "assets/ResetPassword-68b4b999.js",
     "imports": [
       "resources/js/app.jsx"
     ],
@@ -105,130 +93,129 @@
   },
   "resources/js/Pages/Home.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Home-f96c997e.js",
+    "file": "assets/Home-790dae59.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Home.jsx"
   },
   "resources/js/Pages/Members/Create.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Create-033dc4fd.js",
+    "file": "assets/Create-cd8b4289.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Members/Create.jsx"
   },
   "resources/js/Pages/Members/Edit.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Edit-3a9d2612.js",
+    "file": "assets/Edit-12234e4d.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Members/Edit.jsx"
   },
   "resources/js/Pages/Members/Index.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Index-6e119f55.js",
+    "file": "assets/Index-58475bb3.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Members/Index.jsx"
   },
   "resources/js/Pages/Members/Show.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Show-58f32cd4.js",
+    "file": "assets/Show-bfd9f2c4.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Members/Show.jsx"
   },
   "resources/js/Pages/Payments/Import.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Import-00c36417.js",
+    "file": "assets/Import-0b1c9d28.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/Import.jsx"
   },
   "resources/js/Pages/Payments/Index.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/Index-3fdcb097.js",
+    "file": "assets/Index-1c176835.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/Index.jsx"
   },
   "resources/js/Pages/Payments/InitializeYear.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/InitializeYear-78a87b14.js",
+    "file": "assets/InitializeYear-7dc357b8.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/InitializeYear.jsx"
   },
   "resources/js/Pages/Payments/MemberHistory.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/MemberHistory-d7a81a97.js",
+    "file": "assets/MemberHistory-962e7582.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/MemberHistory.jsx"
   },
   "resources/js/Pages/Payments/MyPayments.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
-    "file": "assets/MyPayments-e7959516.js",
+    "file": "assets/MyPayments-bad19eb7.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-49aa5454.js"
+      "_Layout-bfe64cb3.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/MyPayments.jsx"
   },
   "resources/js/app.jsx": {
     "css": [
-      "assets/app-fd8744bd.css"
+      "assets/app-e928b5b9.css"
     ],
     "dynamicImports": [
-      "resources/js/Pages/Achievements/Club.jsx",
       "resources/js/Pages/Achievements/Import.jsx",
       "resources/js/Pages/Achievements/Index.jsx",
       "resources/js/Pages/Attendance/Import.jsx",
@@ -247,7 +234,7 @@
       "resources/js/Pages/Payments/MemberHistory.jsx",
       "resources/js/Pages/Payments/MyPayments.jsx"
     ],
-    "file": "assets/app-e3dea9f9.js",
+    "file": "assets/app-5061f58e.js",
     "isEntry": true,
     "src": "resources/js/app.jsx"
   }

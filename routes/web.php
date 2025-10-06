@@ -89,13 +89,17 @@ Route::middleware('auth')->group(function () {
         Route::delete('/attendance/sessions/{id}', [AttendanceController::class, 'deleteSession'])->name('attendance.sessions.delete');
     });
 
-    // Achievements - Personal achievements for all authenticated users
-    Route::get('/my-achievements', [AchievementsController::class, 'index'])
+    // Achievements - Combined achievements page (personal + club)
+    Route::get('/achievements', [AchievementsController::class, 'index'])
         ->name('achievements.index');
 
-    // Achievements - Club-wide unique achievements for all authenticated users
-    Route::get('/club-achievements', [AchievementsController::class, 'clubAchievements'])
-        ->name('achievements.club');
+    // Legacy routes for backwards compatibility
+    Route::get('/my-achievements', function() {
+        return redirect('/achievements');
+    });
+    Route::get('/club-achievements', function() {
+        return redirect('/achievements');
+    });
 
     // Admin & Superuser: Achievements import
     Route::middleware('role:admin,superuser')->group(function () {

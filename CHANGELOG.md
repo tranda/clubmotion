@@ -2,6 +2,18 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.0] - 2025-01-06
+
+### Changed
+- Combined My Achievements and Club Achievements into single unified page with toggle view
+- Added toggle buttons to switch between "My Achievements" and "Club Achievements" views
+- Club achievements now highlight with green background and checkmark when user has personally won that achievement
+- Simplified navigation with single "Achievements" link in header menu and home page
+- Consolidated routes to `/achievements` with legacy redirects from old URLs
+
+### Removed
+- Separate Club Achievements page (merged into main Achievements page)
+
 ## [0.7.9] - 2025-01-06
 
 ### Added
