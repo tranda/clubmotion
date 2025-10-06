@@ -223,10 +223,14 @@ class AttendanceController extends Controller
      */
     public function import(Request $request)
     {
+        \Log::info('Attendance import started');
+
         $request->validate([
             'csv_files' => 'required|array',
             'csv_files.*' => 'required|file|mimes:csv,txt|max:5120', // 5MB max per file
         ]);
+
+        \Log::info('Validation passed, files count: ' . count($request->file('csv_files')));
 
         $allErrors = [];
         $totalImported = 0;
@@ -238,11 +242,13 @@ class AttendanceController extends Controller
         // Get default Training session type (outside loop for efficiency)
         $trainingType = SessionType::where('name', 'Training')->first();
         if (!$trainingType) {
+            \Log::error('Training session type not found');
             return redirect()->back()->with('error', 'Training session type not found. Please run the seeder.');
         }
 
         foreach ($request->file('csv_files') as $file) {
             $filesProcessed++;
+            \Log::info("Processing file: {$file->getClientOriginalName()}");
             $path = $file->getRealPath();
             $data = array_map('str_getcsv', file($path));
 
@@ -278,8 +284,11 @@ class AttendanceController extends Controller
 
             if (empty($dateColumns)) {
                 $allErrors[] = "File '{$file->getClientOriginalName()}': No valid date columns found. Expected format: YYYY-MM-DD";
+                \Log::warning("No valid date columns in file: {$file->getClientOriginalName()}");
                 continue;
             }
+
+            \Log::info("Found " . count($dateColumns) . " date columns in file: {$file->getClientOriginalName()}");
 
             // Process each row
             foreach ($data as $rowIndex => $row) {
@@ -363,6 +372,8 @@ class AttendanceController extends Controller
         // Redirect to the first imported year/month if available, otherwise current year
         $redirectYear = $firstImportedYear ?? date('Y');
         $redirectMonth = $firstImportedMonth ?? date('m');
+
+        \Log::info("Import completed. Total records: {$totalImported}, Redirecting to year: {$redirectYear}, month: {$redirectMonth}");
 
         return redirect()
             ->route('attendance.index', ['year' => $redirectYear, 'month' => $redirectMonth])
