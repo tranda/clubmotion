@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.7.9] - 2025-01-06
+
+### Added
+- Club Achievements page showing all unique achievements earned by club members
+- Page displays unique event/competition/medal combinations (no duplicates)
+- Accessible at /club-achievements for all authenticated users
+- "My Achievements" link on Club Achievements page to view personal achievements
+
 ## [0.7.8] - 2025-01-06
 
 ### Added

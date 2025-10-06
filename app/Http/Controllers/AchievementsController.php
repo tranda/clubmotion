@@ -43,6 +43,28 @@ class AchievementsController extends Controller
     }
 
     /**
+     * Display club-wide unique achievements
+     */
+    public function clubAchievements()
+    {
+        // Get all unique achievements (one entry per event/class/medal combo)
+        $uniqueAchievements = Achievement::select('competition_class', 'medal', 'event_name', 'year')
+            ->distinct()
+            ->orderByDesc('year')
+            ->orderBy('event_name')
+            ->orderBy('competition_class')
+            ->get();
+
+        // Group achievements by event name
+        $achievementsByEvent = $uniqueAchievements->groupBy('event_name');
+
+        return Inertia::render('Achievements/Club', [
+            'achievements' => $uniqueAchievements,
+            'achievementsByEvent' => $achievementsByEvent,
+        ]);
+    }
+
+    /**
      * Show import page
      */
     public function showImport()

@@ -93,6 +93,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-achievements', [AchievementsController::class, 'index'])
         ->name('achievements.index');
 
+    // Achievements - Club-wide unique achievements for all authenticated users
+    Route::get('/club-achievements', [AchievementsController::class, 'clubAchievements'])
+        ->name('achievements.club');
+
     // Admin & Superuser: Achievements import
     Route::middleware('role:admin,superuser')->group(function () {
         Route::get('/achievements/import', [AchievementsController::class, 'showImport'])
