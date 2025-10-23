@@ -264,11 +264,27 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split('T')[0];
 
+    // Convert date from d.m.Y format (from backend) to Y-m-d format (for input field)
+    const convertDateToInputFormat = (dateStr) => {
+        if (!dateStr) return today;
+
+        // Check if date is in d.m.Y format (e.g., "23.10.2025")
+        if (dateStr.includes('.')) {
+            const parts = dateStr.split('.');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+        }
+
+        // If already in Y-m-d format or unknown format, return as is
+        return dateStr;
+    };
+
     const [formData, setFormData] = useState({
         paid_amount: payment?.amount || '',
         payment_status: payment?.status || 'pending',
         payment_method: payment?.method || 'cash',
-        payment_date: payment?.date || today,
+        payment_date: convertDateToInputFormat(payment?.date),
         notes: '',
         exemption_reason: payment?.exemption || '',
     });
