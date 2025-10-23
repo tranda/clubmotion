@@ -1008,7 +1008,10 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                             })}
                                         </h2>
                                         <p className="text-sm text-gray-600 mt-1">
-                                            {selectedDate.sessions.length} session{selectedDate.sessions.length !== 1 ? 's' : ''} • {selectedDate.attendanceCount}/{selectedDate.totalMembers} total attended
+                                            {selectedDate.sessions.length} session{selectedDate.sessions.length !== 1 ? 's' : ''} • {
+                                                // Calculate total attendance dynamically from current sessionTotals
+                                                selectedDate.sessions.reduce((sum, session) => sum + (sessionTotals[session.id] || 0), 0)
+                                            }/{selectedDate.totalMembers} total attended
                                         </p>
                                     </div>
                                     <button
