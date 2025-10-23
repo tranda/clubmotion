@@ -2,6 +2,17 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.2] - 2025-01-24
+
+### Added
+- Auto-open attendance modal after creating new session for immediate attendance marking
+- Smart modal behavior when deleting sessions: refreshes if other sessions remain, closes if last session deleted
+
+### Improved
+- Attendance workflow: create session → immediately mark attendance in one smooth flow
+- Payment modal now preserves scroll position using Inertia's preserveScroll option
+- Payment date format conversion between backend (d.m.Y) and frontend (Y-m-d) for proper display
+
 ## [0.8.1] - 2025-01-23
 
 ### Fixed
