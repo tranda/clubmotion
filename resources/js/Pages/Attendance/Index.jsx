@@ -138,9 +138,36 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
         e.preventDefault();
 
         router.post('/attendance/sessions', newSession, {
-            onSuccess: () => {
+            preserveScroll: true,
+            onSuccess: (page) => {
                 setShowNewSessionModal(false);
                 setNewSession({ date: '', session_type_id: 1, notes: '' });
+
+                // Find the newly created session and open the day modal
+                const newSessionDate = newSession.date;
+                const sessionsOnDate = page.props.sessions.filter(s => s.date === newSessionDate);
+
+                if (sessionsOnDate.length > 0) {
+                    // Calculate attendance count for the day
+                    let attendanceCount = 0;
+                    sessionsOnDate.forEach(session => {
+                        attendanceCount += (page.props.sessionTotals?.[session.id] || 0);
+                    });
+
+                    // Parse date to get day number
+                    const dateObj = new Date(newSessionDate);
+                    const day = dateObj.getDate();
+
+                    // Open the day modal with the session
+                    setSelectedDate({
+                        day,
+                        date: newSessionDate,
+                        sessions: sessionsOnDate,
+                        attendanceCount,
+                        totalMembers: page.props.attendanceGrid.length
+                    });
+                    setShowDayModal(true);
+                }
             }
         });
     };
