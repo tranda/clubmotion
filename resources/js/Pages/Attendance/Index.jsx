@@ -185,6 +185,32 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
         if (confirm('Are you sure you want to delete this session? All attendance records will be lost.')) {
             router.delete(`/attendance/sessions/${sessionId}`, {
                 preserveScroll: true,
+                onSuccess: (page) => {
+                    // If the day modal is open, update it or close it
+                    if (showDayModal && selectedDate) {
+                        // Get the remaining sessions for this date from the updated data
+                        const remainingSessions = page.props.sessions.filter(s => s.date === selectedDate.date);
+
+                        if (remainingSessions.length > 0) {
+                            // Still have sessions on this day, update the modal
+                            let attendanceCount = 0;
+                            remainingSessions.forEach(session => {
+                                attendanceCount += (page.props.sessionTotals?.[session.id] || 0);
+                            });
+
+                            setSelectedDate({
+                                ...selectedDate,
+                                sessions: remainingSessions,
+                                attendanceCount,
+                                totalMembers: page.props.attendanceGrid.length
+                            });
+                        } else {
+                            // No more sessions on this day, close the modal
+                            setShowDayModal(false);
+                            setSelectedDate(null);
+                        }
+                    }
+                }
             });
         }
     };
