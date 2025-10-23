@@ -18,14 +18,17 @@ When the user says:
 - **"increase version"** → Increment build version (z): `0.5.0` → `0.5.1`
   - For patches, bug fixes, small improvements
   - Reset: N/A
+  - **IMPORTANT**: Continue incrementing past 9: `0.8.9` → `0.8.10` → `0.8.11` → ... (no automatic rollover)
 
 - **"increase minor version"** → Increment minor version (y), reset build to 0: `0.5.0` → `0.6.0`
   - For new features, enhancements
   - Reset: z to 0
+  - Only increment when user explicitly requests it
 
 - **"increase major version"** → Increment major version (x), reset minor and build to 0: `0.5.0` → `1.0.0`
   - For breaking changes, major features
   - Reset: y and z to 0
+  - Only increment when user explicitly requests it
 
 ### Process for Version Changes
 

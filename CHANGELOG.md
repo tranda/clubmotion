@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.1] - 2025-01-23
+
+### Fixed
+- Payment date now properly recorded when entering payments
+- Payment date field now defaults to today's date for new payment entries
+- Payment date automatically populates with today's date when status changes to "Paid"
+- Payment date field now always visible and editable for admin and club managers regardless of payment status
+- Admin and club managers can now change payment dates to record historical payments or correct dates
+
 ## [0.8.0] - 2025-01-06
 
 ### Changed

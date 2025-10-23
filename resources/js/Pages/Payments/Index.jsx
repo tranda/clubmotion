@@ -261,11 +261,14 @@ export default function Index({ year, members, stats, availableYears, filter }) 
 }
 
 function PaymentEditModal({ payment, year, onClose, canDelete }) {
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+
     const [formData, setFormData] = useState({
         paid_amount: payment?.amount || '',
         payment_status: payment?.status || 'pending',
         payment_method: payment?.method || 'cash',
-        payment_date: payment?.date || new Date().toISOString().split('T')[0],
+        payment_date: payment?.date || today,
         notes: '',
         exemption_reason: payment?.exemption || '',
     });
@@ -278,6 +281,8 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
             member_id: payment.member_id,
             payment_month: payment.month,
             payment_year: year,
+            // Ensure payment_date is sent only if it has a value
+            payment_date: formData.payment_date || null,
         };
 
         // Always POST - backend handles create or update with updateOrCreate
@@ -318,7 +323,15 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
                             <label className="block text-sm font-medium text-gray-700">Status</label>
                             <select
                                 value={formData.payment_status}
-                                onChange={(e) => setFormData({...formData, payment_status: e.target.value})}
+                                onChange={(e) => {
+                                    const newStatus = e.target.value;
+                                    setFormData({
+                                        ...formData,
+                                        payment_status: newStatus,
+                                        // Set today's date when status changes to 'paid' if date is empty
+                                        payment_date: newStatus === 'paid' && !formData.payment_date ? today : formData.payment_date
+                                    });
+                                }}
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             >
                                 <option value="paid">Paid</option>
@@ -345,31 +358,29 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
                         )}
 
                         {formData.payment_status === 'paid' && (
-                            <>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Payment Method</label>
-                                    <select
-                                        value={formData.payment_method}
-                                        onChange={(e) => setFormData({...formData, payment_method: e.target.value})}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    >
-                                        <option value="cash">Cash</option>
-                                        <option value="card">Card</option>
-                                        <option value="bank_transfer">Bank Transfer</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Payment Date</label>
-                                    <input
-                                        type="date"
-                                        value={formData.payment_date}
-                                        onChange={(e) => setFormData({...formData, payment_date: e.target.value})}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Payment Method</label>
+                                <select
+                                    value={formData.payment_method}
+                                    onChange={(e) => setFormData({...formData, payment_method: e.target.value})}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                >
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                </select>
+                            </div>
                         )}
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Payment Date</label>
+                            <input
+                                type="date"
+                                value={formData.payment_date}
+                                onChange={(e) => setFormData({...formData, payment_date: e.target.value})}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                        </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Notes</label>
