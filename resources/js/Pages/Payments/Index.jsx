@@ -7,6 +7,15 @@ export default function Index({ year, members, stats, availableYears, filter }) 
     const [selectedPayment, setSelectedPayment] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
 
+    // Restore scroll position after page reload
+    useEffect(() => {
+        const savedScrollY = sessionStorage.getItem('paymentsScrollY');
+        if (savedScrollY) {
+            window.scrollTo(0, parseInt(savedScrollY));
+            sessionStorage.removeItem('paymentsScrollY');
+        }
+    }, []);
+
     // Pull to refresh
     useEffect(() => {
         let startY = 0;
@@ -57,6 +66,9 @@ export default function Index({ year, members, stats, availableYears, filter }) 
     };
 
     const handleCellClick = (member, month, payment) => {
+        // Save current scroll position before opening modal
+        sessionStorage.setItem('paymentsScrollY', window.scrollY.toString());
+
         setSelectedPayment({
             ...payment,
             member_id: member.id,
