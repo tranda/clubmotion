@@ -7,15 +7,6 @@ export default function Index({ year, members, stats, availableYears, filter }) 
     const [selectedPayment, setSelectedPayment] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
 
-    // Restore scroll position after page reload
-    useEffect(() => {
-        const savedScrollY = sessionStorage.getItem('paymentsScrollY');
-        if (savedScrollY) {
-            window.scrollTo(0, parseInt(savedScrollY));
-            sessionStorage.removeItem('paymentsScrollY');
-        }
-    }, []);
-
     // Pull to refresh
     useEffect(() => {
         let startY = 0;
@@ -66,9 +57,6 @@ export default function Index({ year, members, stats, availableYears, filter }) 
     };
 
     const handleCellClick = (member, month, payment) => {
-        // Save current scroll position before opening modal
-        sessionStorage.setItem('paymentsScrollY', window.scrollY.toString());
-
         setSelectedPayment({
             ...payment,
             member_id: member.id,
@@ -315,6 +303,7 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
 
         // Always POST - backend handles create or update with updateOrCreate
         router.post('/payments', submitData, {
+            preserveScroll: true,
             onSuccess: () => onClose(),
         });
     };
@@ -322,6 +311,7 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
     const handleDelete = () => {
         if (confirm('Are you sure you want to delete this payment record?')) {
             router.delete(`/payments/${payment.id}`, {
+                preserveScroll: true,
                 onSuccess: () => onClose(),
             });
         }
