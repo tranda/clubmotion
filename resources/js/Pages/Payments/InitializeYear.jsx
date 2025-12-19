@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-export default function InitializeYear({ year, memberCount }) {
+export default function InitializeYear({ year, memberCount, presets = [] }) {
     const [monthlyRates, setMonthlyRates] = useState({
         1: '', 2: '', 3: '', 4: '', 5: '', 6: '',
         7: '', 8: '', 9: '', 10: '', 11: '', 12: ''
@@ -33,6 +33,13 @@ export default function InitializeYear({ year, memberCount }) {
         setMonthlyRates(newRates);
     };
 
+    const clearAll = () => {
+        setMonthlyRates({
+            1: '', 2: '', 3: '', 4: '', 5: '', 6: '',
+            7: '', 8: '', 9: '', 10: '', 11: '', 12: ''
+        });
+    };
+
     return (
         <Layout>
             <div className="py-4 max-w-4xl mx-auto">
@@ -49,41 +56,31 @@ export default function InitializeYear({ year, memberCount }) {
 
                     <form onSubmit={handleSubmit}>
                         <div className="mb-6">
-                            <h3 className="text-md font-semibold mb-3">Set Expected Monthly Rates (RSD)</h3>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-md font-semibold">Set Expected Monthly Rates (RSD)</h3>
+                                <Link
+                                    href="/payments/presets"
+                                    className="text-sm text-blue-600 hover:text-blue-800"
+                                >
+                                    Manage Presets
+                                </Link>
+                            </div>
 
-                            {/* Quick set buttons */}
+                            {/* Dynamic preset buttons */}
                             <div className="mb-4 flex gap-2 flex-wrap">
+                                {presets.map((preset) => (
+                                    <button
+                                        key={preset.id}
+                                        type="button"
+                                        onClick={() => setRangeRates(preset.start_month, preset.end_month, preset.rate)}
+                                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm"
+                                    >
+                                        {preset.name}
+                                    </button>
+                                ))}
                                 <button
                                     type="button"
-                                    onClick={() => setRangeRates(1, 12, 2500)}
-                                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm"
-                                >
-                                    Set all to 2500
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setRangeRates(1, 3, 2500)}
-                                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm"
-                                >
-                                    Jan-Mar: 2500
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setRangeRates(4, 5, 500)}
-                                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm"
-                                >
-                                    Apr-May: 500
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setRangeRates(6, 9, 3000)}
-                                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm"
-                                >
-                                    Jun-Sep: 3000
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setRangeRates(1, 12, 0)}
+                                    onClick={clearAll}
                                     className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm"
                                 >
                                     Clear all

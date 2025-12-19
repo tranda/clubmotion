@@ -137,6 +137,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/payments/member/{member}', [App\Http\Controllers\PaymentController::class, 'memberHistory'])
             ->name('payments.member');
 
+        // Rate presets management
+        Route::get('/payments/presets', [App\Http\Controllers\PaymentController::class, 'showPresets'])
+            ->name('payments.presets');
+        Route::post('/payments/presets', [App\Http\Controllers\PaymentController::class, 'storePreset'])
+            ->name('payments.presets.store');
+        Route::put('/payments/presets/{preset}', [App\Http\Controllers\PaymentController::class, 'updatePreset'])
+            ->name('payments.presets.update');
+        Route::delete('/payments/presets/{preset}', [App\Http\Controllers\PaymentController::class, 'destroyPreset'])
+            ->name('payments.presets.destroy');
+        Route::post('/payments/presets/reorder', [App\Http\Controllers\PaymentController::class, 'reorderPresets'])
+            ->name('payments.presets.reorder');
+
         // Store or update payment (using updateOrCreate)
         Route::post('/payments', [App\Http\Controllers\PaymentController::class, 'store'])
             ->name('payments.store');

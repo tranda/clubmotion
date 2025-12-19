@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use App\Models\MembershipPayment;
+use App\Models\PaymentRatePreset;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -139,6 +140,7 @@ class PaymentController extends Controller
         return Inertia::render('Payments/InitializeYear', [
             'year' => (int)$year,
             'memberCount' => Member::where('is_active', true)->count(),
+            'presets' => PaymentRatePreset::getActive(),
         ]);
     }
 
@@ -535,5 +537,86 @@ class PaymentController extends Controller
             'payments' => $payments,
             'availableYears' => range(date('Y'), 2024),
         ]);
+    }
+
+    /**
+     * Show rate presets management page
+     */
+    public function showPresets()
+    {
+        return Inertia::render('Payments/RatePresets', [
+            'presets' => PaymentRatePreset::orderBy('sort_order')->get(),
+        ]);
+    }
+
+    /**
+     * Store a new rate preset
+     */
+    public function storePreset(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'start_month' => 'required|integer|min:1|max:12',
+            'end_month' => 'required|integer|min:1|max:12|gte:start_month',
+            'rate' => 'required|numeric|min:0',
+        ]);
+
+        $maxOrder = PaymentRatePreset::max('sort_order') ?? 0;
+
+        PaymentRatePreset::create([
+            'name' => $request->name,
+            'start_month' => $request->start_month,
+            'end_month' => $request->end_month,
+            'rate' => $request->rate,
+            'sort_order' => $maxOrder + 1,
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', 'Preset created successfully');
+    }
+
+    /**
+     * Update an existing rate preset
+     */
+    public function updatePreset(Request $request, PaymentRatePreset $preset)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'start_month' => 'required|integer|min:1|max:12',
+            'end_month' => 'required|integer|min:1|max:12|gte:start_month',
+            'rate' => 'required|numeric|min:0',
+            'is_active' => 'boolean',
+        ]);
+
+        $preset->update($request->only(['name', 'start_month', 'end_month', 'rate', 'is_active']));
+
+        return back()->with('success', 'Preset updated successfully');
+    }
+
+    /**
+     * Delete a rate preset
+     */
+    public function destroyPreset(PaymentRatePreset $preset)
+    {
+        $preset->delete();
+
+        return back()->with('success', 'Preset deleted successfully');
+    }
+
+    /**
+     * Reorder presets
+     */
+    public function reorderPresets(Request $request)
+    {
+        $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'exists:payment_rate_presets,id',
+        ]);
+
+        foreach ($request->order as $index => $id) {
+            PaymentRatePreset::where('id', $id)->update(['sort_order' => $index + 1]);
+        }
+
+        return back()->with('success', 'Presets reordered successfully');
     }
 }
