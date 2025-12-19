@@ -16,6 +16,8 @@ class MembershipPayment extends Model
         'expected_amount',
         'paid_amount',
         'payment_status',
+        'is_annual_payment',
+        'annual_payment_group_id',
         'exemption_reason',
         'payment_date',
         'payment_method',
@@ -29,6 +31,7 @@ class MembershipPayment extends Model
         'paid_amount' => 'decimal:2',
         'payment_year' => 'integer',
         'payment_month' => 'integer',
+        'is_annual_payment' => 'boolean',
     ];
 
     public function member()
@@ -74,5 +77,15 @@ class MembershipPayment extends Model
             9 => 'SEP', 10 => 'OCT', 11 => 'NOV', 12 => 'DEC'
         ];
         return $months[$this->payment_month] ?? '';
+    }
+
+    public function isAnnualPayment()
+    {
+        return $this->is_annual_payment;
+    }
+
+    public function scopeAnnualGroup($query, $groupId)
+    {
+        return $query->where('annual_payment_group_id', $groupId);
     }
 }

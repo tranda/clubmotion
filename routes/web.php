@@ -149,6 +149,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/payments/presets/reorder', [App\Http\Controllers\PaymentController::class, 'reorderPresets'])
             ->name('payments.presets.reorder');
 
+        // Annual payment settings
+        Route::get('/payments/annual-settings', [App\Http\Controllers\PaymentController::class, 'showAnnualSettings'])
+            ->name('payments.annual.settings');
+        Route::put('/payments/annual-settings', [App\Http\Controllers\PaymentController::class, 'updateAnnualSettings'])
+            ->name('payments.annual.settings.update');
+
+        // Annual payment processing
+        Route::post('/payments/annual', [App\Http\Controllers\PaymentController::class, 'processAnnualPayment'])
+            ->name('payments.annual.store');
+        Route::get('/payments/annual-preview', [App\Http\Controllers\PaymentController::class, 'previewAnnualPayment'])
+            ->name('payments.annual.preview');
+
         // Store or update payment (using updateOrCreate)
         Route::post('/payments', [App\Http\Controllers\PaymentController::class, 'store'])
             ->name('payments.store');

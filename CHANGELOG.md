@@ -2,6 +2,24 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.7] - 2025-12-19
+
+### Added
+- Annual payment feature: members can pay 32,000 RSD for 12 consecutive months
+- Annual payments can span across calendar years (e.g., July 2025 - June 2026)
+- Purple "A" button in payment grid to initiate annual payment for each member
+- Annual payment modal with start month/year selection and coverage preview
+- Purple styling for annual payment cells in grid (amount + "A" suffix)
+- Annual payment settings page at /payments/annual-settings
+- New payment_settings table for configurable annual amount
+- Added is_annual_payment and annual_payment_group_id columns to track annual payments
+
+### Technical
+- New PaymentSetting model for managing payment configuration
+- Database migrations for payment_settings table and annual payment columns
+- AnnualPaymentModal component in Payments/Index.jsx
+- New AnnualSettings.jsx page for admin configuration
+
 ## [0.8.6] - 2025-12-19
 
 ### Changed

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Member;
 use App\Models\MembershipPayment;
 use App\Models\PaymentRatePreset;
+use App\Models\PaymentSetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -65,6 +66,8 @@ class PaymentController extends Controller
                     'exemption' => $payment->exemption_reason,
                     'date' => $payment->payment_date?->format('d.m.Y'),
                     'method' => $payment->payment_method,
+                    'is_annual' => $payment->is_annual_payment,
+                    'annual_group_id' => $payment->annual_payment_group_id,
                 ] : null;
             }
 
@@ -94,6 +97,7 @@ class PaymentController extends Controller
             'stats' => $stats,
             'availableYears' => $availableYears,
             'filter' => $filter,
+            'annualConfig' => PaymentSetting::getAnnualConfig(),
         ]);
     }
 
@@ -618,5 +622,108 @@ class PaymentController extends Controller
         }
 
         return back()->with('success', 'Presets reordered successfully');
+    }
+
+    /**
+     * Show annual payment settings page
+     */
+    public function showAnnualSettings()
+    {
+        return Inertia::render('Payments/AnnualSettings', [
+            'settings' => PaymentSetting::getAnnualConfig(),
+        ]);
+    }
+
+    /**
+     * Update annual payment settings
+     */
+    public function updateAnnualSettings(Request $request)
+    {
+        $request->validate([
+            'annual_amount' => 'required|numeric|min:0',
+        ]);
+
+        PaymentSetting::set('annual_payment_amount', $request->annual_amount);
+
+        return back()->with('success', 'Annual payment settings updated');
+    }
+
+    /**
+     * Process annual payment for a member
+     */
+    public function processAnnualPayment(Request $request)
+    {
+        $request->validate([
+            'member_id' => 'required|exists:members,id',
+            'start_year' => 'required|integer',
+            'start_month' => 'required|integer|min:1|max:12',
+            'payment_method' => 'required|in:cash,card,bank_transfer',
+            'payment_date' => 'nullable|date',
+        ]);
+
+        $member = Member::findOrFail($request->member_id);
+        $startYear = $request->start_year;
+        $startMonth = $request->start_month;
+
+        $config = PaymentSetting::getAnnualConfig();
+        $totalAmount = $config['annual_amount'];
+        $groupId = uniqid('annual_', true);
+        $paymentDate = $request->payment_date ?? now();
+
+        DB::beginTransaction();
+        try {
+            $currentYear = $startYear;
+            $currentMonth = $startMonth;
+
+            for ($i = 0; $i < 12; $i++) {
+                $isFirstMonth = ($i === 0);
+
+                MembershipPayment::updateOrCreate(
+                    [
+                        'member_id' => $member->id,
+                        'payment_year' => $currentYear,
+                        'payment_month' => $currentMonth,
+                    ],
+                    [
+                        'paid_amount' => $isFirstMonth ? $totalAmount : 0,
+                        'payment_status' => 'paid',
+                        'payment_method' => $request->payment_method,
+                        'payment_date' => $paymentDate,
+                        'is_annual_payment' => true,
+                        'annual_payment_group_id' => $groupId,
+                        'notes' => $isFirstMonth
+                            ? "Annual payment for 12 months"
+                            : 'Covered by annual payment',
+                        'created_by' => auth()->id(),
+                    ]
+                );
+
+                // Move to next month
+                $currentMonth++;
+                if ($currentMonth > 12) {
+                    $currentMonth = 1;
+                    $currentYear++;
+                }
+            }
+
+            DB::commit();
+            return back()->with('success', "Annual payment of {$totalAmount} RSD processed for {$member->name}");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to process annual payment: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get annual payment preview (for modal)
+     */
+    public function previewAnnualPayment(Request $request)
+    {
+        $config = PaymentSetting::getAnnualConfig();
+
+        return response()->json([
+            'annual_amount' => $config['annual_amount'],
+        ]);
     }
 }

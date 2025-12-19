@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-export default function Index({ year, members, stats, availableYears, filter }) {
+export default function Index({ year, members, stats, availableYears, filter, annualConfig }) {
     const { auth } = usePage().props;
     const [selectedPayment, setSelectedPayment] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showAnnualModal, setShowAnnualModal] = useState(false);
+    const [selectedMemberForAnnual, setSelectedMemberForAnnual] = useState(null);
 
     // Pull to refresh
     useEffect(() => {
@@ -67,8 +69,18 @@ export default function Index({ year, members, stats, availableYears, filter }) 
         setShowEditModal(true);
     };
 
+    const handleAnnualClick = (member) => {
+        setSelectedMemberForAnnual(member);
+        setShowAnnualModal(true);
+    };
+
     const getStatusColor = (payment) => {
         if (!payment) return 'bg-gray-50 border-gray-200';
+
+        // Annual payments get purple styling
+        if (payment.is_annual) {
+            return 'bg-purple-50 border-purple-300 text-purple-900';
+        }
 
         switch (payment.status) {
             case 'paid':
@@ -97,6 +109,10 @@ export default function Index({ year, members, stats, availableYears, filter }) 
         }
 
         if (payment.status === 'paid') {
+            // Annual payments: show amount with "A" suffix for first month, just "A" for others
+            if (payment.is_annual) {
+                return payment.amount > 0 ? `${Math.round(payment.amount)}A` : 'A';
+            }
             return Math.round(payment.amount);
         }
 
@@ -191,6 +207,9 @@ export default function Index({ year, members, stats, availableYears, filter }) 
                                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                         #
                                     </th>
+                                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                                        Annual
+                                    </th>
                                     {monthNames.map((month, idx) => (
                                         <th key={idx} className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
                                             {month}
@@ -212,6 +231,15 @@ export default function Index({ year, members, stats, availableYears, filter }) 
                                         <td className="px-2 py-2 text-sm text-gray-500">
                                             {member.membership_number}
                                         </td>
+                                        <td className="px-2 py-2 text-center">
+                                            <button
+                                                onClick={() => handleAnnualClick(member)}
+                                                className="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700"
+                                                title={`Pay Annual: ${Number(annualConfig?.annual_amount || 32000).toLocaleString()} RSD`}
+                                            >
+                                                A
+                                            </button>
+                                        </td>
                                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((month) => {
                                             const payment = member.months[month];
                                             return (
@@ -232,10 +260,14 @@ export default function Index({ year, members, stats, availableYears, filter }) 
                 </div>
 
                 {/* Legend */}
-                <div className="mt-4 flex gap-4 text-sm">
+                <div className="mt-4 flex gap-4 text-sm flex-wrap">
                     <div className="flex items-center gap-2">
                         <div className="w-4 h-4 bg-green-200 border border-green-300"></div>
                         <span>Paid</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-purple-200 border border-purple-300"></div>
+                        <span>Annual</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-4 h-4 bg-yellow-200 border border-yellow-300"></div>
@@ -258,6 +290,14 @@ export default function Index({ year, members, stats, availableYears, filter }) 
                 year={year}
                 onClose={() => setShowEditModal(false)}
                 canDelete={auth.user.role_id === 1 || auth.user.role_id === 2}
+            />}
+
+            {/* Annual Payment Modal */}
+            {showAnnualModal && <AnnualPaymentModal
+                member={selectedMemberForAnnual}
+                year={year}
+                annualConfig={annualConfig}
+                onClose={() => setShowAnnualModal(false)}
             />}
         </Layout>
     );
@@ -448,6 +488,149 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
                                 Save Payment
                             </button>
                         </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+function AnnualPaymentModal({ member, year, annualConfig, onClose }) {
+    const today = new Date().toISOString().split('T')[0];
+    const currentMonth = new Date().getMonth() + 1;
+
+    const [formData, setFormData] = useState({
+        start_month: currentMonth,
+        start_year: year,
+        payment_method: 'cash',
+        payment_date: today,
+    });
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+
+    // Calculate end month/year (12 months from start)
+    const getEndDate = () => {
+        let endMonth = formData.start_month + 11;
+        let endYear = formData.start_year;
+        if (endMonth > 12) {
+            endMonth -= 12;
+            endYear++;
+        }
+        return { month: endMonth, year: endYear };
+    };
+
+    const endDate = getEndDate();
+    const annualAmount = annualConfig?.annual_amount || 32000;
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        router.post('/payments/annual', {
+            member_id: member.id,
+            start_year: formData.start_year,
+            start_month: formData.start_month,
+            payment_method: formData.payment_method,
+            payment_date: formData.payment_date,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => onClose(),
+            onFinish: () => setIsSubmitting(false),
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                <h3 className="text-lg font-bold mb-4">
+                    Annual Payment - {member.name}
+                </h3>
+
+                <div className="bg-purple-50 border border-purple-200 rounded p-3 mb-4">
+                    <p className="text-sm text-purple-700">
+                        <strong>Amount:</strong> {Number(annualAmount).toLocaleString()} RSD
+                    </p>
+                    <p className="text-sm text-purple-700">
+                        <strong>Coverage:</strong> 12 months
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit}>
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Start Month</label>
+                                <select
+                                    value={formData.start_month}
+                                    onChange={(e) => setFormData({...formData, start_month: parseInt(e.target.value)})}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                >
+                                    {monthNames.map((month, idx) => (
+                                        <option key={idx} value={idx + 1}>{month}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Start Year</label>
+                                <select
+                                    value={formData.start_year}
+                                    onChange={(e) => setFormData({...formData, start_year: parseInt(e.target.value)})}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                >
+                                    {[year - 1, year, year + 1].map(y => (
+                                        <option key={y} value={y}>{y}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-50 p-3 rounded text-sm">
+                            <strong>Coverage period:</strong><br />
+                            {monthNames[formData.start_month - 1]} {formData.start_year} → {monthNames[endDate.month - 1]} {endDate.year}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Payment Method</label>
+                            <select
+                                value={formData.payment_method}
+                                onChange={(e) => setFormData({...formData, payment_method: e.target.value})}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            >
+                                <option value="cash">Cash</option>
+                                <option value="card">Card</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Payment Date</label>
+                            <input
+                                type="date"
+                                value={formData.payment_date}
+                                onChange={(e) => setFormData({...formData, payment_date: e.target.value})}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
+                        >
+                            {isSubmitting ? 'Processing...' : `Pay ${Number(annualAmount).toLocaleString()} RSD`}
+                        </button>
                     </div>
                 </form>
             </div>
