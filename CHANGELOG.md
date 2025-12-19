@@ -2,6 +2,16 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.4] - 2025-12-19
+
+### Improved
+- Payment entry workflow: clicking empty cell now defaults status to "Paid" for faster data entry
+- Amount field pre-populated with expected value when opening payment modal
+- Shows "Expected: X" label in payment modal for reference
+
+### Changed
+- Existing payments retain their current status when editing (only empty cells default to Paid)
+
 ## [0.8.3] - 2025-12-19
 
 ### Added

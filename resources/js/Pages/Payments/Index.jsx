@@ -282,7 +282,7 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
 
     const [formData, setFormData] = useState({
         paid_amount: payment?.amount || payment?.expected || '',
-        payment_status: payment?.status || 'pending',
+        payment_status: payment?.status || 'paid',
         payment_method: payment?.method || 'cash',
         payment_date: convertDateToInputFormat(payment?.date),
         notes: '',
