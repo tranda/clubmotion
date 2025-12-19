@@ -2,6 +2,18 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.3] - 2025-12-19
+
+### Added
+- Configurable payment rate presets stored in database
+- New Rate Presets management page at /payments/presets
+- CRUD operations for payment rate presets (add, edit, delete, toggle active)
+- Dynamic preset buttons on payment initialization page loaded from database
+
+### Changed
+- Payment rate presets are no longer hardcoded in frontend
+- Admins can now modify preset values without code changes
+
 ## [0.8.2] - 2025-01-24
 
 ### Added
