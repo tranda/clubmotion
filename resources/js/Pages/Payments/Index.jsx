@@ -281,7 +281,7 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
     };
 
     const [formData, setFormData] = useState({
-        paid_amount: payment?.amount || '',
+        paid_amount: payment?.amount || payment?.expected || '',
         payment_status: payment?.status || 'pending',
         payment_method: payment?.method || 'cash',
         payment_date: convertDateToInputFormat(payment?.date),
@@ -328,7 +328,14 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
                 <form onSubmit={handleSubmit}>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Amount (RSD)</label>
+                            <label className="block text-sm font-medium text-gray-700">
+                                Amount (RSD)
+                                {payment?.expected && (
+                                    <span className="ml-2 text-xs font-normal text-gray-500">
+                                        Expected: {Number(payment.expected).toLocaleString()}
+                                    </span>
+                                )}
+                            </label>
                             <input
                                 type="number"
                                 value={formData.paid_amount}
