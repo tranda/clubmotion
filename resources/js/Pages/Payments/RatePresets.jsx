@@ -3,8 +3,9 @@ import { router, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 export default function RatePresets({ presets }) {
+    const [editingId, setEditingId] = useState(null);
+    const [editData, setEditData] = useState({});
     const [showAddModal, setShowAddModal] = useState(false);
-    const [editingPreset, setEditingPreset] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         start_month: 1,
@@ -13,6 +14,12 @@ export default function RatePresets({ presets }) {
     });
 
     const monthNames = {
+        1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr',
+        5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug',
+        9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+    };
+
+    const monthNamesFull = {
         1: 'January', 2: 'February', 3: 'March', 4: 'April',
         5: 'May', 6: 'June', 7: 'July', 8: 'August',
         9: 'September', 10: 'October', 11: 'November', 12: 'December'
@@ -29,39 +36,45 @@ export default function RatePresets({ presets }) {
 
     const openAddModal = () => {
         resetForm();
-        setEditingPreset(null);
-        setShowAddModal(true);
-    };
-
-    const openEditModal = (preset) => {
-        setFormData({
-            name: preset.name,
-            start_month: preset.start_month,
-            end_month: preset.end_month,
-            rate: preset.rate,
-        });
-        setEditingPreset(preset);
         setShowAddModal(true);
     };
 
     const closeModal = () => {
         setShowAddModal(false);
-        setEditingPreset(null);
         resetForm();
     };
 
-    const handleSubmit = (e) => {
+    const handleAddSubmit = (e) => {
         e.preventDefault();
+        router.post('/payments/presets', formData, {
+            onSuccess: () => closeModal(),
+        });
+    };
 
-        if (editingPreset) {
-            router.put(`/payments/presets/${editingPreset.id}`, formData, {
-                onSuccess: () => closeModal(),
-            });
-        } else {
-            router.post('/payments/presets', formData, {
-                onSuccess: () => closeModal(),
-            });
-        }
+    // Inline editing functions
+    const startEditing = (preset) => {
+        setEditingId(preset.id);
+        setEditData({
+            name: preset.name,
+            start_month: preset.start_month,
+            end_month: preset.end_month,
+            rate: preset.rate,
+            is_active: preset.is_active,
+        });
+    };
+
+    const cancelEditing = () => {
+        setEditingId(null);
+        setEditData({});
+    };
+
+    const saveEditing = () => {
+        router.put(`/payments/presets/${editingId}`, editData, {
+            onSuccess: () => {
+                setEditingId(null);
+                setEditData({});
+            },
+        });
     };
 
     const handleDelete = (preset) => {
@@ -102,7 +115,7 @@ export default function RatePresets({ presets }) {
                     <div className="p-4 border-b">
                         <p className="text-gray-600 text-sm">
                             Manage quick-set buttons that appear on the payment initialization page.
-                            These presets let you quickly fill in rates for specific month ranges.
+                            Click on any row to edit inline.
                         </p>
                     </div>
 
@@ -115,7 +128,8 @@ export default function RatePresets({ presets }) {
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Months</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Start</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">End</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Rate (RSD)</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
                                     <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Actions</th>
@@ -123,40 +137,114 @@ export default function RatePresets({ presets }) {
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {presets.map((preset) => (
-                                    <tr key={preset.id} className={!preset.is_active ? 'bg-gray-50 opacity-60' : ''}>
-                                        <td className="px-4 py-3 font-medium">{preset.name}</td>
-                                        <td className="px-4 py-3 text-gray-600">
-                                            {monthNames[preset.start_month]} - {monthNames[preset.end_month]}
-                                        </td>
-                                        <td className="px-4 py-3 text-gray-600">
-                                            {Number(preset.rate).toLocaleString()}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <button
-                                                onClick={() => toggleActive(preset)}
-                                                className={`px-2 py-1 text-xs rounded ${
-                                                    preset.is_active
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-gray-100 text-gray-600'
-                                                }`}
-                                            >
-                                                {preset.is_active ? 'Active' : 'Inactive'}
-                                            </button>
-                                        </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <button
-                                                onClick={() => openEditModal(preset)}
-                                                className="text-blue-600 hover:text-blue-800 mr-3"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(preset)}
-                                                className="text-red-600 hover:text-red-800"
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
+                                    <tr
+                                        key={preset.id}
+                                        className={`${!preset.is_active ? 'bg-gray-50 opacity-60' : ''} ${editingId === preset.id ? 'bg-blue-50' : ''}`}
+                                    >
+                                        {editingId === preset.id ? (
+                                            <>
+                                                <td className="px-4 py-2">
+                                                    <input
+                                                        type="text"
+                                                        value={editData.name}
+                                                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                                                        className="w-full px-2 py-1 text-sm border rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    <select
+                                                        value={editData.start_month}
+                                                        onChange={(e) => setEditData({ ...editData, start_month: parseInt(e.target.value) })}
+                                                        className="w-full px-2 py-1 text-sm border rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                                    >
+                                                        {Object.entries(monthNames).map(([num, name]) => (
+                                                            <option key={num} value={num}>{name}</option>
+                                                        ))}
+                                                    </select>
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    <select
+                                                        value={editData.end_month}
+                                                        onChange={(e) => setEditData({ ...editData, end_month: parseInt(e.target.value) })}
+                                                        className="w-full px-2 py-1 text-sm border rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                                    >
+                                                        {Object.entries(monthNames).map(([num, name]) => (
+                                                            <option key={num} value={num}>{name}</option>
+                                                        ))}
+                                                    </select>
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    <input
+                                                        type="number"
+                                                        value={editData.rate}
+                                                        onChange={(e) => setEditData({ ...editData, rate: e.target.value })}
+                                                        className="w-24 px-2 py-1 text-sm border rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                                        min="0"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    <button
+                                                        onClick={() => setEditData({ ...editData, is_active: !editData.is_active })}
+                                                        className={`px-2 py-1 text-xs rounded ${
+                                                            editData.is_active
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : 'bg-gray-100 text-gray-600'
+                                                        }`}
+                                                    >
+                                                        {editData.is_active ? 'Active' : 'Inactive'}
+                                                    </button>
+                                                </td>
+                                                <td className="px-4 py-2 text-right">
+                                                    <button
+                                                        onClick={saveEditing}
+                                                        className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 mr-2"
+                                                    >
+                                                        Save
+                                                    </button>
+                                                    <button
+                                                        onClick={cancelEditing}
+                                                        className="px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </td>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <td className="px-4 py-3 font-medium">{preset.name}</td>
+                                                <td className="px-4 py-3 text-gray-600">{monthNames[preset.start_month]}</td>
+                                                <td className="px-4 py-3 text-gray-600">{monthNames[preset.end_month]}</td>
+                                                <td className="px-4 py-3 text-gray-600">
+                                                    {Number(preset.rate).toLocaleString()}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <button
+                                                        onClick={() => toggleActive(preset)}
+                                                        className={`px-2 py-1 text-xs rounded ${
+                                                            preset.is_active
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : 'bg-gray-100 text-gray-600'
+                                                        }`}
+                                                    >
+                                                        {preset.is_active ? 'Active' : 'Inactive'}
+                                                    </button>
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <button
+                                                        onClick={() => startEditing(preset)}
+                                                        className="text-blue-600 hover:text-blue-800 mr-3"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(preset)}
+                                                        className="text-red-600 hover:text-red-800"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
+                                            </>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
@@ -165,16 +253,14 @@ export default function RatePresets({ presets }) {
                 </div>
             </div>
 
-            {/* Add/Edit Modal */}
+            {/* Add Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
                         <div className="p-4 border-b">
-                            <h2 className="text-lg font-semibold">
-                                {editingPreset ? 'Edit Preset' : 'Add New Preset'}
-                            </h2>
+                            <h2 className="text-lg font-semibold">Add New Preset</h2>
                         </div>
-                        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                        <form onSubmit={handleAddSubmit} className="p-4 space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Button Name
@@ -199,7 +285,7 @@ export default function RatePresets({ presets }) {
                                         onChange={(e) => setFormData({ ...formData, start_month: parseInt(e.target.value) })}
                                         className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     >
-                                        {Object.entries(monthNames).map(([num, name]) => (
+                                        {Object.entries(monthNamesFull).map(([num, name]) => (
                                             <option key={num} value={num}>{name}</option>
                                         ))}
                                     </select>
@@ -213,7 +299,7 @@ export default function RatePresets({ presets }) {
                                         onChange={(e) => setFormData({ ...formData, end_month: parseInt(e.target.value) })}
                                         className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     >
-                                        {Object.entries(monthNames).map(([num, name]) => (
+                                        {Object.entries(monthNamesFull).map(([num, name]) => (
                                             <option key={num} value={num}>{name}</option>
                                         ))}
                                     </select>
@@ -247,7 +333,7 @@ export default function RatePresets({ presets }) {
                                     type="submit"
                                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                                 >
-                                    {editingPreset ? 'Update' : 'Create'}
+                                    Create
                                 </button>
                             </div>
                         </form>
