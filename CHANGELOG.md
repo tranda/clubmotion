@@ -2,6 +2,13 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.8] - 2025-12-19
+
+### Changed
+- Replaced separate Year and Month dropdowns on Attendance page with unified month navigator
+- New month selector with left/right arrow buttons for easier navigation
+- Automatically handles year rollover when navigating between December/January
+
 ## [0.8.7] - 2025-12-19
 
 ### Added

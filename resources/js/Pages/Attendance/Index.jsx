@@ -72,12 +72,6 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
         };
     }, []);
 
-    // Generate year options (current year + 2 future years, and back to 2020)
-    const currentYear = new Date().getFullYear();
-    const startYear = 2020;
-    const endYear = currentYear + 2;
-    const yearOptions = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i).reverse();
-
     const monthNames = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
@@ -343,54 +337,67 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                             </select>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                            <select
-                                value={selectedYear}
-                                onChange={(e) => {
-                                    const newYear = parseInt(e.target.value);
-                                    setSelectedYear(newYear);
-                                    router.get('/attendance', {
-                                        year: newYear,
-                                        month: selectedMonth,
-                                        session_type_id: selectedSessionType || undefined,
-                                        filter: selectedFilter,
-                                    }, {
-                                        preserveState: true,
-                                        preserveScroll: true,
-                                    });
-                                }}
-                                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                {yearOptions.map(y => (
-                                    <option key={y} value={y}>{y}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
+                        <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
-                            <select
-                                value={selectedMonth}
-                                onChange={(e) => {
-                                    const newMonth = parseInt(e.target.value);
-                                    setSelectedMonth(newMonth);
-                                    router.get('/attendance', {
-                                        year: selectedYear,
-                                        month: newMonth,
-                                        session_type_id: selectedSessionType || undefined,
-                                        filter: selectedFilter,
-                                    }, {
-                                        preserveState: true,
-                                        preserveScroll: true,
-                                    });
-                                }}
-                                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                {monthNames.map((name, idx) => (
-                                    <option key={idx} value={idx + 1}>{name}</option>
-                                ))}
-                            </select>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => {
+                                        let newMonth = selectedMonth - 1;
+                                        let newYear = selectedYear;
+                                        if (newMonth < 1) {
+                                            newMonth = 12;
+                                            newYear = selectedYear - 1;
+                                        }
+                                        setSelectedMonth(newMonth);
+                                        setSelectedYear(newYear);
+                                        router.get('/attendance', {
+                                            year: newYear,
+                                            month: newMonth,
+                                            session_type_id: selectedSessionType || undefined,
+                                            filter: selectedFilter,
+                                        }, {
+                                            preserveState: true,
+                                            preserveScroll: true,
+                                        });
+                                    }}
+                                    className="p-2 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    title="Previous month"
+                                >
+                                    <svg className="w-5 h-5 text-gray-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <div className="flex-1 text-center font-medium text-gray-900 py-2 px-4 bg-gray-50 rounded-md border border-gray-300">
+                                    {monthNames[selectedMonth - 1]} {selectedYear}
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        let newMonth = selectedMonth + 1;
+                                        let newYear = selectedYear;
+                                        if (newMonth > 12) {
+                                            newMonth = 1;
+                                            newYear = selectedYear + 1;
+                                        }
+                                        setSelectedMonth(newMonth);
+                                        setSelectedYear(newYear);
+                                        router.get('/attendance', {
+                                            year: newYear,
+                                            month: newMonth,
+                                            session_type_id: selectedSessionType || undefined,
+                                            filter: selectedFilter,
+                                        }, {
+                                            preserveState: true,
+                                            preserveScroll: true,
+                                        });
+                                    }}
+                                    className="p-2 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    title="Next month"
+                                >
+                                    <svg className="w-5 h-5 text-gray-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
 
                         <div>
