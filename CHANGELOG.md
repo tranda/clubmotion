@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.5] - 2025-12-19
+
+### Changed
+- Payment initialization now creates records with null status instead of "pending"
+- Null status cells appear empty and ready for quick entry
+- Clicking unprocessed cell: defaults to "Paid" with expected amount pre-filled
+- Clicking existing payment: preserves current status and amount
+
 ## [0.8.4] - 2025-12-19
 
 ### Improved

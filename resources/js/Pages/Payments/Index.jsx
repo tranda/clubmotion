@@ -87,6 +87,9 @@ export default function Index({ year, members, stats, availableYears, filter }) 
     const getCellContent = (payment, member) => {
         if (!payment) return '';
 
+        // Null status = initialized but not processed yet (show empty)
+        if (!payment.status) return '';
+
         if (payment.status === 'exempt') {
             if (payment.exemption === 'pocasni') return 'POC';
             if (payment.exemption === 'saradnik') return 'SAR';

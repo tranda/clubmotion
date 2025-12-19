@@ -179,7 +179,7 @@ class PaymentController extends Controller
                             'payment_year' => $year,
                             'payment_month' => $month,
                             'expected_amount' => $expectedAmount,
-                            'payment_status' => $member->isExempt() ? 'exempt' : 'pending',
+                            'payment_status' => $member->isExempt() ? 'exempt' : null,
                             'exemption_reason' => $member->isExempt() ? $member->exemption_status : null,
                             'created_by' => auth()->id(),
                         ]);
