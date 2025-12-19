@@ -25,6 +25,14 @@ export default function RatePresets({ presets }) {
         9: 'September', 10: 'October', 11: 'November', 12: 'December'
     };
 
+    // Auto-generate name from months and rate
+    const generateName = (startMonth, endMonth, rate) => {
+        if (startMonth == 1 && endMonth == 12) {
+            return `Set all to ${Number(rate).toLocaleString()}`;
+        }
+        return `${monthNames[startMonth]}-${monthNames[endMonth]}: ${Number(rate).toLocaleString()}`;
+    };
+
     const resetForm = () => {
         setFormData({
             name: '',
@@ -46,7 +54,9 @@ export default function RatePresets({ presets }) {
 
     const handleAddSubmit = (e) => {
         e.preventDefault();
-        router.post('/payments/presets', formData, {
+        // Auto-generate name from months and rate
+        const autoName = generateName(formData.start_month, formData.end_month, formData.rate);
+        router.post('/payments/presets', { ...formData, name: autoName }, {
             onSuccess: () => closeModal(),
         });
     };
@@ -69,7 +79,9 @@ export default function RatePresets({ presets }) {
     };
 
     const saveEditing = () => {
-        router.put(`/payments/presets/${editingId}`, editData, {
+        // Auto-generate name from months and rate
+        const autoName = generateName(editData.start_month, editData.end_month, editData.rate);
+        router.put(`/payments/presets/${editingId}`, { ...editData, name: autoName }, {
             onSuccess: () => {
                 setEditingId(null);
                 setEditData({});
@@ -143,13 +155,8 @@ export default function RatePresets({ presets }) {
                                     >
                                         {editingId === preset.id ? (
                                             <>
-                                                <td className="px-4 py-2">
-                                                    <input
-                                                        type="text"
-                                                        value={editData.name}
-                                                        onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                                                        className="w-full px-2 py-1 text-sm border rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                                    />
+                                                <td className="px-4 py-2 text-gray-500 italic text-sm">
+                                                    {generateName(editData.start_month, editData.end_month, editData.rate || 0)}
                                                 </td>
                                                 <td className="px-4 py-2">
                                                     <select
@@ -261,20 +268,6 @@ export default function RatePresets({ presets }) {
                             <h2 className="text-lg font-semibold">Add New Preset</h2>
                         </div>
                         <form onSubmit={handleAddSubmit} className="p-4 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Button Name
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="e.g., Jan-Mar: 2500"
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    required
-                                />
-                            </div>
-
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -320,6 +313,15 @@ export default function RatePresets({ presets }) {
                                     required
                                 />
                             </div>
+
+                            {formData.rate && (
+                                <div className="bg-gray-50 rounded-md p-3">
+                                    <span className="text-sm text-gray-600">Button will be named: </span>
+                                    <span className="font-medium">
+                                        {generateName(formData.start_month, formData.end_month, formData.rate)}
+                                    </span>
+                                </div>
+                            )}
 
                             <div className="flex justify-end gap-3 pt-4">
                                 <button
