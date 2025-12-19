@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.6] - 2025-12-19
+
+### Changed
+- Database: payment_status column now allows NULL values
+- Migration also updates existing 2026 pending records to NULL
+
 ## [0.8.5] - 2025-12-19
 
 ### Changed
