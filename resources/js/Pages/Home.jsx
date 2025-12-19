@@ -10,8 +10,8 @@ export default function Home({ stats }) {
         <Layout>
             <div className="min-h-[calc(100vh-5rem)] flex flex-col py-8">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to {clubName || 'ClubMotion'}</h1>
-                    <p className="text-gray-600">{canManage ? 'Manage your club members and payments efficiently' : 'Your club member portal'}</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Welcome to {clubName || 'ClubMotion'}</h1>
+                    <p className="text-sm sm:text-base text-gray-600">{canManage ? 'Manage your club members and payments efficiently' : 'Your club member portal'}</p>
                 </div>
 
                 <div className="flex-1">

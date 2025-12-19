@@ -2,6 +2,17 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.9] - 2025-12-19
+
+### Improved
+- Mobile-friendly design improvements across multiple pages
+- Payments page: responsive stats grid (2 cols mobile → 5 cols desktop)
+- Payments page: new mobile card view with 4x3 month grid for touch-friendly editing
+- Payments page: header buttons stack on mobile, hidden admin actions on small screens
+- MyPayments page: responsive header layout and mobile card view for payment history
+- Members/Show: responsive profile image sizing (smaller on mobile)
+- Home page: responsive welcome text sizing
+
 ## [0.8.8] - 2025-12-19
 
 ### Changed

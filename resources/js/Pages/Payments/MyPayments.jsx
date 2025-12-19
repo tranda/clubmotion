@@ -39,15 +39,15 @@ export default function MyPayments({ member, year, payments, availableYears }) {
                 <h1 className="text-2xl font-bold text-gray-800 mb-6">My Payments - {year}</h1>
 
                 {/* Member Info */}
-                <div className="bg-white rounded-lg shadow p-6 mb-6">
-                    <div className="flex justify-between items-start">
+                <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                         <div>
-                            <h2 className="text-xl font-semibold">{member.name}</h2>
-                            <p className="text-gray-600">Membership #{member.membership_number}</p>
+                            <h2 className="text-lg sm:text-xl font-semibold">{member.name}</h2>
+                            <p className="text-gray-600 text-sm sm:text-base">Membership #{member.membership_number}</p>
                         </div>
-                        <div className="text-right">
+                        <div className="sm:text-right">
                             <div className="text-sm text-gray-600">Total Paid ({year})</div>
-                            <div className="text-2xl font-bold text-green-600">
+                            <div className="text-xl sm:text-2xl font-bold text-green-600">
                                 {totalPaid.toLocaleString()} RSD
                             </div>
                         </div>
@@ -67,8 +67,8 @@ export default function MyPayments({ member, year, payments, availableYears }) {
                     </select>
                 </div>
 
-                {/* Payment History */}
-                <div className="bg-white rounded-lg shadow overflow-hidden">
+                {/* Payment History - Desktop Table */}
+                <div className="hidden sm:block bg-white rounded-lg shadow overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
@@ -119,6 +119,35 @@ export default function MyPayments({ member, year, payments, availableYears }) {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Payment History - Mobile Card View */}
+                <div className="sm:hidden bg-white rounded-lg shadow divide-y divide-gray-200">
+                    {payments.length > 0 ? (
+                        payments.map((payment) => (
+                            <div key={payment.id} className="p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="font-medium text-gray-900">
+                                        {monthNames[payment.payment_month]}
+                                    </div>
+                                    {getStatusBadge(payment.payment_status)}
+                                </div>
+                                <div className="text-lg font-semibold text-gray-900 mb-1">
+                                    {payment.paid_amount ? `${parseFloat(payment.paid_amount).toLocaleString()} RSD` : '−'}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                    {payment.payment_date || 'No date'}
+                                    {payment.payment_method && (
+                                        <span className="ml-2 capitalize">• {payment.payment_method.replace('_', ' ')}</span>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="px-6 py-12 text-center text-gray-500">
+                            No payment records found for {year}
+                        </div>
+                    )}
                 </div>
             </div>
         </Layout>

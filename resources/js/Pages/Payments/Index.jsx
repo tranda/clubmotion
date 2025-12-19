@@ -123,10 +123,10 @@ export default function Index({ year, members, stats, availableYears, filter, an
         <Layout>
             <div className="py-4">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-gray-800">Payments Management - {year}</h1>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Payments - {year}</h1>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <select
                             value={filter === undefined || filter === null ? 'active' : filter}
                             onChange={handleFilterChange}
@@ -148,55 +148,55 @@ export default function Index({ year, members, stats, availableYears, filter, an
 
                         <Link
                             href={`/payments/export-template/${year}`}
-                            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                            className="hidden sm:inline-flex px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
                         >
-                            📥 Download Template
+                            📥 Download
                         </Link>
 
                         <Link
                             href="/payments/import"
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            className="hidden sm:inline-flex px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                         >
-                            📤 Import CSV
+                            📤 Import
                         </Link>
 
                         <Link
                             href={`/payments/initialize?year=${year + 1}`}
-                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                            className="hidden sm:inline-flex px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                         >
-                            ➕ Initialize Year
+                            ➕ Initialize
                         </Link>
                     </div>
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-5 gap-4 mb-6">
-                    <div className="bg-white p-4 rounded-lg shadow">
-                        <div className="text-sm text-gray-600">Total Collected</div>
-                        <div className="text-2xl font-bold text-green-600">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-6">
+                    <div className="bg-white p-3 sm:p-4 rounded-lg shadow col-span-2 sm:col-span-1">
+                        <div className="text-xs sm:text-sm text-gray-600">Total Collected</div>
+                        <div className="text-lg sm:text-2xl font-bold text-green-600">
                             {Number(stats?.total_collected || 0).toLocaleString()} RSD
                         </div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg shadow">
-                        <div className="text-sm text-gray-600">Paid</div>
-                        <div className="text-2xl font-bold text-green-600">{stats?.paid_count || 0}</div>
+                    <div className="bg-white p-3 sm:p-4 rounded-lg shadow">
+                        <div className="text-xs sm:text-sm text-gray-600">Paid</div>
+                        <div className="text-lg sm:text-2xl font-bold text-green-600">{stats?.paid_count || 0}</div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg shadow">
-                        <div className="text-sm text-gray-600">Pending</div>
-                        <div className="text-2xl font-bold text-yellow-600">{stats?.pending_count || 0}</div>
+                    <div className="bg-white p-3 sm:p-4 rounded-lg shadow">
+                        <div className="text-xs sm:text-sm text-gray-600">Pending</div>
+                        <div className="text-lg sm:text-2xl font-bold text-yellow-600">{stats?.pending_count || 0}</div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg shadow">
-                        <div className="text-sm text-gray-600">Overdue</div>
-                        <div className="text-2xl font-bold text-red-600">{stats?.overdue_count || 0}</div>
+                    <div className="bg-white p-3 sm:p-4 rounded-lg shadow">
+                        <div className="text-xs sm:text-sm text-gray-600">Overdue</div>
+                        <div className="text-lg sm:text-2xl font-bold text-red-600">{stats?.overdue_count || 0}</div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg shadow">
-                        <div className="text-sm text-gray-600">Exempt</div>
-                        <div className="text-2xl font-bold text-gray-600">{stats?.exempt_count || 0}</div>
+                    <div className="bg-white p-3 sm:p-4 rounded-lg shadow">
+                        <div className="text-xs sm:text-sm text-gray-600">Exempt</div>
+                        <div className="text-lg sm:text-2xl font-bold text-gray-600">{stats?.exempt_count || 0}</div>
                     </div>
                 </div>
 
-                {/* Payment Grid */}
-                <div className="bg-white rounded-lg shadow overflow-hidden">
+                {/* Payment Grid - Desktop Table */}
+                <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
@@ -257,6 +257,46 @@ export default function Index({ year, members, stats, availableYears, filter, an
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                {/* Payment Grid - Mobile Card View */}
+                <div className="md:hidden bg-white rounded-lg shadow divide-y divide-gray-200">
+                    {members.map((member) => (
+                        <div key={member.id} className="p-4">
+                            <div className="flex items-center justify-between mb-3">
+                                <div>
+                                    <div className="font-medium text-gray-900">{member.name}</div>
+                                    <div className="text-sm text-gray-500">
+                                        #{member.membership_number}
+                                        {member.exemption_status !== 'none' && (
+                                            <span className="ml-2">({member.exemption_status})</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleAnnualClick(member)}
+                                    className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
+                                >
+                                    Annual
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-4 gap-1.5">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((month) => {
+                                    const payment = member.months[month];
+                                    return (
+                                        <button
+                                            key={month}
+                                            onClick={() => handleCellClick(member, month, payment)}
+                                            className={`px-2 py-2 text-xs font-medium rounded border text-center ${getStatusColor(payment)}`}
+                                        >
+                                            <div className="text-[10px] text-gray-500">{monthNames[month - 1]}</div>
+                                            <div>{getCellContent(payment, member) || '-'}</div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
                 {/* Legend */}

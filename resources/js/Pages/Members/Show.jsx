@@ -65,11 +65,11 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     {/* Member Image */}
                     {member.image && (
-                        <div className="p-6 border-b border-gray-200 flex justify-center bg-gray-50">
+                        <div className="p-4 sm:p-6 border-b border-gray-200 flex justify-center bg-gray-50">
                             <img
                                 src={`/storage/${member.image}`}
                                 alt={member.name}
-                                className="h-48 w-48 rounded-full object-cover shadow-lg"
+                                className="h-32 w-32 sm:h-48 sm:w-48 rounded-full object-cover shadow-lg"
                             />
                         </div>
                     )}
