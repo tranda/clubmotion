@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.12] - 2025-02-16
+
+### Changed
+- Replaced "Top Attendees" (top 5) with full "Member Rankings" showing all members
+- Added scrollable list with all members ranked by attendance
+- Top 3 ranked members highlighted with gold badges
+- Color-coded attendance rates (green 100%, blue 75%+, yellow 50%+, gray below)
+- Improved Session Type Breakdown layout with responsive grid
+
 ## [0.8.11] - 2025-02-16
 
 ### Changed

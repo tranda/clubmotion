@@ -404,7 +404,7 @@ class AttendanceController extends Controller
         // Overall attendance rate
         $attendanceRate = $possibleAttendance > 0 ? round(($totalAttendance / $possibleAttendance) * 100, 1) : 0;
 
-        // Top attendees (sorted by total attendance)
+        // Top attendees (sorted by total attendance) - top 5 for preview
         $topAttendees = collect($attendanceGrid)
             ->sortByDesc('total')
             ->take(5)
@@ -417,6 +417,21 @@ class AttendanceController extends Controller
                 ];
             })
             ->values()
+            ->toArray();
+
+        // All attendees ranked (complete list for full ranking view)
+        $allAttendeesRanked = collect($attendanceGrid)
+            ->sortByDesc('total')
+            ->values()
+            ->map(function ($member, $index) use ($totalSessions) {
+                $rate = $totalSessions > 0 ? round(($member['total'] / $totalSessions) * 100, 1) : 0;
+                return [
+                    'rank' => $index + 1,
+                    'name' => $member['name'],
+                    'total' => $member['total'],
+                    'rate' => $rate
+                ];
+            })
             ->toArray();
 
         // Session type breakdown
@@ -530,6 +545,7 @@ class AttendanceController extends Controller
             'total_attendance' => $totalAttendance,
             'attendance_rate' => $attendanceRate,
             'top_attendees' => $topAttendees,
+            'all_attendees_ranked' => $allAttendeesRanked,
             'session_type_stats' => array_values($sessionTypeStats),
             'most_attended_session' => $mostAttendedSession,
             'prev_month_rate' => $prevMonthRate,

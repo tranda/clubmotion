@@ -693,70 +693,78 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Top Attendees */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Attendees</h3>
-                                {stats.top_attendees && stats.top_attendees.length > 0 ? (
-                                    <div className="space-y-3">
-                                        {stats.top_attendees.map((member, idx) => (
-                                            <div key={idx} className="flex items-center justify-between">
+                        {/* Member Rankings - Full Width */}
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Member Rankings</h3>
+                            {stats.all_attendees_ranked && stats.all_attendees_ranked.length > 0 ? (
+                                <div className="max-h-96 overflow-y-auto">
+                                    <div className="space-y-2">
+                                        {stats.all_attendees_ranked.map((member) => (
+                                            <div key={member.rank} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
-                                                        {idx + 1}
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${
+                                                        member.rank <= 3
+                                                            ? 'bg-yellow-100 text-yellow-700'
+                                                            : 'bg-blue-100 text-blue-600'
+                                                    }`}>
+                                                        {member.rank}
                                                     </div>
                                                     <div>
                                                         <div className="font-medium text-gray-900">{member.name}</div>
                                                         <div className="text-sm text-gray-500">{member.total} sessions</div>
                                                     </div>
                                                 </div>
-                                                <div className="text-lg font-semibold text-blue-600">{member.rate}%</div>
+                                                <div className={`text-lg font-semibold ${
+                                                    member.rate === 100 ? 'text-green-600' :
+                                                    member.rate >= 75 ? 'text-blue-600' :
+                                                    member.rate >= 50 ? 'text-yellow-600' : 'text-gray-600'
+                                                }`}>{member.rate}%</div>
                                             </div>
                                         ))}
                                     </div>
-                                ) : (
-                                    <p className="text-gray-500">No attendance data available</p>
-                                )}
-                            </div>
+                                </div>
+                            ) : (
+                                <p className="text-gray-500">No attendance data available</p>
+                            )}
+                        </div>
 
-                            {/* Session Type Breakdown */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Type Breakdown</h3>
-                                {stats.session_type_stats && stats.session_type_stats.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {stats.session_type_stats.map((type, idx) => (
-                                            <div key={idx}>
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <div
-                                                            className="w-3 h-3 rounded-full"
-                                                            style={{ backgroundColor: type.color }}
-                                                        />
-                                                        <span className="font-medium text-gray-900">{type.type_name}</span>
-                                                    </div>
-                                                    <span className="text-sm text-gray-600">{type.count} sessions</span>
-                                                </div>
+                        {/* Session Type Breakdown */}
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Type Breakdown</h3>
+                            {stats.session_type_stats && stats.session_type_stats.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {stats.session_type_stats.map((type, idx) => (
+                                        <div key={idx} className="p-3 bg-gray-50 rounded-lg">
+                                            <div className="flex items-center justify-between mb-2">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                                        <div
-                                                            className="h-2 rounded-full"
-                                                            style={{
-                                                                backgroundColor: type.color,
-                                                                width: `${(type.count / stats.total_sessions) * 100}%`
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <span className="text-sm text-gray-600 w-16 text-right">
-                                                        Avg: {type.avg_attendance}
-                                                    </span>
+                                                    <div
+                                                        className="w-3 h-3 rounded-full"
+                                                        style={{ backgroundColor: type.color }}
+                                                    />
+                                                    <span className="font-medium text-gray-900">{type.type_name}</span>
                                                 </div>
+                                                <span className="text-sm text-gray-600">{type.count} sessions</span>
                                             </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-500">No session data available</p>
-                                )}
-                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                                    <div
+                                                        className="h-2 rounded-full"
+                                                        style={{
+                                                            backgroundColor: type.color,
+                                                            width: `${(type.count / stats.total_sessions) * 100}%`
+                                                        }}
+                                                    />
+                                                </div>
+                                                <span className="text-sm text-gray-600 w-16 text-right">
+                                                    Avg: {type.avg_attendance}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-500">No session data available</p>
+                            )}
                         </div>
 
                         {/* Most Attended Session */}
