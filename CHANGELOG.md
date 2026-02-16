@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.10] - 2025-02-16
+
+### Added
+- Favicon support using club logo (32x32 and 16x16 PNG versions)
+- Browser tab now displays ClubMotion logo icon
+
 ## [0.8.9] - 2025-12-19
 
 ### Improved
