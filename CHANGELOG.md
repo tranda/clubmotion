@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.11] - 2025-02-16
+
+### Changed
+- Updated app icon/favicon with new stylized "M" logo
+
 ## [0.8.10] - 2025-02-16
 
 ### Added
