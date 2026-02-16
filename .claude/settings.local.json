@@ -4,7 +4,9 @@
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nRelease v0.8.12 - Full member rankings on Attendance page\n\n- Replace \"Top Attendees\" \\(top 5\\) with full \"Member Rankings\" list\n- Add scrollable container showing all members ranked by attendance\n- Highlight top 3 with gold badges, others with blue\n- Color-coded attendance rates \\(green/blue/yellow/gray\\)\n- Improved Session Type Breakdown with responsive grid layout\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nRelease v0.8.12 - Full member rankings on Attendance page\n\n- Replace \"Top Attendees\" \\(top 5\\) with full \"Member Rankings\" list\n- Add scrollable container showing all members ranked by attendance\n- Highlight top 3 with gold badges, others with blue\n- Color-coded attendance rates \\(green/blue/yellow/gray\\)\n- Improved Session Type Breakdown with responsive grid layout\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

@@ -702,11 +702,7 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                                         {stats.all_attendees_ranked.map((member) => (
                                             <div key={member.rank} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${
-                                                        member.rank <= 3
-                                                            ? 'bg-yellow-100 text-yellow-700'
-                                                            : 'bg-blue-100 text-blue-600'
-                                                    }`}>
+                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm bg-blue-100 text-blue-600">
                                                         {member.rank}
                                                     </div>
                                                     <div>
