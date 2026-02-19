@@ -175,8 +175,23 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                 {/* Payment History Section */}
                 {recentPayments && recentPayments.length > 0 && (
                     <div className="mt-6 bg-white rounded-lg shadow-md overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-200">
+                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                             <h2 className="text-lg font-semibold text-gray-900">Payments ({currentYear})</h2>
+                            {canManage ? (
+                                <Link
+                                    href={`/payments/member/${member.id}`}
+                                    className="text-sm text-blue-600 hover:text-blue-800"
+                                >
+                                    View All →
+                                </Link>
+                            ) : (
+                                <Link
+                                    href="/my-payments"
+                                    className="text-sm text-blue-600 hover:text-blue-800"
+                                >
+                                    View All →
+                                </Link>
+                            )}
                         </div>
                         <div className="p-6">
                             <table className="min-w-full">
