@@ -2,6 +2,13 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.15] - 2026-02-19
+
+### Changed
+- Member profile now shows all 12 months of payments (January to December) instead of last 6
+- Missing months displayed as "Pending" status
+- Renamed section from "Recent Payments" to "Payments"
+
 ## [0.8.14] - 2026-02-19
 
 ### Fixed

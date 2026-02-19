@@ -183,12 +183,28 @@ class MemberController extends Controller
             }
         }
 
-        // Get recent payments (last 6 months)
+        // Get all payments for current year (all 12 months)
         $currentYear = date('Y');
-        $recentPayments = $member->paymentsForYear($currentYear)
-            ->orderBy('payment_month', 'desc')
-            ->limit(6)
-            ->get();
+        $existingPayments = $member->paymentsForYear($currentYear)
+            ->orderBy('payment_month', 'asc')
+            ->get()
+            ->keyBy('payment_month');
+
+        // Build full 12-month array, filling missing months with pending status
+        $allPayments = [];
+        for ($month = 1; $month <= 12; $month++) {
+            if ($existingPayments->has($month)) {
+                $allPayments[] = $existingPayments->get($month);
+            } else {
+                $allPayments[] = (object) [
+                    'id' => null,
+                    'payment_month' => $month,
+                    'paid_amount' => null,
+                    'payment_status' => 'pending',
+                    'payment_date' => null,
+                ];
+            }
+        }
 
         // Calculate and update category if needed
         if ($member->date_of_birth) {
@@ -219,7 +235,7 @@ class MemberController extends Controller
 
         return Inertia::render('Members/Show', [
             'member' => $member,
-            'recentPayments' => $recentPayments,
+            'recentPayments' => $allPayments,
             'currentYear' => $currentYear,
         ]);
     }
