@@ -114,9 +114,28 @@ class PaymentController extends Controller
 
         $year = $request->input('year', date('Y'));
 
-        $payments = $user->member->paymentsForYear($year)
+        $existingPayments = $user->member->paymentsForYear($year)
             ->orderBy('payment_month')
-            ->get();
+            ->get()
+            ->keyBy('payment_month');
+
+        // Build full 12-month array, filling missing months
+        $payments = [];
+        for ($month = 1; $month <= 12; $month++) {
+            if ($existingPayments->has($month)) {
+                $payments[] = $existingPayments->get($month);
+            } else {
+                $payments[] = (object) [
+                    'id' => 'pending-' . $month,
+                    'payment_month' => $month,
+                    'paid_amount' => null,
+                    'expected_amount' => null,
+                    'payment_status' => 'pending',
+                    'payment_date' => null,
+                    'payment_method' => null,
+                ];
+            }
+        }
 
         // Get available years from member's payment data
         $yearsInDb = MembershipPayment::where('member_id', $user->member->id)
@@ -531,9 +550,28 @@ class PaymentController extends Controller
     {
         $year = $request->input('year', date('Y'));
 
-        $payments = $member->paymentsForYear($year)
+        $existingPayments = $member->paymentsForYear($year)
             ->orderBy('payment_month')
-            ->get();
+            ->get()
+            ->keyBy('payment_month');
+
+        // Build full 12-month array, filling missing months
+        $payments = [];
+        for ($month = 1; $month <= 12; $month++) {
+            if ($existingPayments->has($month)) {
+                $payments[] = $existingPayments->get($month);
+            } else {
+                $payments[] = (object) [
+                    'id' => 'pending-' . $month,
+                    'payment_month' => $month,
+                    'paid_amount' => null,
+                    'expected_amount' => null,
+                    'payment_status' => 'pending',
+                    'payment_date' => null,
+                    'payment_method' => null,
+                ];
+            }
+        }
 
         return Inertia::render('Payments/MemberHistory', [
             'member' => $member,
