@@ -8,6 +8,17 @@ use App\Models\Member;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
+// Temporary route to set password - DELETE AFTER USE
+Route::get('/set-password-temp', function () {
+    $user = \App\Models\User::where('email', 'zorica2909@gmail.com')->first();
+    if ($user) {
+        $user->password = \Illuminate\Support\Facades\Hash::make('Zora1234');
+        $user->save();
+        return 'Password updated for zorica2909@gmail.com! DELETE THIS ROUTE NOW.';
+    }
+    return 'User not found';
+});
+
 // Guest routes (login, password reset)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
