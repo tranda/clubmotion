@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.14] - 2026-02-19
+
+### Fixed
+- Password reset links now work even if user is already logged in
+- Moved forgot/reset password routes out of guest-only middleware
+
 ## [0.8.13] - 2025-02-16
 
 ### Changed
