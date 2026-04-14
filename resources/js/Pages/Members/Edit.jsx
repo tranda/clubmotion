@@ -20,17 +20,28 @@ export default function Edit({ member, categories }) {
     const [imagePreview, setImagePreview] = useState(
         member.image ? `/storage/${member.image}` : null
     );
+    const [imageError, setImageError] = useState(null);
+
+    const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            setData('image', file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        if (file.size > MAX_IMAGE_BYTES) {
+            setImageError(`Image is ${(file.size / 1024 / 1024).toFixed(2)} MB. Maximum allowed is 2 MB.`);
+            setData('image', null);
+            e.target.value = '';
+            return;
         }
+
+        setImageError(null);
+        setData('image', file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSubmit = (e) => {
@@ -83,9 +94,11 @@ export default function Edit({ member, categories }) {
                                     onChange={handleImageChange}
                                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                 />
-                                <p className="mt-2 text-xs text-gray-500">Upload a new image to replace the current one</p>
+                                <p className="mt-2 text-xs text-gray-500">JPG or PNG, max 2 MB</p>
                             </div>
-                            {errors.image && <p className="mt-1 text-sm text-red-600">{errors.image}</p>}
+                            {(imageError || errors.image) && (
+                                <p className="mt-1 text-sm text-red-600">{imageError || errors.image}</p>
+                            )}
                         </div>
 
                         {/* Name */}

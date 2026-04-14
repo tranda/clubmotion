@@ -121,6 +121,8 @@ class MemberController extends Controller
      */
     public function store(Request $request)
     {
+        $imageWarning = $this->guardImageUpload($request);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'date_of_birth' => 'nullable|date',
@@ -162,7 +164,11 @@ class MemberController extends Controller
             }
         }
 
-        return redirect()->route('members.index')->with('success', 'Member added successfully.');
+        $redirect = redirect()->route('members.index')->with('success', 'Member added successfully.');
+        if ($imageWarning) {
+            $redirect->with('error', $imageWarning);
+        }
+        return $redirect;
     }
 
     /**
@@ -264,6 +270,8 @@ class MemberController extends Controller
      */
     public function update(Request $request, Member $member)
     {
+        $imageWarning = $this->guardImageUpload($request);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'membership_number' => 'required|integer',
@@ -309,7 +317,11 @@ class MemberController extends Controller
             }
         }
 
-        return redirect()->route('members.show', $member)->with('success', 'Member updated successfully.');
+        $redirect = redirect()->route('members.show', $member)->with('success', 'Member updated successfully.');
+        if ($imageWarning) {
+            $redirect->with('error', $imageWarning);
+        }
+        return $redirect;
     }
 
     /**
@@ -323,5 +335,44 @@ class MemberController extends Controller
         $member->delete();
 
         return redirect()->route('members.index')->with('success', 'Member deleted successfully.');
+    }
+
+    private function guardImageUpload(Request $request): ?string
+    {
+        $file = $_FILES['image'] ?? null;
+        if (!$file) {
+            return null;
+        }
+
+        $error = $file['error'] ?? UPLOAD_ERR_OK;
+        if ($error === UPLOAD_ERR_OK || $error === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        $iniMax = ini_get('upload_max_filesize') ?: 'unknown';
+        $postMax = ini_get('post_max_size') ?: 'unknown';
+
+        $message = match ($error) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => "Image was not saved: file exceeds the server limit of {$iniMax}. Member details were saved without the new image.",
+            UPLOAD_ERR_PARTIAL => 'Image was not saved: upload was interrupted. Member details were saved without the new image.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Image was not saved: server is missing a temporary upload directory. Member details were saved without the new image.',
+            UPLOAD_ERR_CANT_WRITE => 'Image was not saved: server could not write it to disk. Member details were saved without the new image.',
+            UPLOAD_ERR_EXTENSION => 'Image was not saved: a PHP extension blocked the upload. Member details were saved without the new image.',
+            default => "Image was not saved (upload error code {$error}). Member details were saved without the new image.",
+        };
+
+        Log::warning('Member image upload failed', [
+            'php_error_code' => $error,
+            'upload_max_filesize' => $iniMax,
+            'post_max_size' => $postMax,
+            'original_name' => $file['name'] ?? null,
+            'reported_size' => $file['size'] ?? null,
+        ]);
+
+        unset($_FILES['image']);
+        $request->files->remove('image');
+        $request->request->remove('image');
+
+        return $message;
     }
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 
 export default function Layout({ children }) {
-    const { auth, clubName } = usePage().props;
+    const { auth, clubName, flash } = usePage().props;
     const [menuOpen, setMenuOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -273,6 +273,16 @@ export default function Layout({ children }) {
 
             {/* Main Content */}
             <main className="pt-20 px-4 pb-4 mx-auto">
+                {flash?.success && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-green-800 text-sm">{flash.success}</p>
+                    </div>
+                )}
+                {flash?.error && (
+                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-yellow-800 text-sm">{flash.error}</p>
+                    </div>
+                )}
                 {children}
             </main>
         </div>

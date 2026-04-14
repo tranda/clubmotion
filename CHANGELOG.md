@@ -2,6 +2,16 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.16] - 2026-04-14
+
+### Changed
+- Member create/edit no longer fails the whole save when image upload fails; member data is saved and a warning explains why the image was not stored
+- Image upload errors now report the actual cause (exceeds server limit, interrupted, temp dir missing, etc.) instead of the generic "The image failed to upload."
+- Member form now shows a 2 MB size hint and blocks oversized images client-side before submit
+
+### Added
+- Global flash message display in Layout so success/warning banners appear on every page
+
 ## [0.8.15] - 2026-02-19
 
 ### Changed
