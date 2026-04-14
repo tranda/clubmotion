@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.18] - 2026-04-14
+
+### Added
+- Client-side image resizing for member profile photos: oversized images are downscaled to max 1200px and compressed to under 2 MB in the browser before upload, instead of being rejected
+- "Image resized from X MB to Y MB" info message shown when resize happens
+
 ## [0.8.17] - 2026-04-14
 
 ### Removed

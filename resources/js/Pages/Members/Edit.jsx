@@ -1,6 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
+import { resizeImageIfNeeded, formatBytes } from '../../utils/resizeImage';
 
 export default function Edit({ member, categories }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -21,27 +22,34 @@ export default function Edit({ member, categories }) {
         member.image ? `/storage/${member.image}` : null
     );
     const [imageError, setImageError] = useState(null);
+    const [imageInfo, setImageInfo] = useState(null);
 
-    const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-
-    const handleImageChange = (e) => {
+    const handleImageChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (file.size > MAX_IMAGE_BYTES) {
-            setImageError(`Image is ${(file.size / 1024 / 1024).toFixed(2)} MB. Maximum allowed is 2 MB.`);
-            setData('image', null);
+        setImageError(null);
+        setImageInfo(null);
+
+        let finalFile = file;
+        try {
+            const result = await resizeImageIfNeeded(file);
+            finalFile = result.file;
+            if (result.resized) {
+                setImageInfo(`Image resized from ${formatBytes(result.originalSize)} to ${formatBytes(result.newSize)}.`);
+            }
+        } catch (err) {
+            setImageError('Could not process the selected image. Please try a different file.');
             e.target.value = '';
             return;
         }
 
-        setImageError(null);
-        setData('image', file);
+        setData('image', finalFile);
         const reader = new FileReader();
         reader.onloadend = () => {
             setImagePreview(reader.result);
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(finalFile);
     };
 
     const handleSubmit = (e) => {
@@ -94,8 +102,11 @@ export default function Edit({ member, categories }) {
                                     onChange={handleImageChange}
                                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                 />
-                                <p className="mt-2 text-xs text-gray-500">JPG or PNG, max 2 MB</p>
+                                <p className="mt-2 text-xs text-gray-500">Large images will be resized automatically (max 1200px, 2 MB).</p>
                             </div>
+                            {imageInfo && (
+                                <p className="mt-1 text-sm text-blue-600">{imageInfo}</p>
+                            )}
                             {(imageError || errors.image) && (
                                 <p className="mt-1 text-sm text-red-600">{imageError || errors.image}</p>
                             )}
