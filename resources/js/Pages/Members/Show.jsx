@@ -7,6 +7,11 @@ export default function Show({ member, recentPayments = [], currentYear }) {
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showResetPassword, setShowResetPassword] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+    const [resetErrors, setResetErrors] = useState({});
+    const [resetting, setResetting] = useState(false);
 
     const monthNames = {
         1: 'JAN', 2: 'FEB', 3: 'MAR', 4: 'APR',
@@ -40,6 +45,26 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                 // Redirect handled by controller
             },
         });
+    };
+
+    const handleResetPassword = (e) => {
+        e.preventDefault();
+        setResetErrors({});
+        setResetting(true);
+        router.post(
+            `/members/${member.id}/reset-password`,
+            { password: newPassword, password_confirmation: newPasswordConfirm },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setShowResetPassword(false);
+                    setNewPassword('');
+                    setNewPasswordConfirm('');
+                },
+                onError: (errors) => setResetErrors(errors),
+                onFinish: () => setResetting(false),
+            },
+        );
     };
 
     return (
@@ -160,6 +185,16 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                             </Link>
 
                             <button
+                                onClick={() => setShowResetPassword(true)}
+                                className="inline-flex items-center justify-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                </svg>
+                                Reset Password
+                            </button>
+
+                            <button
                                 onClick={() => setShowDeleteConfirm(true)}
                                 className="inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                             >
@@ -248,6 +283,67 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                                     Cancel
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Reset Password Modal */}
+                {showResetPassword && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Reset Password</h3>
+                            <p className="text-gray-600 mb-4 text-sm">
+                                Set a new password for <strong>{member.name}</strong>. Share it with the member securely — they can change it themselves after logging in.
+                            </p>
+                            <form onSubmit={handleResetPassword} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
+                                    <input
+                                        type="text"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                                        minLength={8}
+                                        required
+                                        autoFocus
+                                    />
+                                    {resetErrors.password && (
+                                        <p className="mt-1 text-sm text-red-600">{resetErrors.password}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+                                    <input
+                                        type="text"
+                                        value={newPasswordConfirm}
+                                        onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                                        minLength={8}
+                                        required
+                                    />
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        type="submit"
+                                        disabled={resetting}
+                                        className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:bg-gray-400"
+                                    >
+                                        {resetting ? 'Saving...' : 'Set Password'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowResetPassword(false);
+                                            setResetErrors({});
+                                            setNewPassword('');
+                                            setNewPasswordConfirm('');
+                                        }}
+                                        className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 )}

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.19] - 2026-04-14
+
+### Added
+- Admin/superuser can reset a member's login password directly from the member detail page. Creates a linked user account if the member did not have one yet.
+
 ## [0.8.18] - 2026-04-14
 
 ### Added

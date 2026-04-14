@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Member;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\MembershipCategory;
 use Illuminate\Support\Str;
@@ -335,6 +338,36 @@ class MemberController extends Controller
         $member->delete();
 
         return redirect()->route('members.index')->with('success', 'Member deleted successfully.');
+    }
+
+    public function resetPassword(Request $request, Member $member)
+    {
+        $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if (!$member->email) {
+            return back()->with('error', 'Cannot reset password: member has no email address on file.');
+        }
+
+        $user = $member->user;
+
+        if (!$user) {
+            $userRole = Role::where('name', 'user')->first();
+            $user = User::create([
+                'name' => $member->name,
+                'email' => $member->email,
+                'password' => Hash::make($request->password),
+                'role_id' => $userRole?->id,
+            ]);
+            $member->user_id = $user->id;
+            $member->save();
+        } else {
+            $user->password = Hash::make($request->password);
+            $user->save();
+        }
+
+        return back()->with('success', "Password reset for {$member->name}. Share it with the member securely.");
     }
 
     private function guardImageUpload(Request $request): ?string
