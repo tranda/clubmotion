@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MemberController;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Api\CalendlyWebhook;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,10 +22,6 @@ use App\Http\Controllers\Api\CalendlyWebhook;
 //     Log::info('✅ Log test worked!');
 //     return 'Logged!';
 // });
-
-Route::post('/calendly-webhook', [CalendlyWebhook::class, 'handleWebhook']);
-
-
 
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 

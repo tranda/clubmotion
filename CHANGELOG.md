@@ -2,6 +2,13 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.8.17] - 2026-04-14
+
+### Removed
+- Leftover Calendly-to-Supermove integration from unrelated test project
+- `app/Http/Controllers/Api/CalendlyWebhook.php`, `app/Services/CalendlyToSupermoveTransformer.php`
+- `/api/calendly-webhook` route and `calendly`/`supermove` config blocks
+
 ## [0.8.16] - 2026-04-14
 
 ### Changed
