@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.14] - 2026-05-09
+
+### Changed
+- Wipe button on the Ledger import page now appears for any batch (staging, committed, cancelled) — previously only for committed. Useful for clearing out abandoned import attempts that never got committed. Confirm message reads naturally when the batch created zero entries.
+
 ## [0.9.13] - 2026-05-09
 
 ### Added

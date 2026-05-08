@@ -3,8 +3,11 @@ import Layout from '../../Components/Layout';
 
 export default function LedgerImport({ recentBatches }) {
     const wipeBatch = (b) => {
-        const msg = `Permanently delete batch #${b.id} and all ${b.entry_count ?? ''} ledger entries it created? This cannot be undone.`;
-        if (!window.confirm(msg)) return;
+        const n = Number(b.entry_count ?? 0);
+        const tail = n > 0
+            ? ` and the ${n} ledger ${n === 1 ? 'entry' : 'entries'} it created`
+            : '';
+        if (!window.confirm(`Permanently delete batch #${b.id}${tail}? This cannot be undone.`)) return;
         router.delete(`/ledger/import/${b.id}/wipe`);
     };
     const form = useForm({
@@ -83,18 +86,16 @@ export default function LedgerImport({ recentBatches }) {
                                             <td className="px-3 py-2 truncate max-w-md">{b.source_url}</td>
                                             <td className="px-3 py-2 text-right whitespace-nowrap">
                                                 {b.status === 'staging' && (
-                                                    <Link href={`/ledger/import/${b.id}`} className="text-blue-600 hover:underline text-xs">Resume review →</Link>
+                                                    <Link href={`/ledger/import/${b.id}`} className="text-blue-600 hover:underline text-xs mr-2">Resume review →</Link>
                                                 )}
-                                                {b.status === 'committed' && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => wipeBatch(b)}
-                                                        className="text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100"
-                                                        title="Permanently delete this batch and all its imported entries"
-                                                    >
-                                                        Wipe
-                                                    </button>
-                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => wipeBatch(b)}
+                                                    className="text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100"
+                                                    title="Permanently delete this batch (and any entries it created)"
+                                                >
+                                                    Wipe
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
