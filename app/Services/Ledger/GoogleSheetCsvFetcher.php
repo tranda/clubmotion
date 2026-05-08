@@ -12,18 +12,23 @@ class GoogleSheetCsvFetcher
      * Given a Google Sheets URL, return all tabs as
      * [['gid' => '...', 'label' => '...', 'csv' => '...'], ...].
      *
-     * The sheet must be "Published to web" (File → Share → Publish to web)
-     * — plain "Anyone with the link" sharing is not enough because /pubhtml,
-     * which is needed to enumerate tabs, only responds for published sheets.
+     * Accepts two URL shapes:
+     *   1. Regular sheet:    /spreadsheets/d/<sheet_id>/edit?...
+     *   2. Published-to-web: /spreadsheets/d/e/<publish_id>/pubhtml
+     *
+     * In both cases the sheet must be "Published to web" (File → Share →
+     * Publish to web → Entire Document), because tab enumeration uses the
+     * pubhtml endpoint which only responds for published sheets.
      */
     public function fetchAll(string $sheetUrl): array
     {
-        $sheetId = $this->extractSheetId($sheetUrl);
-        if (!$sheetId) {
+        $parsed = $this->parseUrl($sheetUrl);
+        if (!$parsed) {
             throw new \RuntimeException('Could not extract sheet ID from the URL.');
         }
+        [$kind, $id] = $parsed;
 
-        $tabs = $this->discoverTabs($sheetId);
+        $tabs = $this->discoverTabs($kind, $id);
 
         if (empty($tabs)) {
             throw new \RuntimeException(
@@ -35,7 +40,7 @@ class GoogleSheetCsvFetcher
 
         $results = [];
         foreach ($tabs as $tab) {
-            $csv = $this->fetchCsv($sheetId, $tab['gid']);
+            $csv = $this->fetchCsv($kind, $id, $tab['gid']);
             $results[] = [
                 'gid' => $tab['gid'],
                 'label' => $tab['label'],
@@ -45,25 +50,49 @@ class GoogleSheetCsvFetcher
         return $results;
     }
 
-    private function extractSheetId(string $url): ?string
+    /**
+     * Returns ['published', $publishId] for /d/e/<publish_id>/... URLs,
+     * or ['regular', $sheetId] for /d/<sheet_id>/... URLs, or null.
+     */
+    private function parseUrl(string $url): ?array
     {
+        if (preg_match('#/spreadsheets/d/e/([a-zA-Z0-9_\-]+)#', $url, $m)) {
+            return ['published', $m[1]];
+        }
         if (preg_match('#/spreadsheets/d/([a-zA-Z0-9_\-]+)#', $url, $m)) {
-            return $m[1];
+            return ['regular', $m[1]];
         }
         return null;
     }
 
-    private function extractGid(string $url): ?string
+    private function pubhtmlUrl(string $kind, string $id): string
     {
-        if (preg_match('/[?#&]gid=(\d+)/', $url, $m)) {
-            return $m[1];
-        }
-        return null;
+        return $kind === 'published'
+            ? "https://docs.google.com/spreadsheets/d/e/{$id}/pubhtml"
+            : "https://docs.google.com/spreadsheets/d/{$id}/pubhtml";
     }
 
-    private function discoverTabs(string $sheetId): array
+    private function csvEndpoints(string $kind, string $id, string $gid): array
     {
-        $url = "https://docs.google.com/spreadsheets/d/{$sheetId}/pubhtml";
+        if ($kind === 'published') {
+            // Published sheets: /pub is the canonical CSV endpoint and works
+            // for any published gid; the others fall back as best-effort.
+            return [
+                "https://docs.google.com/spreadsheets/d/e/{$id}/pub?gid={$gid}&single=true&output=csv",
+                "https://docs.google.com/spreadsheets/d/e/{$id}/pub?output=csv&gid={$gid}",
+            ];
+        }
+
+        return [
+            "https://docs.google.com/spreadsheets/d/{$id}/export?format=csv&gid={$gid}",
+            "https://docs.google.com/spreadsheets/d/{$id}/gviz/tq?tqx=out:csv&gid={$gid}",
+            "https://docs.google.com/spreadsheets/d/{$id}/pub?output=csv&gid={$gid}",
+        ];
+    }
+
+    private function discoverTabs(string $kind, string $id): array
+    {
+        $url = $this->pubhtmlUrl($kind, $id);
         $response = Http::timeout(10)
             ->withHeaders([
                 'User-Agent' => self::USER_AGENT,
@@ -79,30 +108,43 @@ class GoogleSheetCsvFetcher
         if ($html === '' || stripos($html, '<html') === false) {
             return [];
         }
-        // The Google marketing landing page also begins with <html — detect
-        // and reject anything that doesn't look like a published-sheet index.
-        if (stripos($html, 'sheet-button') === false && stripos($html, 'spreadsheet') === false) {
+        // Reject the generic Google marketing landing page.
+        if (stripos($html, 'sheet-button') === false && stripos($html, 'sheetmenu') === false && stripos($html, 'gid=') === false) {
             return [];
         }
 
-        // The /pubhtml page lists tabs in a select#sheet-menu with options
-        // whose id is "sheet-button-<gid>" and whose text content is the label.
-        // Format may evolve, so fall back on a few patterns.
         $tabs = [];
 
-        if (preg_match_all('/id="sheet-button-(\d+)"[^>]*>([^<]+)</', $html, $matches, PREG_SET_ORDER)) {
+        // Pattern A: <li id="sheet-button-<gid>" ...>Label</li>  (regular pubhtml)
+        if (preg_match_all('/id=["\']sheet-button-(\d+)["\'][^>]*>([^<]+)</', $html, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $m) {
-                $tabs[] = ['gid' => $m[1], 'label' => trim(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5))];
+                $tabs[] = [
+                    'gid' => $m[1],
+                    'label' => trim(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5)),
+                ];
             }
         }
 
+        // Pattern B: <a class="..." href="...?gid=<gid>...">Label</a>  (published menu)
+        if (empty($tabs) && preg_match_all('/href=["\'][^"\']*gid=(\d+)[^"\']*["\'][^>]*>([^<]+)</', $html, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $m) {
+                $label = trim(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5));
+                if ($label === '' || stripos($label, '<') !== false) continue;
+                $tabs[] = ['gid' => $m[1], 'label' => $label];
+            }
+        }
+
+        // Pattern C: data-id="<gid>" ... >Label<
         if (empty($tabs) && preg_match_all('/data-id=["\'](\d+)["\'][^>]*>([^<]+)</', $html, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $m) {
-                $tabs[] = ['gid' => $m[1], 'label' => trim(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5))];
+                $tabs[] = [
+                    'gid' => $m[1],
+                    'label' => trim(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5)),
+                ];
             }
         }
 
-        // Deduplicate by gid.
+        // Deduplicate by gid, keep first (preserves tab order).
         $seen = [];
         $unique = [];
         foreach ($tabs as $t) {
@@ -113,13 +155,9 @@ class GoogleSheetCsvFetcher
         return $unique;
     }
 
-    private function fetchCsv(string $sheetId, string $gid): string
+    private function fetchCsv(string $kind, string $id, string $gid): string
     {
-        $endpoints = [
-            "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=csv&gid={$gid}",
-            "https://docs.google.com/spreadsheets/d/{$sheetId}/gviz/tq?tqx=out:csv&gid={$gid}",
-            "https://docs.google.com/spreadsheets/d/{$sheetId}/pub?output=csv&gid={$gid}",
-        ];
+        $endpoints = $this->csvEndpoints($kind, $id, $gid);
 
         $lastError = null;
         foreach ($endpoints as $url) {
@@ -152,7 +190,6 @@ class GoogleSheetCsvFetcher
                 $lastError = "HTML response from {$url} (likely the marketing/login page)";
                 continue;
             }
-            // gviz wraps CSV in some cases; accept any non-HTML body as CSV.
             return $body;
         }
 

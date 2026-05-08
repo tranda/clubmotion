@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.4] - 2026-05-08
+
+### Fixed
+- Ledger Sheet importer rejected the published-to-web URL (format `/spreadsheets/d/e/<publish_id>/pubhtml`) because the sheet-ID regex was matching the literal letter "e" instead of the publish ID. Now recognizes both the regular `/d/<sheet_id>/edit` shape and the published `/d/e/<publish_id>/pubhtml` shape, and uses the right CSV endpoint for each (`/pub?gid=…` for published, `/export?format=csv` for regular). Added a third HTML pattern for tab discovery on published menus.
+
 ## [0.9.3] - 2026-05-08
 
 ### Fixed
