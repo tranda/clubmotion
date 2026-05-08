@@ -5,6 +5,7 @@ export default function Home({ stats }) {
     const { auth, appVersion, clubName } = usePage().props;
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
+    const isAdmin = userRole === 'admin';
 
     return (
         <Layout>
@@ -86,6 +87,27 @@ export default function Home({ stats }) {
                                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Payments</h2>
                                 <p className="text-gray-600">Track membership payments</p>
                             </Link>
+
+                            {/* Ledger Card - Admin only */}
+                            {isAdmin && (
+                                <Link
+                                    href="/ledger"
+                                    className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                                >
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="p-3 bg-teal-100 rounded-full">
+                                            <svg className="w-8 h-8 text-teal-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path d="M9 17v-2a4 4 0 014-4h6m-6 0V7a4 4 0 00-4-4H5a2 2 0 00-2 2v14a2 2 0 002 2h4m6-12l4 4-4 4" />
+                                            </svg>
+                                        </div>
+                                        <svg className="w-6 h-6 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </div>
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Ledger</h2>
+                                    <p className="text-gray-600">Daily cash-book: income, expenses, balances</p>
+                                </Link>
+                            )}
 
                             {/* Achievements Card */}
                             <Link

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.1] - 2026-05-08
+
+### Added
+- Ledger card on the admin dashboard, alongside Members/Attendance/Payments
+
 ## [0.9.0] - 2026-05-08
 
 ### Added
