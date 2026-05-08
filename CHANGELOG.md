@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.7] - 2026-05-09
+
+### Fixed
+- `composer install` still failing on the host: prior `composer require` ran with `--ignore-platform-req=php+` against a local PHP 8.5, which let Symfony 6.4/7.x (PHP 8.1+) and other transitive deps slip into the lock file. Added `config.platform.php = "8.0.30"` in composer.json so composer always resolves for the host's PHP version regardless of the developer's local PHP, and re-resolved the lock — Symfony pinned to 6.0.x, all other deps now PHP 8.0-compatible.
+
 ## [0.9.6] - 2026-05-09
 
 ### Fixed
