@@ -9,6 +9,7 @@ use App\Models\LedgerImportStagingRow;
 use App\Models\PaymentSetting;
 use App\Services\Ledger\GoogleSheetCsvFetcher;
 use App\Services\Ledger\LedgerCsvParser;
+use App\Services\Ledger\XlsxSheetReader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -252,29 +253,42 @@ class LedgerController extends Controller
         ]);
     }
 
-    public function importStart(Request $request, GoogleSheetCsvFetcher $fetcher, LedgerCsvParser $parser)
+    public function importStart(Request $request, GoogleSheetCsvFetcher $fetcher, LedgerCsvParser $parser, XlsxSheetReader $xlsx)
     {
-        $data = $request->validate([
-            'sheet_url' => 'required|url',
+        $request->validate([
+            'sheet_url' => 'nullable|url',
+            'xlsx_file' => 'nullable|file|mimes:xlsx,ods,xls|max:20480',
             'default_year' => 'nullable|integer|min:2000|max:2100',
         ]);
 
+        $sourceUrl = $request->input('sheet_url');
+        $hasFile = $request->hasFile('xlsx_file');
+        if (!$sourceUrl && !$hasFile) {
+            return redirect()->back()->with('error', 'Provide either a Sheet URL or an XLSX/ODS file.');
+        }
+
         try {
-            $tabs = $fetcher->fetchAll($data['sheet_url']);
+            if ($hasFile) {
+                $upload = $request->file('xlsx_file');
+                $tabs = $xlsx->read($upload->getRealPath());
+                $sourceUrl = 'file:' . $upload->getClientOriginalName();
+            } else {
+                $tabs = $fetcher->fetchAll($sourceUrl);
+            }
         } catch (\Throwable $e) {
-            return redirect()->back()->with('error', 'Sheet fetch failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Import fetch failed: ' . $e->getMessage());
         }
         if (empty($tabs)) {
-            return redirect()->back()->with('error', 'No tabs found. Make sure the sheet is set to "Anyone with the link — Viewer".');
+            return redirect()->back()->with('error', 'No sheets found in the source.');
         }
 
         $batch = LedgerImportBatch::create([
-            'source_url' => $data['sheet_url'],
+            'source_url' => $sourceUrl,
             'status' => 'staging',
             'created_by' => auth()->id(),
         ]);
 
-        $defaultYear = $data['default_year'] ?? (int) Carbon::now()->year;
+        $defaultYear = $request->input('default_year') ?? (int) Carbon::now()->year;
 
         foreach ($tabs as $tab) {
             $tabYear = $this->yearFromLabel($tab['label'], $defaultYear);

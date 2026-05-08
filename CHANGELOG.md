@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.5] - 2026-05-08
+
+### Added
+- Ledger import now accepts an XLSX/ODS file upload as the primary path. In Sheets, do **File → Download → Microsoft Excel (.xlsx)** and upload the single file — all 12 tabs are read in one pass with no Sheets API or publishing required. Tab names are used as month labels.
+- Toggle on the import page lets admins switch between XLSX upload (recommended) and the Google Sheet URL flow.
+
+### Changed
+- Added dependency `phpoffice/phpspreadsheet ^1.29` (PHP 7.4+ compatible). Run `composer install` on the host once after pulling.
+
 ## [0.9.4] - 2026-05-08
 
 ### Fixed

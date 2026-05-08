@@ -28,13 +28,16 @@ class GoogleSheetCsvFetcher
         }
         [$kind, $id] = $parsed;
 
-        $tabs = $this->discoverTabs($kind, $id);
+        $discovery = $this->discoverTabs($kind, $id);
+        $tabs = $discovery['tabs'];
 
         if (empty($tabs)) {
+            $diag = $discovery['diagnostic'] ?? '(no diagnostic)';
             throw new \RuntimeException(
-                'Could not discover tabs. The sheet must be Published to web '
-                . '(File → Share → Publish to web → Entire Document). Plain '
-                . '"Anyone with the link" sharing is not enough.'
+                'Could not discover tabs. ' . $diag . ' '
+                . 'If the sheet is not yet published, do File → Share → '
+                . 'Publish to web → Entire Document. Make sure to paste the '
+                . 'URL Google gives you (it ends in /pubhtml).'
             );
         }
 
