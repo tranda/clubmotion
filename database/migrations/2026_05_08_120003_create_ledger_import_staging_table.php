@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('batch_id')->constrained('ledger_import_batches')->cascadeOnDelete();
             $table->string('tab_gid', 50);
             $table->string('tab_label', 100);
-            $table->json('raw_row_json');
+            $table->text('raw_row_json');
             $table->date('parsed_date')->nullable();
             $table->enum('parsed_type', ['income', 'expense'])->nullable();
             $table->enum('parsed_bucket', ['cash', 'bank', 'eur'])->nullable();

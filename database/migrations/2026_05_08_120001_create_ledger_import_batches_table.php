@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('source_url', 500);
             $table->enum('status', ['staging', 'committed', 'cancelled'])->default('staging');
-            $table->json('summary_json')->nullable();
+            $table->text('summary_json')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
 

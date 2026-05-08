@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.2] - 2026-05-08
+
+### Fixed
+- Ledger migrations failed on the shared MariaDB host because it does not support the `json` column type. Switched `ledger_import_batches.summary_json` and `ledger_import_staging.raw_row_json` to `text`; Eloquent `array` casts already serialize/deserialize JSON transparently.
+
 ## [0.9.1] - 2026-05-08
 
 ### Added
