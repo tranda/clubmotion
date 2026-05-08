@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.16] - 2026-05-09
+
+### Fixed
+- Ledger import was silently dropping a row when two genuinely identical income/expense rows appeared on the same day (e.g. one member paying two months at once with the same amount, date, bucket, and description). The `source_hash` collided so the second row was skipped as a duplicate. Now the hash includes `tab_gid` and `sort_order` from the source CSV/XLSX, so two rows at different positions are distinct even when their content is byte-identical. Re-imports of the same file remain idempotent because positions are stable.
+
 ## [0.9.15] - 2026-05-09
 
 ### Fixed

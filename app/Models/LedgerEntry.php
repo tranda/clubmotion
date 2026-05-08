@@ -113,8 +113,15 @@ class LedgerEntry extends Model
 
     public static function buildSourceHash(array $parts): string
     {
+        // Include tab_gid + sort_order so two GENUINELY identical rows
+        // (e.g. one member paying two months at once) become distinct
+        // entries instead of the second being skipped as a duplicate.
+        // Re-importing the same file produces identical sort_orders,
+        // so idempotency still holds.
         $payload = sprintf(
-            '%s|%s|%s|%.2f|%s',
+            '%s|%s|%s|%s|%s|%.2f|%s',
+            $parts['tab_gid'] ?? '',
+            (string) ($parts['sort_order'] ?? 0),
             $parts['entry_date'],
             $parts['bucket'],
             $parts['type'],

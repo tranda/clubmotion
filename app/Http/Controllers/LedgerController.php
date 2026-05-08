@@ -488,6 +488,8 @@ class LedgerController extends Controller
                         continue;
                     }
                     $hash = LedgerEntry::buildSourceHash([
+                        'tab_gid' => $row->tab_gid,
+                        'sort_order' => $row->sort_order,
                         'entry_date' => $row->parsed_date->format('Y-m-d'),
                         'bucket' => $row->parsed_bucket,
                         'type' => $row->parsed_type,
