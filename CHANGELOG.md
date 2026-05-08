@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.6] - 2026-05-09
+
+### Fixed
+- `composer install` failed on the host because phpspreadsheet 1.30.x pulled in `maennchen/zipstream-php 3.x` which requires PHP 8.3+ (host runs 8.0). Pinned phpspreadsheet to `1.29.*` and zipstream-php to `^2.1`. Both 2.x lines support PHP 7.4+.
+
 ## [0.9.5] - 2026-05-08
 
 ### Added
