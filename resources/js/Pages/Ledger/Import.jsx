@@ -1,21 +1,15 @@
 import { Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
 import Layout from '../../Components/Layout';
 
 export default function LedgerImport({ recentBatches }) {
-    const [mode, setMode] = useState('xlsx');
-
     const form = useForm({
-        sheet_url: '',
         xlsx_file: null,
         default_year: new Date().getFullYear(),
     });
 
     const submit = (e) => {
         e.preventDefault();
-        form.post('/ledger/import', {
-            forceFormData: true,
-        });
+        form.post('/ledger/import', { forceFormData: true });
     };
 
     return (
@@ -26,59 +20,22 @@ export default function LedgerImport({ recentBatches }) {
                     <Link href="/ledger" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Ledger</Link>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-1 mb-4 inline-flex gap-1">
-                    <button
-                        type="button"
-                        onClick={() => setMode('xlsx')}
-                        className={`px-4 py-2 text-sm rounded-lg transition-colors ${mode === 'xlsx' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-                    >
-                        Upload XLSX (recommended)
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setMode('url')}
-                        className={`px-4 py-2 text-sm rounded-lg transition-colors ${mode === 'url' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-                    >
-                        From Google Sheet URL
-                    </button>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-900 mb-4">
+                    In Google Sheets: <strong>File → Download → Microsoft Excel (.xlsx)</strong>. Then upload the file here. All 12 tabs are read in one pass.
                 </div>
 
-                {mode === 'xlsx' ? (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-900 mb-4">
-                        In Google Sheets: <strong>File → Download → Microsoft Excel (.xlsx)</strong>. Then upload the file here. All 12 tabs are read in one pass.
-                    </div>
-                ) : (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 mb-4">
-                        The sheet must be <strong>Published to web</strong>. In the sheet: <strong>File → Share → Publish to web → Entire Document → Publish</strong>. Note: this path may be blocked from the host's network — XLSX upload is more reliable.
-                    </div>
-                )}
-
                 <form onSubmit={submit} className="bg-white rounded-lg shadow p-4 mb-6">
-                    {mode === 'xlsx' ? (
-                        <div className="mb-3">
-                            <label className="block text-xs text-gray-600 mb-1">XLSX / ODS file</label>
-                            <input
-                                type="file"
-                                accept=".xlsx,.ods,.xls"
-                                required
-                                onChange={(e) => form.setData('xlsx_file', e.target.files[0] ?? null)}
-                                className="w-full text-sm"
-                            />
-                            <p className="mt-1 text-xs text-gray-500">Up to 20 MB. Tab names are used as month labels.</p>
-                        </div>
-                    ) : (
-                        <div className="mb-3">
-                            <label className="block text-xs text-gray-600 mb-1">Google Sheet URL</label>
-                            <input
-                                type="url"
-                                required
-                                placeholder="https://docs.google.com/spreadsheets/d/.../pubhtml"
-                                value={form.data.sheet_url}
-                                onChange={(e) => form.setData('sheet_url', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                    )}
+                    <div className="mb-3">
+                        <label className="block text-xs text-gray-600 mb-1">XLSX / ODS file</label>
+                        <input
+                            type="file"
+                            accept=".xlsx,.ods,.xls"
+                            required
+                            onChange={(e) => form.setData('xlsx_file', e.target.files[0] ?? null)}
+                            className="w-full text-sm"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">Up to 20 MB. Tab names are used as month labels.</p>
+                    </div>
                     <div className="mb-3">
                         <label className="block text-xs text-gray-600 mb-1">Fallback year (used if a tab name has no year)</label>
                         <input

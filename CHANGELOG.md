@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.9] - 2026-05-09
+
+### Removed
+- Google Sheet URL import path. XLSX upload is the only ledger import option now — simpler UI, and the URL flow was unreliable from the host's network anyway. Deleted `GoogleSheetCsvFetcher` and the URL toggle on the import page.
+
 ## [0.9.8] - 2026-05-09
 
 ### Fixed

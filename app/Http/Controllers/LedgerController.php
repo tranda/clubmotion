@@ -7,7 +7,6 @@ use App\Models\LedgerEntry;
 use App\Models\LedgerImportBatch;
 use App\Models\LedgerImportStagingRow;
 use App\Models\PaymentSetting;
-use App\Services\Ledger\GoogleSheetCsvFetcher;
 use App\Services\Ledger\LedgerCsvParser;
 use App\Services\Ledger\XlsxSheetReader;
 use Illuminate\Http\Request;
@@ -253,37 +252,26 @@ class LedgerController extends Controller
         ]);
     }
 
-    public function importStart(Request $request, GoogleSheetCsvFetcher $fetcher, LedgerCsvParser $parser, XlsxSheetReader $xlsx)
+    public function importStart(Request $request, LedgerCsvParser $parser, XlsxSheetReader $xlsx)
     {
         $request->validate([
-            'sheet_url' => 'nullable|url',
-            'xlsx_file' => 'nullable|file|mimes:xlsx,ods,xls|max:20480',
+            'xlsx_file' => 'required|file|mimes:xlsx,ods,xls|max:20480',
             'default_year' => 'nullable|integer|min:2000|max:2100',
         ]);
 
-        $sourceUrl = $request->input('sheet_url');
-        $hasFile = $request->hasFile('xlsx_file');
-        if (!$sourceUrl && !$hasFile) {
-            return redirect()->back()->with('error', 'Provide either a Sheet URL or an XLSX/ODS file.');
-        }
+        $upload = $request->file('xlsx_file');
 
         try {
-            if ($hasFile) {
-                $upload = $request->file('xlsx_file');
-                $tabs = $xlsx->read($upload->getRealPath());
-                $sourceUrl = 'file:' . $upload->getClientOriginalName();
-            } else {
-                $tabs = $fetcher->fetchAll($sourceUrl);
-            }
+            $tabs = $xlsx->read($upload->getRealPath());
         } catch (\Throwable $e) {
-            return redirect()->back()->with('error', 'Import fetch failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
         }
         if (empty($tabs)) {
-            return redirect()->back()->with('error', 'No sheets found in the source.');
+            return redirect()->back()->with('error', 'No sheets found in the file.');
         }
 
         $batch = LedgerImportBatch::create([
-            'source_url' => $sourceUrl,
+            'source_url' => 'file:' . $upload->getClientOriginalName(),
             'status' => 'staging',
             'created_by' => auth()->id(),
         ]);
