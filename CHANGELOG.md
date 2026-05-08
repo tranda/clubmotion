@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.12] - 2026-05-09
+
+### Added
+- Ledger import auto-picks category for income rows linked to a member: description contains "reg" → category **Registration**, otherwise → category **Membership**. Both categories are auto-created on first use. Applies in both auto-suggestion (server-side) and when admin manually changes the member dropdown on the review page (client-side). Skipped for expense rows even if a member is set.
+
 ## [0.9.11] - 2026-05-09
 
 ### Added

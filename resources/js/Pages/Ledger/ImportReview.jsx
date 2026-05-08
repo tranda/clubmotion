@@ -4,7 +4,7 @@ import Layout from '../../Components/Layout';
 
 const BUCKET_LABELS = { cash: 'Cash', bank: 'Bank', eur: 'EUR' };
 
-export default function LedgerImportReview({ batch, groups, summary, categories, members }) {
+export default function LedgerImportReview({ batch, groups, summary, categories, members, memberCategoryIds }) {
     const [mappings, setMappings] = useState(() => groups.map((g) => ({
         row_ids: g.row_ids,
         action: g.action ?? (g.suggested_category_id ? 'map_existing' : 'import_new_category'),
@@ -16,7 +16,23 @@ export default function LedgerImportReview({ batch, groups, summary, categories,
     const [submitting, setSubmitting] = useState(false);
 
     const updateMapping = (idx, patch) => {
-        setMappings((prev) => prev.map((m, i) => i === idx ? { ...m, ...patch } : m));
+        setMappings((prev) => prev.map((m, i) => {
+            if (i !== idx) return m;
+            const next = { ...m, ...patch };
+            // Income + member set → auto-pick category (Registration if "reg" in description, else Membership).
+            if ('mapped_member_id' in patch) {
+                const g = groups[idx];
+                if (g.type === 'income' && patch.mapped_member_id) {
+                    const desc = (g.normalized_description ?? '').toLowerCase();
+                    const catId = desc.includes('reg')
+                        ? memberCategoryIds.registration
+                        : memberCategoryIds.membership;
+                    next.action = 'map_existing';
+                    next.mapped_category_id = String(catId);
+                }
+            }
+            return next;
+        }));
     };
 
     const commit = (e) => {

@@ -282,6 +282,8 @@ class LedgerController extends Controller
         $defaultYear = $request->input('default_year') ?? (int) Carbon::now()->year;
 
         $memberMatcher = $this->buildMemberMatcher();
+        $membershipCatId = $this->ensureCategory('Membership', 'income');
+        $registrationCatId = $this->ensureCategory('Registration', 'income');
 
         foreach ($tabs as $tab) {
             $tabYear = $this->yearFromLabel($tab['label'], $defaultYear);
@@ -292,6 +294,14 @@ class LedgerController extends Controller
                     ? optional(LedgerCategory::where('normalized_name', $normalized)->first())->id
                     : null;
                 $suggestedMemberId = $memberMatcher($normalized);
+
+                // For INCOME rows with a suggested member, auto-pick category:
+                // 'reg' in description → Registration, otherwise → Membership.
+                if ($suggestedMemberId && ($row['type'] ?? null) === 'income') {
+                    $suggestedCatId = str_contains($normalized, 'reg')
+                        ? $registrationCatId
+                        : $membershipCatId;
+                }
 
                 LedgerImportStagingRow::create([
                     'batch_id' => $batch->id,
@@ -379,6 +389,10 @@ class LedgerController extends Controller
             'summary' => $summary,
             'categories' => LedgerCategory::orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'kind']),
             'members' => Member::where('is_active', true)->orderBy('name')->get(['id', 'name', 'membership_number']),
+            'memberCategoryIds' => [
+                'membership' => $this->ensureCategory('Membership', 'income'),
+                'registration' => $this->ensureCategory('Registration', 'income'),
+            ],
         ]);
     }
 
@@ -648,6 +662,16 @@ class LedgerController extends Controller
             }
             return count($hits) === 1 ? $hits[0] : null;
         };
+    }
+
+    private function ensureCategory(string $name, string $kind): int
+    {
+        $normalized = LedgerCategory::normalize($name);
+        $cat = LedgerCategory::firstOrCreate(
+            ['normalized_name' => $normalized],
+            ['name' => $name, 'kind' => $kind, 'is_active' => true, 'sort_order' => 0]
+        );
+        return $cat->id;
     }
 
     private function normalizeMatch(string $value): string
