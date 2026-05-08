@@ -249,7 +249,12 @@ class LedgerController extends Controller
 
     public function importForm()
     {
-        $batches = LedgerImportBatch::orderBy('id', 'desc')->limit(10)->get();
+        $batches = LedgerImportBatch::orderBy('id', 'desc')
+            ->withCount(['entries as entry_count' => function ($q) {
+                $q->withTrashed();
+            }])
+            ->limit(10)
+            ->get();
         return Inertia::render('Ledger/Import', [
             'recentBatches' => $batches,
         ]);
@@ -542,12 +547,35 @@ class LedgerController extends Controller
     public function importCancel(LedgerImportBatch $batch)
     {
         if ($batch->status === 'committed') {
-            return redirect()->back()->with('error', 'Cannot cancel a committed batch.');
+            return redirect()->back()->with('error', 'Cannot cancel a committed batch — use "Wipe" to remove its entries.');
         }
         $batch->stagingRows()->delete();
         $batch->status = 'cancelled';
         $batch->save();
         return redirect()->route('ledger.import.form')->with('success', 'Import cancelled.');
+    }
+
+    /**
+     * Permanently delete a batch and every ledger entry it created. Used when
+     * the admin wants to re-import from scratch (e.g. after a parser change).
+     * Hard-deletes (force) — soft-delete wouldn't help because the import
+     * idempotency check looks at trashed rows too.
+     */
+    public function importWipe(LedgerImportBatch $batch)
+    {
+        $entriesDeleted = DB::transaction(function () use ($batch) {
+            $count = LedgerEntry::withTrashed()
+                ->where('import_batch_id', $batch->id)
+                ->forceDelete();
+            $batch->stagingRows()->delete();
+            $batch->delete();
+            return $count;
+        });
+
+        return redirect()->route('ledger.import.form')->with(
+            'success',
+            "Batch wiped — removed {$entriesDeleted} ledger entries. You can re-import now."
+        );
     }
 
     // ─── Export ──────────────────────────────────────────────────────────────

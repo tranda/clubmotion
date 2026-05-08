@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.13] - 2026-05-09
+
+### Added
+- **Wipe** button on each committed batch in the Ledger import page. Permanently hard-deletes the batch, its staging rows, and every ledger entry it created — so a clean re-import after a parser change actually re-creates the rows instead of being skipped by the source-hash idempotency check. Confirmation prompt shows the entry count.
+
 ## [0.9.12] - 2026-05-09
 
 ### Added

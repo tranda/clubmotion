@@ -201,6 +201,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/import/{batch}', [App\Http\Controllers\LedgerController::class, 'importReview'])->name('import.review');
         Route::post('/import/{batch}/commit', [App\Http\Controllers\LedgerController::class, 'importCommit'])->name('import.commit');
         Route::delete('/import/{batch}', [App\Http\Controllers\LedgerController::class, 'importCancel'])->name('import.cancel');
+        Route::delete('/import/{batch}/wipe', [App\Http\Controllers\LedgerController::class, 'importWipe'])->name('import.wipe');
 
         Route::get('/deleted/{year}/{month}', [App\Http\Controllers\LedgerController::class, 'deletedEntries'])->name('deleted');
         Route::get('/export/{year}/{month?}', [App\Http\Controllers\LedgerController::class, 'export'])->name('export');

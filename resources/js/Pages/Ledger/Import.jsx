@@ -1,7 +1,12 @@
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 export default function LedgerImport({ recentBatches }) {
+    const wipeBatch = (b) => {
+        const msg = `Permanently delete batch #${b.id} and all ${b.entry_count ?? ''} ledger entries it created? This cannot be undone.`;
+        if (!window.confirm(msg)) return;
+        router.delete(`/ledger/import/${b.id}/wipe`);
+    };
     const form = useForm({
         xlsx_file: null,
         default_year: new Date().getFullYear(),
@@ -76,9 +81,19 @@ export default function LedgerImport({ recentBatches }) {
                                             <td className="px-3 py-2 whitespace-nowrap">{b.created_at?.replace('T', ' ').slice(0, 16)}</td>
                                             <td className="px-3 py-2 capitalize">{b.status}</td>
                                             <td className="px-3 py-2 truncate max-w-md">{b.source_url}</td>
-                                            <td className="px-3 py-2 text-right">
+                                            <td className="px-3 py-2 text-right whitespace-nowrap">
                                                 {b.status === 'staging' && (
                                                     <Link href={`/ledger/import/${b.id}`} className="text-blue-600 hover:underline text-xs">Resume review →</Link>
+                                                )}
+                                                {b.status === 'committed' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => wipeBatch(b)}
+                                                        className="text-xs px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100"
+                                                        title="Permanently delete this batch and all its imported entries"
+                                                    >
+                                                        Wipe
+                                                    </button>
                                                 )}
                                             </td>
                                         </tr>
