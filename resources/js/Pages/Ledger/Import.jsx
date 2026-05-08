@@ -21,8 +21,9 @@ export default function LedgerImport({ recentBatches }) {
                 </div>
 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 mb-4">
-                    The sheet must be shared as <strong>“Anyone with the link — Viewer”</strong> for the import to read it.
-                    You can revert sharing after the import completes.
+                    The sheet must be <strong>Published to web</strong> so the importer can enumerate all tabs.
+                    In the sheet: <strong>File → Share → Publish to web → Entire Document → Publish</strong>.
+                    Plain "Anyone with the link" sharing is not enough. You can unpublish after the import completes.
                 </div>
 
                 <form onSubmit={submit} className="bg-white rounded-lg shadow p-4 mb-6">

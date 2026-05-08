@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.3] - 2026-05-08
+
+### Fixed
+- Ledger Sheet importer was getting Google's German marketing landing page (HTTP 400) instead of CSV when running from the German-located host with Guzzle's default User-Agent. Added a real browser User-Agent + `Accept: text/csv` headers, removed the auto-throwing `retry()`, and fall back across `/export`, `/gviz/tq`, and `/pub?output=csv` endpoints. Errors now name the actual failure instead of bubbling up the marketing page HTML.
+
+### Changed
+- Import page now asks for "Published to web" instead of "Anyone with the link" — the tab-discovery endpoint (`/pubhtml`) only responds for published sheets. Plain link-sharing won't enumerate the 12 monthly tabs.
+
 ## [0.9.2] - 2026-05-08
 
 ### Fixed

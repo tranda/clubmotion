@@ -6,33 +6,31 @@ use Illuminate\Support\Facades\Http;
 
 class GoogleSheetCsvFetcher
 {
+    private const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
+
     /**
      * Given a Google Sheets URL, return all tabs as
      * [['gid' => '...', 'label' => '...', 'csv' => '...'], ...].
      *
-     * Strategy:
-     *   1. Extract sheet ID from the URL.
-     *   2. Fetch /pubhtml to discover gid + label for every tab.
-     *      Falls back to a single-tab fetch using gid from the URL if /pubhtml
-     *      is unavailable.
-     *   3. For each tab, GET /export?format=csv&gid=<gid>.
-     *   4. Reject any response that looks like an HTML login page.
-     *
-     * Throws \RuntimeException with a human-readable message on failure.
+     * The sheet must be "Published to web" (File → Share → Publish to web)
+     * — plain "Anyone with the link" sharing is not enough because /pubhtml,
+     * which is needed to enumerate tabs, only responds for published sheets.
      */
     public function fetchAll(string $sheetUrl): array
     {
         $sheetId = $this->extractSheetId($sheetUrl);
         if (!$sheetId) {
-            throw new \RuntimeException('Could not extract sheet ID from URL.');
+            throw new \RuntimeException('Could not extract sheet ID from the URL.');
         }
 
         $tabs = $this->discoverTabs($sheetId);
 
         if (empty($tabs)) {
-            // Fall back to the gid in the original URL, if any.
-            $gid = $this->extractGid($sheetUrl) ?? '0';
-            $tabs = [['gid' => $gid, 'label' => 'Sheet1']];
+            throw new \RuntimeException(
+                'Could not discover tabs. The sheet must be Published to web '
+                . '(File → Share → Publish to web → Entire Document). Plain '
+                . '"Anyone with the link" sharing is not enough.'
+            );
         }
 
         $results = [];
@@ -66,12 +64,24 @@ class GoogleSheetCsvFetcher
     private function discoverTabs(string $sheetId): array
     {
         $url = "https://docs.google.com/spreadsheets/d/{$sheetId}/pubhtml";
-        $response = Http::timeout(10)->withOptions(['allow_redirects' => true])->get($url);
+        $response = Http::timeout(10)
+            ->withHeaders([
+                'User-Agent' => self::USER_AGENT,
+                'Accept' => 'text/html,application/xhtml+xml',
+                'Accept-Language' => 'en-US,en;q=0.9',
+            ])
+            ->withOptions(['allow_redirects' => true])
+            ->get($url);
         if (!$response->successful()) {
             return [];
         }
         $html = $response->body();
         if ($html === '' || stripos($html, '<html') === false) {
+            return [];
+        }
+        // The Google marketing landing page also begins with <html — detect
+        // and reject anything that doesn't look like a published-sheet index.
+        if (stripos($html, 'sheet-button') === false && stripos($html, 'spreadsheet') === false) {
             return [];
         }
 
@@ -105,23 +115,50 @@ class GoogleSheetCsvFetcher
 
     private function fetchCsv(string $sheetId, string $gid): string
     {
-        $url = "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=csv&gid={$gid}";
-        $response = Http::timeout(15)
-            ->retry(2, 500)
-            ->withOptions(['allow_redirects' => true])
-            ->get($url);
+        $endpoints = [
+            "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=csv&gid={$gid}",
+            "https://docs.google.com/spreadsheets/d/{$sheetId}/gviz/tq?tqx=out:csv&gid={$gid}",
+            "https://docs.google.com/spreadsheets/d/{$sheetId}/pub?output=csv&gid={$gid}",
+        ];
 
-        if ($response->status() === 401 || $response->status() === 403) {
-            throw new \RuntimeException('Sheet is not publicly accessible. Set sharing to "Anyone with the link — Viewer".');
-        }
-        if (!$response->successful()) {
-            throw new \RuntimeException("Failed to fetch tab gid={$gid}: HTTP {$response->status()}");
+        $lastError = null;
+        foreach ($endpoints as $url) {
+            try {
+                $response = Http::timeout(15)
+                    ->retry(2, 500, null, false)
+                    ->withHeaders([
+                        'User-Agent' => self::USER_AGENT,
+                        'Accept' => 'text/csv,application/csv,text/plain;q=0.9,*/*;q=0.5',
+                        'Accept-Language' => 'en-US,en;q=0.9',
+                    ])
+                    ->withOptions(['allow_redirects' => true])
+                    ->get($url);
+            } catch (\Throwable $e) {
+                $lastError = $e->getMessage();
+                continue;
+            }
+
+            if ($response->status() === 401 || $response->status() === 403) {
+                throw new \RuntimeException('Sheet is not publicly accessible. Set sharing to "Anyone with the link — Viewer" and Publish to web.');
+            }
+            if (!$response->successful()) {
+                $lastError = "HTTP {$response->status()} from {$url}";
+                continue;
+            }
+
+            $body = $response->body();
+            $trimmed = ltrim($body);
+            if (str_starts_with($trimmed, '<!DOCTYPE') || str_starts_with($trimmed, '<html')) {
+                $lastError = "HTML response from {$url} (likely the marketing/login page)";
+                continue;
+            }
+            // gviz wraps CSV in some cases; accept any non-HTML body as CSV.
+            return $body;
         }
 
-        $body = $response->body();
-        if (str_starts_with(ltrim($body), '<!DOCTYPE') || str_starts_with(ltrim($body), '<html')) {
-            throw new \RuntimeException('Received an HTML page instead of CSV. The sheet may be restricted.');
-        }
-        return $body;
+        throw new \RuntimeException(
+            "Could not fetch CSV for tab gid={$gid}. Last error: {$lastError}. "
+            . "The sheet must be Published to web (File → Share → Publish to web → Entire Document)."
+        );
     }
 }
