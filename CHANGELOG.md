@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.8] - 2026-05-09
+
+### Fixed
+- After running `composer install` for the Ledger XLSX deps, the app crashed on every Inertia page with `Class "Inertia\Middleware" not found`. Cause: `inertiajs/inertia-laravel` was previously installed manually on the host but never recorded in composer.json, so composer install removed it as an orphan. Added it explicitly: `inertiajs/inertia-laravel ^1.0` (locked to 1.3.4 — supports PHP 8.0 and is backward-compatible with the 2.x JS client already in use).
+
 ## [0.9.7] - 2026-05-09
 
 ### Fixed
