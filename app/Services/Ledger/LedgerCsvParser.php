@@ -172,8 +172,10 @@ class LedgerCsvParser
         $dateRaw = $row[$cols['date'] ?? 0] ?? '';
         $date = $this->parseDate($dateRaw, $year);
 
-        $incomeDesc = trim((string) ($row[$cols['income_description'] ?? 1] ?? ''));
-        $expenseDesc = trim((string) ($row[$cols['expense_description'] ?? 6] ?? ''));
+        // Description always lives in the "prihodi" (income-description)
+        // column — the "rashodi" header at col 6 only labels the expense
+        // AMOUNT columns; expense rows still put their description in col 1.
+        $description = trim((string) ($row[$cols['income_description'] ?? 1] ?? ''));
 
         $incomeAmounts = [
             'cash' => $this->parseDecimal($row[$cols['income_cash'] ?? 2] ?? ''),
@@ -195,15 +197,15 @@ class LedgerCsvParser
         }
 
         // "u kasi" row at top of sheet — opening balance, handled separately.
-        if ($this->normalizeText($incomeDesc) === 'u kasi') {
+        if ($this->normalizeText($description) === 'u kasi') {
             return null;
         }
 
         // Ignore obvious summary keywords.
-        $combinedDesc = $this->normalizeText($incomeDesc . ' ' . $expenseDesc);
+        $normDesc = $this->normalizeText($description);
         $skipKeywords = ['prihodi ukupno', 'rashodi ukupno', 'kusur', 'ukupno'];
         foreach ($skipKeywords as $kw) {
-            if (str_contains($combinedDesc, $kw)) return null;
+            if (str_contains($normDesc, $kw)) return null;
         }
 
         if (!empty($incomeNonZero) && !empty($expenseNonZero)) {
@@ -215,7 +217,7 @@ class LedgerCsvParser
                 'type' => 'income',
                 'bucket' => $bucket,
                 'amount' => $incomeNonZero[$bucket],
-                'description' => $incomeDesc !== '' ? $incomeDesc : $expenseDesc,
+                'description' => $description,
                 'error' => 'Row contained both income and expense amounts; imported as income.',
             ];
         }
@@ -227,7 +229,7 @@ class LedgerCsvParser
                 'type' => 'income',
                 'bucket' => $bucket,
                 'amount' => $incomeNonZero[$bucket],
-                'description' => $incomeDesc,
+                'description' => $description,
                 'error' => $date ? null : 'Could not parse date.',
             ];
         }
@@ -238,7 +240,7 @@ class LedgerCsvParser
             'type' => 'expense',
             'bucket' => $bucket,
             'amount' => $expenseNonZero[$bucket],
-            'description' => $expenseDesc,
+            'description' => $description,
             'error' => $date ? null : 'Could not parse date.',
         ];
     }

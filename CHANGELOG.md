@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.10] - 2026-05-09
+
+### Fixed
+- Ledger import was reading expense descriptions from the wrong column. In the source sheet the description for both income AND expense rows lives in column 1 (the "prihodi" header column); the "rashodi" header in column 6 only labels the expense AMOUNT columns. Expense rows like `bankarski troskovi` (column 1) with `500` in the bank-expense column were importing with empty descriptions. The parser now reads description from column 1 for both income and expense rows.
+
 ## [0.9.9] - 2026-05-09
 
 ### Removed
