@@ -6,6 +6,7 @@ use App\Models\LedgerCategory;
 use App\Models\LedgerEntry;
 use App\Models\LedgerImportBatch;
 use App\Models\LedgerImportStagingRow;
+use App\Models\Member;
 use App\Models\PaymentSetting;
 use App\Services\Ledger\LedgerCsvParser;
 use App\Services\Ledger\XlsxSheetReader;
@@ -26,7 +27,7 @@ class LedgerController extends Controller
         $year = max(2000, min(2100, $year));
         $month = max(1, min(12, $month));
 
-        $entries = LedgerEntry::with('category')
+        $entries = LedgerEntry::with(['category', 'member'])
             ->forMonth($year, $month)
             ->orderBy('entry_date')
             ->orderBy('sort_order')
@@ -78,6 +79,7 @@ class LedgerController extends Controller
             'pettyCashFloat' => (float) PaymentSetting::get('ledger_petty_cash_float_rsd', 0),
             'availableYears' => $availableYears,
             'categories' => LedgerCategory::orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'kind', 'is_active']),
+            'members' => Member::where('is_active', true)->orderBy('name')->get(['id', 'name', 'membership_number']),
             'deletedCount' => LedgerEntry::onlyTrashed()->forMonth($year, $month)->count(),
         ]);
     }
@@ -156,6 +158,7 @@ class LedgerController extends Controller
             'amount' => 'required|numeric|min:0',
             'description' => 'required|string|max:255',
             'ledger_category_id' => 'nullable|exists:ledger_categories,id',
+            'member_id' => 'nullable|exists:members,id',
             'notes' => 'nullable|string',
         ]);
     }
@@ -278,14 +281,17 @@ class LedgerController extends Controller
 
         $defaultYear = $request->input('default_year') ?? (int) Carbon::now()->year;
 
+        $memberMatcher = $this->buildMemberMatcher();
+
         foreach ($tabs as $tab) {
             $tabYear = $this->yearFromLabel($tab['label'], $defaultYear);
             $rows = $parser->parseTab($tab['csv'], $tab['label'], $tabYear);
             foreach ($rows as $idx => $row) {
                 $normalized = LedgerCategory::normalize((string) ($row['description'] ?? ''));
-                $suggestedId = $normalized
+                $suggestedCatId = $normalized
                     ? optional(LedgerCategory::where('normalized_name', $normalized)->first())->id
                     : null;
+                $suggestedMemberId = $memberMatcher($normalized);
 
                 LedgerImportStagingRow::create([
                     'batch_id' => $batch->id,
@@ -298,9 +304,11 @@ class LedgerController extends Controller
                     'parsed_amount' => $row['amount'] ?? null,
                     'parsed_description' => $row['description'] ?? null,
                     'normalized_description' => $normalized ?: null,
-                    'suggested_category_id' => $suggestedId,
-                    'mapped_category_id' => $suggestedId,
-                    'action' => $suggestedId ? 'map_existing' : 'import_new_category',
+                    'suggested_category_id' => $suggestedCatId,
+                    'mapped_category_id' => $suggestedCatId,
+                    'suggested_member_id' => $suggestedMemberId,
+                    'mapped_member_id' => $suggestedMemberId,
+                    'action' => $suggestedCatId ? 'map_existing' : 'import_new_category',
                     'error' => $row['error'] ?? null,
                     'sort_order' => $idx,
                 ]);
@@ -330,7 +338,7 @@ class LedgerController extends Controller
         }
 
         $stagingRows = $batch->stagingRows()
-            ->with('suggestedCategory', 'mappedCategory')
+            ->with('suggestedCategory', 'mappedCategory', 'suggestedMember', 'mappedMember')
             ->orderBy('tab_label')
             ->orderBy('parsed_date')
             ->orderBy('sort_order')
@@ -351,6 +359,8 @@ class LedgerController extends Controller
                     'sample_dates' => $rows->take(3)->pluck('parsed_date')->map(fn ($d) => $d ? $d->format('Y-m-d') : null)->values(),
                     'suggested_category_id' => $first->suggested_category_id,
                     'mapped_category_id' => $first->mapped_category_id,
+                    'suggested_member_id' => $first->suggested_member_id,
+                    'mapped_member_id' => $first->mapped_member_id,
                     'action' => $first->action,
                     'row_ids' => $rows->pluck('id')->values(),
                 ];
@@ -368,6 +378,7 @@ class LedgerController extends Controller
             'groups' => $groups,
             'summary' => $summary,
             'categories' => LedgerCategory::orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'kind']),
+            'members' => Member::where('is_active', true)->orderBy('name')->get(['id', 'name', 'membership_number']),
         ]);
     }
 
@@ -385,6 +396,7 @@ class LedgerController extends Controller
             'mappings.*.mapped_category_id' => 'nullable|integer|exists:ledger_categories,id',
             'mappings.*.new_category_name' => 'nullable|string|max:150',
             'mappings.*.new_category_kind' => 'nullable|in:income,expense,both',
+            'mappings.*.mapped_member_id' => 'nullable|integer|exists:members,id',
         ]);
 
         $stats = ['created' => 0, 'skipped_manual' => 0, 'skipped_existing' => 0, 'skipped_user' => 0, 'invalid' => 0];
@@ -468,6 +480,7 @@ class LedgerController extends Controller
                         'amount' => $row->parsed_amount,
                         'description' => $row->parsed_description ?? '',
                         'ledger_category_id' => $resolvedCategoryId,
+                        'member_id' => $mapping['mapped_member_id'] ?? null,
                         'source' => 'import',
                         'source_hash' => $hash,
                         'import_batch_id' => $batch->id,
@@ -481,6 +494,7 @@ class LedgerController extends Controller
 
                     $row->action = $action;
                     $row->mapped_category_id = $resolvedCategoryId;
+                    $row->mapped_member_id = $mapping['mapped_member_id'] ?? null;
                     $row->save();
                 }
             }
@@ -575,10 +589,73 @@ class LedgerController extends Controller
             'amount' => (float) $e->amount,
             'description' => $e->description,
             'category' => $e->category ? ['id' => $e->category->id, 'name' => $e->category->name] : null,
+            'member' => $e->member ? ['id' => $e->member->id, 'name' => $e->member->name] : null,
             'notes' => $e->notes,
             'source' => $e->source,
             'deleted_at' => $e->deleted_at?->format('Y-m-d H:i'),
         ];
+    }
+
+    /**
+     * Returns a closure: (normalizedDescription) -> ?int member_id.
+     *
+     * Match rules (in priority order, must yield exactly one member):
+     *   1. exact match against the member's full name
+     *   2. exact match against the first word of the member's name
+     *   3. description appears as a whole word inside the member's name
+     *
+     * Loaded once per import to avoid N+1.
+     */
+    private function buildMemberMatcher(): \Closure
+    {
+        $members = Member::where('is_active', true)->get(['id', 'name'])->all();
+
+        $byFullName = [];
+        $byFirstWord = [];
+        $allNormalized = []; // [normalized_full => [id, ...]]
+
+        foreach ($members as $m) {
+            $full = $this->normalizeMatch($m->name);
+            $allNormalized[$full][] = $m->id;
+            $byFullName[$full][] = $m->id;
+            $words = preg_split('/\s+/', $full);
+            $first = $words[0] ?? '';
+            if ($first !== '') {
+                $byFirstWord[$first][] = $m->id;
+            }
+        }
+
+        return function (?string $normalized) use ($byFullName, $byFirstWord, $members) {
+            if ($normalized === null || $normalized === '') return null;
+            $key = $this->normalizeMatch($normalized);
+            if ($key === '') return null;
+
+            if (isset($byFullName[$key]) && count($byFullName[$key]) === 1) {
+                return $byFullName[$key][0];
+            }
+            if (isset($byFirstWord[$key]) && count($byFirstWord[$key]) === 1) {
+                return $byFirstWord[$key][0];
+            }
+
+            // Whole-word substring match — only useful if it's unambiguous.
+            $hits = [];
+            foreach ($members as $m) {
+                $full = $this->normalizeMatch($m->name);
+                $words = preg_split('/\s+/', $full);
+                if (in_array($key, $words, true)) {
+                    $hits[] = $m->id;
+                }
+            }
+            return count($hits) === 1 ? $hits[0] : null;
+        };
+    }
+
+    private function normalizeMatch(string $value): string
+    {
+        $value = mb_strtolower(trim($value));
+        $value = preg_replace('/\s+/u', ' ', $value);
+        $value = preg_replace('/[^\p{L}\p{N} ]+/u', '', $value);
+        return trim($value);
     }
 
     private function yearFromLabel(string $label, int $fallback): int

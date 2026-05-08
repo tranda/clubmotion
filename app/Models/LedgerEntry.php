@@ -20,6 +20,7 @@ class LedgerEntry extends Model
         'amount',
         'description',
         'ledger_category_id',
+        'member_id',
         'notes',
         'source',
         'source_hash',
@@ -39,6 +40,11 @@ class LedgerEntry extends Model
     public function category()
     {
         return $this->belongsTo(LedgerCategory::class, 'ledger_category_id');
+    }
+
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
     }
 
     public function importBatch()

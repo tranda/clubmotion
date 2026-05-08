@@ -30,13 +30,14 @@ function blankEntry(year, month) {
         amount: '',
         description: '',
         ledger_category_id: '',
+        member_id: '',
         notes: '',
     };
 }
 
 export default function LedgerIndex({
     year, month, entries, opening, closing, monthlyTotals,
-    pettyCashFloat, availableYears, categories, deletedCount,
+    pettyCashFloat, availableYears, categories, members, deletedCount,
 }) {
     const [editing, setEditing] = useState(null);
     const [showForm, setShowForm] = useState(false);
@@ -73,6 +74,7 @@ export default function LedgerIndex({
             amount: entry.amount,
             description: entry.description,
             ledger_category_id: entry.category?.id ?? '',
+            member_id: entry.member?.id ?? '',
             notes: entry.notes ?? '',
         });
         setEditing(entry);
@@ -83,6 +85,7 @@ export default function LedgerIndex({
         e.preventDefault();
         const payload = { ...entryForm.data };
         if (payload.ledger_category_id === '') payload.ledger_category_id = null;
+        if (payload.member_id === '') payload.member_id = null;
         if (editing) {
             entryForm.transform(() => payload);
             entryForm.put(`/ledger/entries/${editing.id}`, {
@@ -234,6 +237,7 @@ export default function LedgerIndex({
                             <tr className="bg-gray-50 text-gray-600 uppercase text-xs">
                                 <th className="px-3 py-2 text-left">Date</th>
                                 <th className="px-3 py-2 text-left">Description</th>
+                                <th className="px-3 py-2 text-left">Member</th>
                                 <th className="px-3 py-2 text-left">Category</th>
                                 <th className="px-3 py-2 text-right">Income</th>
                                 <th className="px-3 py-2 text-right">Expense</th>
@@ -244,7 +248,7 @@ export default function LedgerIndex({
                         </thead>
                         <tbody>
                             {runningBalances.length === 0 && (
-                                <tr><td colSpan="8" className="px-3 py-6 text-center text-gray-400">No entries yet for {MONTHS[month - 1]} {year}.</td></tr>
+                                <tr><td colSpan="9" className="px-3 py-6 text-center text-gray-400">No entries yet for {MONTHS[month - 1]} {year}.</td></tr>
                             )}
                             {runningBalances.map((e) => (
                                 <tr key={e.id} className="border-t border-gray-100 hover:bg-gray-50">
@@ -255,6 +259,7 @@ export default function LedgerIndex({
                                             <span className="ml-2 text-xs px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded">imported</span>
                                         )}
                                     </td>
+                                    <td className="px-3 py-2 text-gray-600">{e.member?.name ?? '—'}</td>
                                     <td className="px-3 py-2 text-gray-600">{e.category?.name ?? '—'}</td>
                                     <td className="px-3 py-2 text-right tabular-nums text-green-700">
                                         {e.type === 'income' ? formatAmount(e.amount) : ''}
@@ -352,6 +357,19 @@ export default function LedgerIndex({
                                         <option value="">— Uncategorized —</option>
                                         {categories.map((c) => (
                                             <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-gray-600 mb-1">Member (optional, e.g. monthly membership)</label>
+                                    <select
+                                        value={entryForm.data.member_id ?? ''}
+                                        onChange={(e) => entryForm.setData('member_id', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                    >
+                                        <option value="">— None —</option>
+                                        {members.map((m) => (
+                                            <option key={m.id} value={m.id}>{m.name}{m.membership_number ? ` (#${m.membership_number})` : ''}</option>
                                         ))}
                                     </select>
                                 </div>

@@ -2,6 +2,18 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.11] - 2026-05-09
+
+### Added
+- Optional **member** field on every ledger entry, since income labels in the source sheet (igor, zvonko, Srki, …) are usually members paying their monthly membership.
+- Manual entry form: member dropdown alongside the category dropdown.
+- Import review: per-group member dropdown with auto-suggest. Match priority: exact full-name, exact first-name match, unique whole-word substring inside the member's name. Suggestion is only made when exactly one active member matches; otherwise admin picks manually.
+- Entries table on the month view now shows a Member column.
+
+### Migration
+- Adds `member_id` (nullable FK to members) on `ledger_entries`.
+- Adds `suggested_member_id`, `mapped_member_id` (nullable FK to members) on `ledger_import_staging`.
+
 ## [0.9.10] - 2026-05-09
 
 ### Fixed

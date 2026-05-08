@@ -24,6 +24,8 @@ class LedgerImportStagingRow extends Model
         'normalized_description',
         'suggested_category_id',
         'mapped_category_id',
+        'suggested_member_id',
+        'mapped_member_id',
         'action',
         'error',
         'sort_order',
@@ -49,5 +51,15 @@ class LedgerImportStagingRow extends Model
     public function mappedCategory()
     {
         return $this->belongsTo(LedgerCategory::class, 'mapped_category_id');
+    }
+
+    public function suggestedMember()
+    {
+        return $this->belongsTo(Member::class, 'suggested_member_id');
+    }
+
+    public function mappedMember()
+    {
+        return $this->belongsTo(Member::class, 'mapped_member_id');
     }
 }

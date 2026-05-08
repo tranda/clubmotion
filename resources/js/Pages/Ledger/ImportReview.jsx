@@ -4,13 +4,14 @@ import Layout from '../../Components/Layout';
 
 const BUCKET_LABELS = { cash: 'Cash', bank: 'Bank', eur: 'EUR' };
 
-export default function LedgerImportReview({ batch, groups, summary, categories }) {
+export default function LedgerImportReview({ batch, groups, summary, categories, members }) {
     const [mappings, setMappings] = useState(() => groups.map((g) => ({
         row_ids: g.row_ids,
         action: g.action ?? (g.suggested_category_id ? 'map_existing' : 'import_new_category'),
         mapped_category_id: g.mapped_category_id ?? g.suggested_category_id ?? '',
         new_category_name: g.description ?? '',
         new_category_kind: g.type === 'income' ? 'income' : g.type === 'expense' ? 'expense' : 'both',
+        mapped_member_id: g.mapped_member_id ?? g.suggested_member_id ?? '',
     })));
     const [submitting, setSubmitting] = useState(false);
 
@@ -28,6 +29,7 @@ export default function LedgerImportReview({ batch, groups, summary, categories 
                 mapped_category_id: m.action === 'map_existing' ? (m.mapped_category_id || null) : null,
                 new_category_name: m.action === 'import_new_category' ? m.new_category_name : null,
                 new_category_kind: m.action === 'import_new_category' ? m.new_category_kind : null,
+                mapped_member_id: m.mapped_member_id || null,
             })),
         }, {
             onFinish: () => setSubmitting(false),
@@ -85,6 +87,7 @@ export default function LedgerImportReview({ batch, groups, summary, categories 
                                     <th className="px-3 py-2 text-right">Rows</th>
                                     <th className="px-3 py-2 text-left">Action</th>
                                     <th className="px-3 py-2 text-left">Category</th>
+                                    <th className="px-3 py-2 text-left">Member</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -147,6 +150,21 @@ export default function LedgerImportReview({ batch, groups, summary, categories 
                                                 )}
                                                 {m.action === 'skip' && (
                                                     <span className="text-xs text-gray-400">Will not be imported</span>
+                                                )}
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                <select
+                                                    value={m.mapped_member_id ?? ''}
+                                                    onChange={(e) => updateMapping(idx, { mapped_member_id: e.target.value })}
+                                                    className="w-full px-2 py-1 border border-gray-300 rounded"
+                                                >
+                                                    <option value="">— None —</option>
+                                                    {members.map((mem) => (
+                                                        <option key={mem.id} value={mem.id}>{mem.name}{mem.membership_number ? ` (#${mem.membership_number})` : ''}</option>
+                                                    ))}
+                                                </select>
+                                                {g.suggested_member_id && (
+                                                    <div className="text-xs text-gray-400 mt-1">Suggested by name match</div>
                                                 )}
                                             </td>
                                         </tr>
