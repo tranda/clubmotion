@@ -181,6 +181,31 @@ Route::middleware('auth')->group(function () {
             ->name('payments.bulk.paid');
     });
 
+    // Ledger (cash-book) - Admin only
+    Route::middleware('role:admin')->prefix('ledger')->name('ledger.')->group(function () {
+        Route::get('/', [App\Http\Controllers\LedgerController::class, 'index'])->name('index');
+        Route::post('/entries', [App\Http\Controllers\LedgerController::class, 'storeEntry'])->name('entries.store');
+        Route::put('/entries/{entry}', [App\Http\Controllers\LedgerController::class, 'updateEntry'])->name('entries.update');
+        Route::delete('/entries/{entry}', [App\Http\Controllers\LedgerController::class, 'destroyEntry'])->name('entries.destroy');
+        Route::post('/entries/{id}/restore', [App\Http\Controllers\LedgerController::class, 'restoreEntry'])->name('entries.restore');
+
+        Route::get('/categories', [App\Http\Controllers\LedgerController::class, 'categoriesIndex'])->name('categories.index');
+        Route::post('/categories', [App\Http\Controllers\LedgerController::class, 'categoriesStore'])->name('categories.store');
+        Route::put('/categories/{category}', [App\Http\Controllers\LedgerController::class, 'categoriesUpdate'])->name('categories.update');
+        Route::delete('/categories/{category}', [App\Http\Controllers\LedgerController::class, 'categoriesDestroy'])->name('categories.destroy');
+
+        Route::put('/petty-cash', [App\Http\Controllers\LedgerController::class, 'updatePettyCash'])->name('pettyCash.update');
+
+        Route::get('/import', [App\Http\Controllers\LedgerController::class, 'importForm'])->name('import.form');
+        Route::post('/import', [App\Http\Controllers\LedgerController::class, 'importStart'])->name('import.start');
+        Route::get('/import/{batch}', [App\Http\Controllers\LedgerController::class, 'importReview'])->name('import.review');
+        Route::post('/import/{batch}/commit', [App\Http\Controllers\LedgerController::class, 'importCommit'])->name('import.commit');
+        Route::delete('/import/{batch}', [App\Http\Controllers\LedgerController::class, 'importCancel'])->name('import.cancel');
+
+        Route::get('/deleted/{year}/{month}', [App\Http\Controllers\LedgerController::class, 'deletedEntries'])->name('deleted');
+        Route::get('/export/{year}/{month?}', [App\Http\Controllers\LedgerController::class, 'export'])->name('export');
+    });
+
     // Migration runner - Admin only (remove after first use)
     Route::get('/migrate', function () {
         if (auth()->user()->role_id !== 1) {

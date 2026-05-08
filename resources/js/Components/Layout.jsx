@@ -21,6 +21,7 @@ export default function Layout({ children }) {
     // Only admin and superuser can manage - if no role, treat as regular user
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
+    const isAdmin = userRole === 'admin';
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -96,6 +97,18 @@ export default function Layout({ children }) {
                                 </svg>
                                 Achievements
                             </Link>
+
+                            {isAdmin && (
+                                <Link
+                                    href="/ledger"
+                                    className="flex items-center px-4 py-2 text-gray-800 font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                                >
+                                    <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path d="M9 17v-2a4 4 0 014-4h6m-6 0V7a4 4 0 00-4-4H5a2 2 0 00-2 2v14a2 2 0 002 2h4m6-12l4 4-4 4" />
+                                    </svg>
+                                    Ledger
+                                </Link>
+                            )}
                         </nav>
 
                         {/* Right Side: User Menu + Hamburger */}
@@ -241,6 +254,19 @@ export default function Layout({ children }) {
                             </svg>
                             Achievements
                         </Link>
+
+                        {isAdmin && (
+                            <Link
+                                href="/ledger"
+                                onClick={closeMenu}
+                                className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                            >
+                                <svg className="w-5 h-5 mr-3" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M9 17v-2a4 4 0 014-4h6m-6 0V7a4 4 0 00-4-4H5a2 2 0 00-2 2v14a2 2 0 002 2h4m6-12l4 4-4 4" />
+                                </svg>
+                                Ledger
+                            </Link>
+                        )}
 
                         {/* Mobile User Info & Logout */}
                         <div className="mt-6 pt-6 border-t border-gray-200">

@@ -2,6 +2,24 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.0] - 2026-05-08
+
+### Added
+- New admin-only **Ledger** module — daily cash-book that recreates the club's Google Sheet workflow
+  - Tracks income and expenses across 3 separate buckets: cash (keš), bank account (račun), and EUR (evri); buckets never auto-convert
+  - Multi-year support; primary view is a month-at-a-time list with year + month selector that mirrors the source sheet
+  - Per-month summary card per bucket: opening balance (carried from prior month), income, expenses, closing balance
+  - Petty-cash float (kusur) as a single editable setting on the page, stored in `payment_settings`
+  - Manual entry CRUD (date, type, bucket, amount, description, category, notes) with soft-delete and restore
+  - Editable categories with kind (income/expense/both), normalized-name uniqueness, and entry counts
+  - Bulk import from a Google Sheets share URL: app fetches `/pubhtml` to discover all tabs, downloads each as CSV, parses Serbian-locale decimals and dd.mm. dates, and stages everything for review
+  - Import review screen groups rows by description+type+bucket; each group can be mapped to an existing category, create a new category, imported uncategorized, or skipped
+  - Idempotent re-import via `source_hash` — re-running the import never duplicates rows; manually-edited entries are preserved and reported as skipped
+  - Deleted-entries view per month with one-click restore for reconciliation
+  - Per-month and per-year CSV export (UTF-8 BOM for Excel)
+- New tables: `ledger_categories`, `ledger_entries`, `ledger_import_batches`, `ledger_import_staging`
+- New `Ledger` link in the admin nav (desktop + mobile)
+
 ## [0.8.19] - 2026-04-14
 
 ### Added
