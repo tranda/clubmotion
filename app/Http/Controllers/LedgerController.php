@@ -245,6 +245,19 @@ class LedgerController extends Controller
         return redirect()->back()->with('success', 'Petty cash float updated.');
     }
 
+    public function resetOpeningBalances()
+    {
+        $deleted = DB::table('payment_settings')
+            ->where('key', 'like', 'ledger_opening_balance_%')
+            ->delete();
+        return redirect()->back()->with(
+            'success',
+            $deleted > 0
+                ? "Cleared {$deleted} opening-balance seed" . ($deleted === 1 ? '' : 's') . '. Re-import to re-seed from the XLSX.'
+                : 'No opening-balance seeds were set.'
+        );
+    }
+
     // ─── Import: start ───────────────────────────────────────────────────────
 
     public function importForm()
@@ -563,19 +576,35 @@ class LedgerController extends Controller
      */
     public function importWipe(LedgerImportBatch $batch)
     {
-        $entriesDeleted = DB::transaction(function () use ($batch) {
-            $count = LedgerEntry::withTrashed()
+        [$entriesDeleted, $openingsDeleted] = DB::transaction(function () use ($batch) {
+            $entriesCount = LedgerEntry::withTrashed()
                 ->where('import_batch_id', $batch->id)
                 ->forceDelete();
             $batch->stagingRows()->delete();
             $batch->delete();
-            return $count;
+
+            // If this was the last import batch, also drop the opening
+            // balance seeds so the next import re-seeds from the XLSX
+            // "u kasi" row. Otherwise the balances stick around even
+            // though there are no entries.
+            $openingsCount = 0;
+            $remainingBatches = LedgerImportBatch::count();
+            if ($remainingBatches === 0) {
+                $openingsCount = DB::table('payment_settings')
+                    ->where('key', 'like', 'ledger_opening_balance_%')
+                    ->delete();
+            }
+            return [$entriesCount, $openingsCount];
         });
 
-        return redirect()->route('ledger.import.form')->with(
-            'success',
-            "Batch wiped — removed {$entriesDeleted} ledger entries. You can re-import now."
-        );
+        $msg = "Batch wiped — removed {$entriesDeleted} ledger entries";
+        if ($openingsDeleted > 0) {
+            $msg .= " and {$openingsDeleted} opening-balance seed";
+            $msg .= $openingsDeleted === 1 ? '' : 's';
+        }
+        $msg .= '. You can re-import now.';
+
+        return redirect()->route('ledger.import.form')->with('success', $msg);
     }
 
     // ─── Export ──────────────────────────────────────────────────────────────

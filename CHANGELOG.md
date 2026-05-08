@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.15] - 2026-05-09
+
+### Fixed
+- After wiping the imported Ledger batch, balances were still showing despite zero entries. Cause: opening-balance seeds (e.g. `ledger_opening_balance_cash_2026 = 41550`) live in `payment_settings`, not in the batch, so wipe didn't touch them. Now Wipe also clears all `ledger_opening_balance_*` settings when the last batch is removed, so the next import re-seeds cleanly.
+
+### Added
+- **Reset opening balances** action in the ledger Index action bar. Clears all `ledger_opening_balance_*` seeds in one click. Useful if the seed values are stale and a re-import is planned.
+
 ## [0.9.14] - 2026-05-09
 
 ### Changed

@@ -195,6 +195,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/categories/{category}', [App\Http\Controllers\LedgerController::class, 'categoriesDestroy'])->name('categories.destroy');
 
         Route::put('/petty-cash', [App\Http\Controllers\LedgerController::class, 'updatePettyCash'])->name('pettyCash.update');
+        Route::post('/opening-balances/reset', [App\Http\Controllers\LedgerController::class, 'resetOpeningBalances'])->name('openingBalances.reset');
 
         Route::get('/import', [App\Http\Controllers\LedgerController::class, 'importForm'])->name('import.form');
         Route::post('/import', [App\Http\Controllers\LedgerController::class, 'importStart'])->name('import.start');

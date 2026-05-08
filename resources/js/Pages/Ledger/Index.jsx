@@ -211,16 +211,27 @@ export default function LedgerIndex({
 
                 {/* Action bar */}
                 <div className="mb-3 flex justify-between items-center">
-                    <div className="text-sm text-gray-600">
-                        {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+                    <div className="text-sm text-gray-600 flex items-center gap-3">
+                        <span>{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</span>
                         {deletedCount > 0 && (
                             <Link
                                 href={`/ledger/deleted/${year}/${month}`}
-                                className="ml-3 text-xs text-blue-600 hover:underline"
+                                className="text-xs text-blue-600 hover:underline"
                             >
                                 {deletedCount} deleted →
                             </Link>
                         )}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (window.confirm('Clear all opening-balance seeds? Use this if balances are showing even though no entries exist. The next import will re-seed them from the XLSX.')) {
+                                    router.post('/ledger/opening-balances/reset');
+                                }
+                            }}
+                            className="text-xs text-red-700 hover:underline"
+                        >
+                            Reset opening balances
+                        </button>
                     </div>
                     <button
                         onClick={openCreate}
