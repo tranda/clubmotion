@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.27] - 2026-05-09
+
+### Fixed
+- Reversing payment status from paid → exempt/pending was unintentionally deleting the whole payment row alongside the ledger mirror. Cause: `MembershipPayment::removeLedgerEntry` was force-deleting the linked entry first and clearing `ledger_entry_id` second; the new ledger-side `deleting` hook from v0.9.26 saw the link still set, found the payment, and cascaded the delete back. Now `removeLedgerEntry` clears the link first, so the entry's own delete hook can no longer reach the payment.
+
 ## [0.9.26] - 2026-05-09
 
 ### Added

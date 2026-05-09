@@ -188,16 +188,20 @@ class MembershipPayment extends Model
     {
         if (!$this->ledger_entry_id) return;
 
-        LedgerEntry::where('id', $this->ledger_entry_id)->forceDelete();
+        // Clear the link BEFORE deleting the entry. Otherwise the entry's
+        // own deleting hook would query MembershipPayment WHERE
+        // ledger_entry_id = X, find this very payment, and delete IT too —
+        // even though the user only wanted to clear the entry, not delete
+        // the payment.
+        $entryId = $this->ledger_entry_id;
         $this->ledger_entry_id = null;
-
-        // Only persist the cleared link when the payment row still exists.
-        // After `$payment->delete()` the model has `exists = false`, and
-        // calling save() would re-INSERT the payment row with the same id,
-        // resurrecting a payment the admin just deleted.
         if ($this->exists) {
+            // Only persist the cleared link when the payment row still
+            // exists. Post-delete the model has `exists = false` and
+            // save() flips to INSERT, resurrecting the payment.
             $this->saveQuietly();
         }
+        LedgerEntry::where('id', $entryId)->forceDelete();
     }
 
     private static function membershipCategoryId(): int
