@@ -10,7 +10,7 @@ class LedgerEntry extends Model
 {
     use HasFactory, SoftDeletes;
 
-    public const BUCKETS = ['cash', 'bank', 'eur'];
+    public const BUCKETS = ['cash', 'bank', 'cash_eur', 'eur'];
     public const TYPES = ['income', 'expense'];
 
     protected $fillable = [

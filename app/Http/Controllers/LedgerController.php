@@ -195,7 +195,7 @@ class LedgerController extends Controller
         return $request->validate([
             'entry_date' => 'required|date',
             'type' => 'required|in:income,expense',
-            'bucket' => 'required|in:cash,bank,eur',
+            'bucket' => 'required|in:' . implode(',', LedgerEntry::BUCKETS),
             'amount' => 'required|numeric|min:0',
             'description' => 'required|string|max:255',
             'ledger_category_id' => 'nullable|exists:ledger_categories,id',

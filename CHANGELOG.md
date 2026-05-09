@@ -2,6 +2,21 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.39] - 2026-05-09
+
+### Added
+- New ledger bucket **Cash EUR** (`cash_eur`) inserted between Bank RSD and Bank EUR in the display order. Lets admin record physical cash held in euros separately from the EUR-denominated bank/reserve.
+- Migration expands the `bucket` ENUM on `ledger_entries` and `ledger_import_staging` from `('cash','bank','eur')` to `('cash','bank','cash_eur','eur')`. Run `php artisan migrate` on the host after pull.
+
+### Changed
+- All places that show buckets now show 4 instead of 3: month-view summary cards, entries table balance column, filter dropdowns, add/edit entry form, Annual report year totals, monthly grid (12 numeric columns instead of 9), Excel Summary + Monthly sheets, PDF Blade template (switched to A4 landscape so the wider monthly table fits).
+- React pages now derive bucket lists from a single `BUCKETS` constant instead of hardcoded arrays, so future bucket changes are one-line edits.
+
+## [0.9.38] - 2026-05-09
+
+### Fixed
+- Kalkulator vremena: na mobilnom (Chrome Android, srpski locale) numerički keyboard nudi samo zarez `,`, koji `<input type="number">` odbija — pa se nije mogla uneti decimalna vrednost. Sva numerička polja na Tools stranici (Custom distanca, GPS brzina, Brzina vetra, koeficijenti vetra) sada koriste `type="text"` + `inputMode="decimal"` i prihvataju kako `,` tako i `.` kao decimalni separator. Parser vremena (`mm:ss.zzz`) takođe prihvata `,` u sekundama (npr. `00:45,500`). Editor koeficijenata sada čuva sirove stringove tokom kucanja, pa se delimični unosi tipa `0,` / `0.` više ne resetuju u `0`.
+
 ## [0.9.37] - 2026-05-09
 
 ### Changed

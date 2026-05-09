@@ -16,7 +16,7 @@
         .num { font-variant-numeric: tabular-nums; }
         .pos { color: #166534; }
         .neg { color: #991b1b; }
-        .totals-card { width: 33%; display: inline-block; vertical-align: top; padding: 4px; box-sizing: border-box; }
+        .totals-card { width: 50%; display: inline-block; vertical-align: top; padding: 4px; box-sizing: border-box; }
         .totals-card .inner { border: 1px solid #ddd; padding: 8px; border-radius: 4px; }
         .totals-card .label { font-size: 9px; text-transform: uppercase; color: #666; }
         .totals-card .row { display: block; margin-top: 3px; }
@@ -37,7 +37,7 @@
 
 <h2>Year totals</h2>
 <div>
-    @foreach (['cash' => 'Cash RSD', 'bank' => 'Bank RSD', 'eur' => 'Bank EUR'] as $b => $label)
+    @foreach (['cash' => 'Cash RSD', 'bank' => 'Bank RSD', 'cash_eur' => 'Cash EUR', 'eur' => 'Bank EUR'] as $b => $label)
     <div class="totals-card">
         <div class="inner">
             <div class="label">{{ $label }}</div>
@@ -57,12 +57,15 @@
             <th>Month</th>
             <th class="r">Inc Cash RSD</th>
             <th class="r">Inc Bank RSD</th>
+            <th class="r">Inc Cash EUR</th>
             <th class="r">Inc Bank EUR</th>
             <th class="r">Exp Cash RSD</th>
             <th class="r">Exp Bank RSD</th>
+            <th class="r">Exp Cash EUR</th>
             <th class="r">Exp Bank EUR</th>
             <th class="r">End Cash RSD</th>
             <th class="r">End Bank RSD</th>
+            <th class="r">End Cash EUR</th>
             <th class="r">End Bank EUR</th>
         </tr>
     </thead>
@@ -72,12 +75,15 @@
             <td>{{ $m['name'] }}</td>
             <td class="r num pos">{{ $fmt($m['income']['cash']) }}</td>
             <td class="r num pos">{{ $fmt($m['income']['bank']) }}</td>
+            <td class="r num pos">{{ $fmt($m['income']['cash_eur']) }}</td>
             <td class="r num pos">{{ $fmt($m['income']['eur']) }}</td>
             <td class="r num neg">{{ $fmt($m['expense']['cash']) }}</td>
             <td class="r num neg">{{ $fmt($m['expense']['bank']) }}</td>
+            <td class="r num neg">{{ $fmt($m['expense']['cash_eur']) }}</td>
             <td class="r num neg">{{ $fmt($m['expense']['eur']) }}</td>
             <td class="r num">{{ $fmt($m['closing']['cash']) }}</td>
             <td class="r num">{{ $fmt($m['closing']['bank']) }}</td>
+            <td class="r num">{{ $fmt($m['closing']['cash_eur']) }}</td>
             <td class="r num">{{ $fmt($m['closing']['eur']) }}</td>
         </tr>
         @endforeach

@@ -1,7 +1,8 @@
 import { Link, router } from '@inertiajs/react';
 import Layout from '../../../Components/Layout';
 
-const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', eur: 'Bank EUR' };
+const BUCKETS = ['cash', 'bank', 'cash_eur', 'eur'];
+const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', cash_eur: 'Cash EUR', eur: 'Bank EUR' };
 
 function fmt(value) {
     const n = Number(value ?? 0);
@@ -45,8 +46,8 @@ export default function AnnualReport({ year, totals, monthly, categories, member
                 </div>
 
                 {/* Year header totals */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-                    {['cash', 'bank', 'eur'].map((b) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                    {BUCKETS.map((b) => (
                         <div key={b} className="bg-white rounded-lg shadow p-4">
                             <div className="text-xs uppercase text-gray-500 font-semibold">{BUCKET_LABELS[b]}</div>
                             <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
@@ -72,36 +73,34 @@ export default function AnnualReport({ year, totals, monthly, categories, member
                         <thead>
                             <tr className="bg-gray-50 text-gray-600 uppercase text-xs">
                                 <th className="px-3 py-2 text-left">Month</th>
-                                <th className="px-3 py-2 text-right" colSpan="3">Income</th>
-                                <th className="px-3 py-2 text-right" colSpan="3">Expense</th>
-                                <th className="px-3 py-2 text-right" colSpan="3">Closing</th>
+                                <th className="px-3 py-2 text-right" colSpan={BUCKETS.length}>Income</th>
+                                <th className="px-3 py-2 text-right" colSpan={BUCKETS.length}>Expense</th>
+                                <th className="px-3 py-2 text-right" colSpan={BUCKETS.length}>Closing</th>
                             </tr>
                             <tr className="bg-gray-50 text-gray-500 text-xs">
                                 <th></th>
-                                <th className="px-3 py-1 text-right font-normal">Cash RSD</th>
-                                <th className="px-3 py-1 text-right font-normal">Bank RSD</th>
-                                <th className="px-3 py-1 text-right font-normal">Bank EUR</th>
-                                <th className="px-3 py-1 text-right font-normal">Cash RSD</th>
-                                <th className="px-3 py-1 text-right font-normal">Bank RSD</th>
-                                <th className="px-3 py-1 text-right font-normal">Bank EUR</th>
-                                <th className="px-3 py-1 text-right font-normal">Cash RSD</th>
-                                <th className="px-3 py-1 text-right font-normal">Bank RSD</th>
-                                <th className="px-3 py-1 text-right font-normal">Bank EUR</th>
+                                {['income', 'expense', 'closing'].flatMap((section) =>
+                                    BUCKETS.map((b) => (
+                                        <th key={`${section}-${b}`} className="px-3 py-1 text-right font-normal whitespace-nowrap">
+                                            {BUCKET_LABELS[b]}
+                                        </th>
+                                    ))
+                                )}
                             </tr>
                         </thead>
                         <tbody>
                             {monthly.map((m) => (
                                 <tr key={m.month} className="border-t border-gray-100 hover:bg-gray-50">
                                     <td className="px-3 py-2">{m.name}</td>
-                                    <td className="px-3 py-2 text-right tabular-nums text-green-700">{fmt(m.income.cash)}</td>
-                                    <td className="px-3 py-2 text-right tabular-nums text-green-700">{fmt(m.income.bank)}</td>
-                                    <td className="px-3 py-2 text-right tabular-nums text-green-700">{fmt(m.income.eur)}</td>
-                                    <td className="px-3 py-2 text-right tabular-nums text-red-700">{fmt(m.expense.cash)}</td>
-                                    <td className="px-3 py-2 text-right tabular-nums text-red-700">{fmt(m.expense.bank)}</td>
-                                    <td className="px-3 py-2 text-right tabular-nums text-red-700">{fmt(m.expense.eur)}</td>
-                                    <td className="px-3 py-2 text-right tabular-nums">{fmt(m.closing.cash)}</td>
-                                    <td className="px-3 py-2 text-right tabular-nums">{fmt(m.closing.bank)}</td>
-                                    <td className="px-3 py-2 text-right tabular-nums">{fmt(m.closing.eur)}</td>
+                                    {BUCKETS.map((b) => (
+                                        <td key={`income-${b}`} className="px-3 py-2 text-right tabular-nums text-green-700">{fmt(m.income[b])}</td>
+                                    ))}
+                                    {BUCKETS.map((b) => (
+                                        <td key={`expense-${b}`} className="px-3 py-2 text-right tabular-nums text-red-700">{fmt(m.expense[b])}</td>
+                                    ))}
+                                    {BUCKETS.map((b) => (
+                                        <td key={`closing-${b}`} className="px-3 py-2 text-right tabular-nums">{fmt(m.closing[b])}</td>
+                                    ))}
                                 </tr>
                             ))}
                         </tbody>

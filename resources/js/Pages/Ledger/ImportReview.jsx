@@ -2,7 +2,7 @@ import { Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
 
-const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', eur: 'Bank EUR' };
+const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', cash_eur: 'Cash EUR', eur: 'Bank EUR' };
 
 export default function LedgerImportReview({ batch, groups, summary, categories, members, memberCategoryIds }) {
     const [mappings, setMappings] = useState(() => groups.map((g) => ({

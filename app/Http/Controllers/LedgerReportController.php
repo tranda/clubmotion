@@ -37,7 +37,7 @@ class LedgerReportController extends Controller
         $year = (int) $request->input('year', Carbon::now()->year);
         $data = $this->assembleAnnual($year);
         $pdf = Pdf::loadView('reports.annual', $data)
-            ->setPaper('a4', 'portrait');
+            ->setPaper('a4', 'landscape');
         return $pdf->download(sprintf('ledger-annual-%d.pdf', $year));
     }
 
@@ -236,19 +236,20 @@ class LedgerReportController extends Controller
         $sheet->setTitle('Summary');
         $sheet->setCellValue('A1', sprintf('Annual Ledger Report — %d', $data['year']));
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
-        $sheet->mergeCells('A1:D1');
+        $sheet->mergeCells('A1:E1');
 
         $sheet->setCellValue('A3', '');
         $sheet->setCellValue('B3', 'Cash RSD');
         $sheet->setCellValue('C3', 'Bank RSD');
-        $sheet->setCellValue('D3', 'Bank EUR');
-        $this->headerStyle($sheet, 'A3:D3');
+        $sheet->setCellValue('D3', 'Cash EUR');
+        $sheet->setCellValue('E3', 'Bank EUR');
+        $this->headerStyle($sheet, 'A3:E3');
 
         $rows = [
-            ['Opening', $data['totals']['opening']['cash'], $data['totals']['opening']['bank'], $data['totals']['opening']['eur']],
-            ['Income', $data['totals']['income']['cash'], $data['totals']['income']['bank'], $data['totals']['income']['eur']],
-            ['Expenses', $data['totals']['expense']['cash'], $data['totals']['expense']['bank'], $data['totals']['expense']['eur']],
-            ['Closing', $data['totals']['closing']['cash'], $data['totals']['closing']['bank'], $data['totals']['closing']['eur']],
+            ['Opening',  $data['totals']['opening']['cash'],  $data['totals']['opening']['bank'],  $data['totals']['opening']['cash_eur'],  $data['totals']['opening']['eur']],
+            ['Income',   $data['totals']['income']['cash'],   $data['totals']['income']['bank'],   $data['totals']['income']['cash_eur'],   $data['totals']['income']['eur']],
+            ['Expenses', $data['totals']['expense']['cash'],  $data['totals']['expense']['bank'],  $data['totals']['expense']['cash_eur'],  $data['totals']['expense']['eur']],
+            ['Closing',  $data['totals']['closing']['cash'],  $data['totals']['closing']['bank'],  $data['totals']['closing']['cash_eur'],  $data['totals']['closing']['eur']],
         ];
         $r = 4;
         foreach ($rows as $row) {
@@ -256,12 +257,13 @@ class LedgerReportController extends Controller
             $sheet->setCellValue("B{$r}", $row[1]);
             $sheet->setCellValue("C{$r}", $row[2]);
             $sheet->setCellValue("D{$r}", $row[3]);
-            $sheet->getStyle("B{$r}:D{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->setCellValue("E{$r}", $row[4]);
+            $sheet->getStyle("B{$r}:E{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
             $r++;
         }
         // Bold the Closing row (row 7).
-        $sheet->getStyle("A7:D7")->getFont()->setBold(true);
-        foreach (['A', 'B', 'C', 'D'] as $col) $sheet->getColumnDimension($col)->setAutoSize(true);
+        $sheet->getStyle("A7:E7")->getFont()->setBold(true);
+        foreach (['A', 'B', 'C', 'D', 'E'] as $col) $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 
     private function buildMonthlySheet($sheet, array $data): void
@@ -270,31 +272,37 @@ class LedgerReportController extends Controller
         $sheet->setCellValue('A1', 'Month');
         $sheet->setCellValue('B1', 'Income (Cash RSD)');
         $sheet->setCellValue('C1', 'Income (Bank RSD)');
-        $sheet->setCellValue('D1', 'Income (Bank EUR)');
-        $sheet->setCellValue('E1', 'Expense (Cash RSD)');
-        $sheet->setCellValue('F1', 'Expense (Bank RSD)');
-        $sheet->setCellValue('G1', 'Expense (Bank EUR)');
-        $sheet->setCellValue('H1', 'Closing (Cash RSD)');
-        $sheet->setCellValue('I1', 'Closing (Bank RSD)');
-        $sheet->setCellValue('J1', 'Closing (Bank EUR)');
-        $this->headerStyle($sheet, 'A1:J1');
+        $sheet->setCellValue('D1', 'Income (Cash EUR)');
+        $sheet->setCellValue('E1', 'Income (Bank EUR)');
+        $sheet->setCellValue('F1', 'Expense (Cash RSD)');
+        $sheet->setCellValue('G1', 'Expense (Bank RSD)');
+        $sheet->setCellValue('H1', 'Expense (Cash EUR)');
+        $sheet->setCellValue('I1', 'Expense (Bank EUR)');
+        $sheet->setCellValue('J1', 'Closing (Cash RSD)');
+        $sheet->setCellValue('K1', 'Closing (Bank RSD)');
+        $sheet->setCellValue('L1', 'Closing (Cash EUR)');
+        $sheet->setCellValue('M1', 'Closing (Bank EUR)');
+        $this->headerStyle($sheet, 'A1:M1');
 
         $r = 2;
         foreach ($data['monthly'] as $m) {
             $sheet->setCellValue("A{$r}", $m['name']);
             $sheet->setCellValue("B{$r}", $m['income']['cash']);
             $sheet->setCellValue("C{$r}", $m['income']['bank']);
-            $sheet->setCellValue("D{$r}", $m['income']['eur']);
-            $sheet->setCellValue("E{$r}", $m['expense']['cash']);
-            $sheet->setCellValue("F{$r}", $m['expense']['bank']);
-            $sheet->setCellValue("G{$r}", $m['expense']['eur']);
-            $sheet->setCellValue("H{$r}", $m['closing']['cash']);
-            $sheet->setCellValue("I{$r}", $m['closing']['bank']);
-            $sheet->setCellValue("J{$r}", $m['closing']['eur']);
-            $sheet->getStyle("B{$r}:J{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->setCellValue("D{$r}", $m['income']['cash_eur']);
+            $sheet->setCellValue("E{$r}", $m['income']['eur']);
+            $sheet->setCellValue("F{$r}", $m['expense']['cash']);
+            $sheet->setCellValue("G{$r}", $m['expense']['bank']);
+            $sheet->setCellValue("H{$r}", $m['expense']['cash_eur']);
+            $sheet->setCellValue("I{$r}", $m['expense']['eur']);
+            $sheet->setCellValue("J{$r}", $m['closing']['cash']);
+            $sheet->setCellValue("K{$r}", $m['closing']['bank']);
+            $sheet->setCellValue("L{$r}", $m['closing']['cash_eur']);
+            $sheet->setCellValue("M{$r}", $m['closing']['eur']);
+            $sheet->getStyle("B{$r}:M{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
             $r++;
         }
-        foreach (range('A', 'J') as $col) $sheet->getColumnDimension($col)->setAutoSize(true);
+        foreach (range('A', 'M') as $col) $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 
     private function buildCategoriesSheet($sheet, array $data): void

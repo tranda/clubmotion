@@ -7,7 +7,8 @@ const MONTHS = [
     'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', eur: 'Bank EUR' };
+const BUCKETS = ['cash', 'bank', 'cash_eur', 'eur'];
+const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', cash_eur: 'Cash EUR', eur: 'Bank EUR' };
 
 function MultiSelectDropdown({ placeholder, options, selected, onChange }) {
     const [open, setOpen] = useState(false);
@@ -279,8 +280,8 @@ export default function LedgerIndex({
                 </div>
 
                 {/* Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                    {['cash', 'bank', 'eur'].map((b) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    {BUCKETS.map((b) => (
                         <div key={b} className="bg-white rounded-lg shadow p-4">
                             <div className="text-xs uppercase text-gray-500 font-semibold">{BUCKET_LABELS[b]}</div>
                             <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
@@ -347,6 +348,7 @@ export default function LedgerIndex({
                         options={[
                             { value: 'cash', label: 'Cash RSD' },
                             { value: 'bank', label: 'Bank RSD' },
+                            { value: 'cash_eur', label: 'Cash EUR' },
                             { value: 'eur', label: 'Bank EUR' },
                         ]}
                         selected={bucketFilter}
@@ -416,7 +418,7 @@ export default function LedgerIndex({
                                 <th className="px-3 py-2 text-right">Income</th>
                                 <th className="px-3 py-2 text-right">Expense</th>
                                 <th className="px-3 py-2 text-left">Bucket</th>
-                                <th className="px-3 py-2 text-right">Balance ({BUCKET_LABELS.cash}/{BUCKET_LABELS.bank}/{BUCKET_LABELS.eur})</th>
+                                <th className="px-3 py-2 text-right">Balance ({BUCKETS.map((b) => BUCKET_LABELS[b]).join(' / ')})</th>
                                 <th className="px-3 py-2 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -443,7 +445,7 @@ export default function LedgerIndex({
                                     </td>
                                     <td className="px-3 py-2">{BUCKET_LABELS[e.bucket]}</td>
                                     <td className="px-3 py-2 text-right tabular-nums text-xs text-gray-500">
-                                        {formatAmount(e.balance.cash)} / {formatAmount(e.balance.bank)} / {formatAmount(e.balance.eur)}
+                                        {BUCKETS.map((b) => formatAmount(e.balance[b])).join(' / ')}
                                     </td>
                                     <td className="px-3 py-2 text-right whitespace-nowrap">
                                         <button onClick={() => openEdit(e)} className="px-2 py-1 text-xs bg-gray-100 rounded hover:bg-gray-200 mr-1">Edit</button>
@@ -504,6 +506,7 @@ export default function LedgerIndex({
                                         >
                                             <option value="cash">Cash RSD (keš)</option>
                                             <option value="bank">Bank RSD (račun)</option>
+                                            <option value="cash_eur">Cash EUR</option>
                                             <option value="eur">Bank EUR (evri)</option>
                                         </select>
                                     </div>

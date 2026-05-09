@@ -85,9 +85,9 @@ function formatSecondsToTime(totalSeconds) {
 }
 
 function coefSetEqual(a, b) {
-    return Number(a.tail) === Number(b.tail)
-        && Number(a.head) === Number(b.head)
-        && Number(a.side) === Number(b.side);
+    return parseDecimal(a.tail) === parseDecimal(b.tail)
+        && parseDecimal(a.head) === parseDecimal(b.head)
+        && parseDecimal(a.side) === parseDecimal(b.side);
 }
 
 function allCoefsEqual(a, b) {
@@ -98,6 +98,7 @@ function allCoefsEqual(a, b) {
     return true;
 }
 
+// Normalize server-shaped coefs (numbers) into the canonical numeric form used for math.
 function normalizeCoefs(input) {
     const result = {};
     for (const d of PRESET_DISTANCES) {
@@ -107,6 +108,20 @@ function normalizeCoefs(input) {
             tail: Number.isFinite(Number(src.tail)) ? Number(src.tail) : DEFAULT_COEF_SET.tail,
             head: Number.isFinite(Number(src.head)) ? Number(src.head) : DEFAULT_COEF_SET.head,
             side: Number.isFinite(Number(src.side)) ? Number(src.side) : DEFAULT_COEF_SET.side,
+        };
+    }
+    return result;
+}
+
+// String-shaped form used in the editor so partial typing like "0," / "0." is preserved.
+function coefsToStrings(coefs) {
+    const result = {};
+    for (const d of PRESET_DISTANCES) {
+        const k = String(d);
+        result[k] = {
+            tail: String(coefs[k].tail),
+            head: String(coefs[k].head),
+            side: String(coefs[k].side),
         };
     }
     return result;
@@ -125,7 +140,7 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
 
     const initialCoefs = normalizeCoefs(serverCoefs);
     const [savedCoefs, setSavedCoefs] = useState(initialCoefs);
-    const [editCoefs,  setEditCoefs]  = useState(initialCoefs);
+    const [editCoefs,  setEditCoefs]  = useState(coefsToStrings(initialCoefs));
     const [coefsOpen,  setCoefsOpen]  = useState(false);
     const [saving,     setSaving]     = useState(false);
     const [savedFlash, setSavedFlash] = useState(false);
@@ -135,7 +150,7 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
         if (!serverCoefs) return;
         const norm = normalizeCoefs(serverCoefs);
         setSavedCoefs(norm);
-        setEditCoefs(norm);
+        setEditCoefs(coefsToStrings(norm));
     }, [serverCoefs]);
 
     const dirty = !allCoefsEqual(savedCoefs, editCoefs);
@@ -143,7 +158,7 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
     // Resolve effective distance (number) and which preset's coefs to use.
     const distInfo = useMemo(() => {
         if (distanceKey === 'custom') {
-            const d = customDistance === '' ? NaN : Number(customDistance);
+            const d = parseDecimal(customDistance);
             if (!Number.isFinite(d) || d <= 0) {
                 return { dist: null, presetKey: null, isFallback: false };
             }
@@ -154,7 +169,7 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
     }, [distanceKey, customDistance]);
 
     const result = useMemo(() => {
-        const wind = windSpeed === '' ? null : Number(windSpeed);
+        const wind = windSpeed === '' ? null : parseDecimal(windSpeed);
         const distOk = distInfo.dist !== null && Number.isFinite(distInfo.dist) && distInfo.dist > 0;
         const windOk = wind !== null && Number.isFinite(wind) && wind >= 0;
         const coefSet = distInfo.presetKey ? savedCoefs[distInfo.presetKey] : DEFAULT_COEF_SET;
@@ -171,7 +186,7 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
                 baseTimeSec = seconds;
             }
         } else {
-            const v = gpsSpeed === '' ? null : Number(gpsSpeed);
+            const v = gpsSpeed === '' ? null : parseDecimal(gpsSpeed);
             const speedOk = v !== null && Number.isFinite(v) && v > 0;
             if (speedOk) {
                 baseKmh = v;
@@ -195,21 +210,33 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
     const fmtTime = (v) => v === null ? '—' : formatSecondsToTime(v);
 
     const updateEditCoef = (distKey, fieldKey, raw) => {
-        const num = raw === '' ? '' : Number(raw);
         setEditCoefs(prev => ({
             ...prev,
             [distKey]: {
                 ...prev[distKey],
-                [fieldKey]: raw === '' ? 0 : (Number.isFinite(num) ? num : prev[distKey][fieldKey]),
+                [fieldKey]: raw,
             },
         }));
     };
 
-    const resetEditCoefs = () => setEditCoefs(normalizeCoefs(null));
+    const resetEditCoefs = () => setEditCoefs(coefsToStrings(normalizeCoefs(null)));
 
     const saveCoefs = () => {
+        // Convert string editor values back to numbers for the server.
+        const payload = {};
+        for (const d of PRESET_DISTANCES) {
+            const k = String(d);
+            const t = parseDecimal(editCoefs[k].tail);
+            const h = parseDecimal(editCoefs[k].head);
+            const s = parseDecimal(editCoefs[k].side);
+            payload[k] = {
+                tail: Number.isFinite(t) ? t : 0,
+                head: Number.isFinite(h) ? h : 0,
+                side: Number.isFinite(s) ? s : 0,
+            };
+        }
         setSaving(true);
-        router.put('/tools/coefs', { coefs: editCoefs }, {
+        router.put('/tools/coefs', { coefs: payload }, {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
@@ -279,10 +306,8 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
                             {distanceKey === 'custom' && (
                                 <>
                                     <input
-                                        type="number"
+                                        type="text"
                                         inputMode="decimal"
-                                        step="any"
-                                        min="0"
                                         value={customDistance}
                                         onChange={(e) => setCustomDistance(e.target.value)}
                                         className="w-full px-3 py-2 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -318,10 +343,8 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
                                     GPS brzina (km/h)
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     inputMode="decimal"
-                                    step="any"
-                                    min="0"
                                     value={gpsSpeed}
                                     onChange={(e) => setGpsSpeed(e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -336,10 +359,8 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
                                 Brzina vetra (km/h)
                             </label>
                             <input
-                                type="number"
+                                type="text"
                                 inputMode="decimal"
-                                step="any"
-                                min="0"
                                 value={windSpeed}
                                 onChange={(e) => setWindSpeed(e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -428,11 +449,8 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
                                                         {['tail', 'head', 'side'].map(field => (
                                                             <td key={field} className="py-2 px-2">
                                                                 <input
-                                                                    type="number"
+                                                                    type="text"
                                                                     inputMode="decimal"
-                                                                    step="0.001"
-                                                                    min="0"
-                                                                    max="1"
                                                                     value={editCoefs[k][field]}
                                                                     onChange={(e) => updateEditCoef(k, field, e.target.value)}
                                                                     className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
