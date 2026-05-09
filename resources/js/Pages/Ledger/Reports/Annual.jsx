@@ -50,13 +50,15 @@ export default function AnnualReport({ year, totals, monthly, categories, member
                         <div key={b} className="bg-white rounded-lg shadow p-4">
                             <div className="text-xs uppercase text-gray-500 font-semibold">{BUCKET_LABELS[b]}</div>
                             <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                                <div className="text-gray-600">Opening</div>
+                                <div className="text-right tabular-nums">{fmt(totals.opening[b])}</div>
                                 <div className="text-green-700">Income</div>
                                 <div className="text-right tabular-nums text-green-700">+{fmt(totals.income[b])}</div>
                                 <div className="text-red-700">Expenses</div>
                                 <div className="text-right tabular-nums text-red-700">-{fmt(totals.expense[b])}</div>
-                                <div className="font-semibold border-t border-gray-100 pt-1">Net</div>
-                                <div className={`text-right font-semibold tabular-nums border-t border-gray-100 pt-1 ${totals.net[b] >= 0 ? 'text-gray-900' : 'text-red-700'}`}>
-                                    {fmt(totals.net[b])}
+                                <div className="font-semibold border-t border-gray-100 pt-1">Closing</div>
+                                <div className={`text-right font-semibold tabular-nums border-t border-gray-100 pt-1 ${totals.closing[b] >= 0 ? 'text-gray-900' : 'text-red-700'}`}>
+                                    {fmt(totals.closing[b])}
                                 </div>
                             </div>
                         </div>

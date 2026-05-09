@@ -41,9 +41,10 @@
     <div class="totals-card">
         <div class="inner">
             <div class="label">{{ $label }}</div>
+            <div class="row"><span class="k">Opening</span><span class="v num">{{ $fmt($totals['opening'][$b]) }}</span></div>
             <div class="row"><span class="k pos">Income</span><span class="v num pos">+{{ $fmt($totals['income'][$b]) }}</span></div>
             <div class="row"><span class="k neg">Expense</span><span class="v num neg">-{{ $fmt($totals['expense'][$b]) }}</span></div>
-            <div class="row net-row"><span class="k">Net</span><span class="v num">{{ $fmt($totals['net'][$b]) }}</span></div>
+            <div class="row net-row"><span class="k">Closing</span><span class="v num">{{ $fmt($totals['closing'][$b]) }}</span></div>
         </div>
     </div>
     @endforeach

@@ -67,9 +67,18 @@ class LedgerReportController extends Controller
     private function assembleAnnual(int $year): array
     {
         $buckets = LedgerEntry::BUCKETS;
+        $seedYear = $this->earliestSeedYear() ?? $year;
 
-        // Year totals per bucket × type
-        $totals = ['income' => [], 'expense' => [], 'net' => []];
+        $yearStart = sprintf('%04d-01-01', $year);
+        $dayBeforeYear = date('Y-m-d', strtotime($yearStart . ' -1 day'));
+        $yearEnd = sprintf('%04d-12-31', $year);
+
+        // Year totals per bucket × type, plus opening (carried-forward
+        // balance at year start) and closing (balance at year end). Opening
+        // balances are stored in payment_settings as seeded values, so an
+        // entries-only sum understates the position when a bucket had no
+        // transactions during the year.
+        $totals = ['opening' => [], 'income' => [], 'expense' => [], 'net' => [], 'closing' => []];
         foreach ($buckets as $b) {
             $income = (float) LedgerEntry::query()
                 ->forYear($year)
@@ -81,13 +90,14 @@ class LedgerReportController extends Controller
                 ->where('bucket', $b)
                 ->where('type', 'expense')
                 ->sum('amount');
+            $totals['opening'][$b] = LedgerEntry::runningBalance($b, $dayBeforeYear, $seedYear);
             $totals['income'][$b] = $income;
             $totals['expense'][$b] = $expense;
             $totals['net'][$b] = $income - $expense;
+            $totals['closing'][$b] = LedgerEntry::runningBalance($b, $yearEnd, $seedYear);
         }
 
         // Monthly breakdown
-        $seedYear = $this->earliestSeedYear() ?? $year;
         $monthly = [];
         for ($m = 1; $m <= 12; $m++) {
             $row = [
@@ -235,9 +245,10 @@ class LedgerReportController extends Controller
         $this->headerStyle($sheet, 'A3:D3');
 
         $rows = [
+            ['Opening', $data['totals']['opening']['cash'], $data['totals']['opening']['bank'], $data['totals']['opening']['eur']],
             ['Income', $data['totals']['income']['cash'], $data['totals']['income']['bank'], $data['totals']['income']['eur']],
             ['Expenses', $data['totals']['expense']['cash'], $data['totals']['expense']['bank'], $data['totals']['expense']['eur']],
-            ['Net', $data['totals']['net']['cash'], $data['totals']['net']['bank'], $data['totals']['net']['eur']],
+            ['Closing', $data['totals']['closing']['cash'], $data['totals']['closing']['bank'], $data['totals']['closing']['eur']],
         ];
         $r = 4;
         foreach ($rows as $row) {
@@ -248,7 +259,8 @@ class LedgerReportController extends Controller
             $sheet->getStyle("B{$r}:D{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
             $r++;
         }
-        $sheet->getStyle("A6:D6")->getFont()->setBold(true);
+        // Bold the Closing row (row 7).
+        $sheet->getStyle("A7:D7")->getFont()->setBold(true);
         foreach (['A', 'B', 'C', 'D'] as $col) $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 

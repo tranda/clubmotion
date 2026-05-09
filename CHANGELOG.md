@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.29] - 2026-05-09
+
+### Fixed
+- Annual Ledger Report's bucket totals card was misleading for buckets with carried-forward opening balances but no in-year transactions (e.g. EUR showing all zeros even though the year started with 1,286 RSD-equivalent EUR seeded from the XLSX). The card summed entries only, but opening balances live in `payment_settings`. Cards now show four lines: Opening / Income / Expense / Closing — matching the monthly view's bucket cards. Excel Summary sheet and PDF totals card updated to match.
+
 ## [0.9.28] - 2026-05-09
 
 ### Added
