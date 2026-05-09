@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.24] - 2026-05-09
+
+### Changed
+- Auto-synced payment-derived ledger entries now use a shorter description: "Membership MAY" instead of "Member Name — Membership MAY 2026". Member name is already shown in its own column, year is already implicit in the entry date and selected month.
+
 ## [0.9.23] - 2026-05-09
 
 ### Added

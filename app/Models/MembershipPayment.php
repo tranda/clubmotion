@@ -151,9 +151,8 @@ class MembershipPayment extends Model
             5 => 'MAY', 6 => 'JUN', 7 => 'JUL', 8 => 'AUG',
             9 => 'SEP', 10 => 'OCT', 11 => 'NOV', 12 => 'DEC',
         ];
-        $memberName = optional($this->member)->name ?? '';
         $monthLabel = $monthNames[$this->payment_month] ?? '';
-        $description = trim("{$memberName} — Membership {$monthLabel} {$this->payment_year}");
+        $description = trim("Membership {$monthLabel}");
 
         $payload = [
             'entry_date' => $this->payment_date,
