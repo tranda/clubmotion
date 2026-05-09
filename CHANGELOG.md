@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.22] - 2026-05-09
+
+### Changed
+- Replaced the separate Totals panel with a single footer row inside the entries table itself: "Total" label spanning the descriptive columns, then summed Income and Expense values aligned under their respective columns. Reflects the visible (filtered) rows.
+
 ## [0.9.21] - 2026-05-09
 
 ### Added
