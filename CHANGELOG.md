@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.26] - 2026-05-09
+
+### Added
+- Two-way sync between Membership payments and their linked Ledger entries:
+  - **Updating** a payment-linked ledger entry (amount, entry_date, or bucket) writes back to the payment: `paid_amount`, `payment_date`, and `payment_method` are kept in step. Bank bucket maps to whatever the payment already had (`card` or `bank_transfer`); cash bucket → `cash`; EUR bucket leaves the payment_method untouched (no EUR method exists).
+  - **Deleting** a payment-linked ledger entry deletes the corresponding payment too (link is broken first to prevent the payment's own delete hook from re-firing on the entry).
+  - Description, category, and member are still ledger-only and don't propagate back.
+
 ## [0.9.25] - 2026-05-09
 
 ### Fixed

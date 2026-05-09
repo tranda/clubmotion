@@ -47,6 +47,69 @@ class LedgerEntry extends Model
         return $this->belongsTo(Member::class);
     }
 
+    public function membershipPayment()
+    {
+        return $this->hasOne(MembershipPayment::class, 'ledger_entry_id');
+    }
+
+    protected static function booted()
+    {
+        static::saved(function (LedgerEntry $entry) {
+            $entry->syncToLinkedPayment();
+        });
+        static::deleting(function (LedgerEntry $entry) {
+            $entry->deleteLinkedPayment();
+        });
+    }
+
+    /**
+     * Reverse leg of the Payment ↔ Ledger sync. When a payment-linked
+     * ledger entry is updated, write back the relevant fields to the
+     * payment (amount, date, payment_method derived from the bucket).
+     * Skipped when no linked payment exists or no relevant field changed.
+     */
+    public function syncToLinkedPayment(): void
+    {
+        if (!$this->wasChanged(['amount', 'entry_date', 'bucket'])) return;
+
+        $payment = MembershipPayment::where('ledger_entry_id', $this->id)->first();
+        if (!$payment) return;
+
+        $method = match ($this->bucket) {
+            'cash' => 'cash',
+            'bank' => in_array($payment->payment_method, ['card', 'bank_transfer'], true)
+                ? $payment->payment_method
+                : 'bank_transfer',
+            'eur' => $payment->payment_method, // no EUR method on payments; keep as-is
+            default => $payment->payment_method,
+        };
+
+        $payment->fill([
+            'paid_amount' => $this->amount,
+            'payment_date' => $this->entry_date instanceof \DateTimeInterface
+                ? $this->entry_date->format('Y-m-d')
+                : $this->entry_date,
+            'payment_method' => $method,
+        ]);
+        $payment->saveQuietly();
+    }
+
+    /**
+     * If a ledger entry has a linked payment, deleting the entry should
+     * also delete the payment (per user's 2-way model). Break the link
+     * BEFORE deleting the payment so the payment's own deleted-hook
+     * won't try to re-delete this entry while it's already deleting.
+     */
+    public function deleteLinkedPayment(): void
+    {
+        $payment = MembershipPayment::where('ledger_entry_id', $this->id)->first();
+        if (!$payment) return;
+
+        $payment->ledger_entry_id = null;
+        $payment->saveQuietly();
+        $payment->delete();
+    }
+
     public function importBatch()
     {
         return $this->belongsTo(LedgerImportBatch::class, 'import_batch_id');
