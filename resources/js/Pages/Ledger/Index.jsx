@@ -232,7 +232,15 @@ export default function LedgerIndex({
             <div className="py-4 max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <h1 className="text-2xl font-bold text-gray-800">Ledger</h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-gray-800">Ledger</h1>
+                        <Link
+                            href={`/ledger/reports/annual?year=${year}`}
+                            className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                        >
+                            Reports
+                        </Link>
+                    </div>
                     <div className="flex flex-wrap gap-2 items-center">
                         <select
                             value={year}
@@ -254,12 +262,6 @@ export default function LedgerIndex({
                             className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                         >
                             Categories
-                        </Link>
-                        <Link
-                            href={`/ledger/reports/annual?year=${year}`}
-                            className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                        >
-                            Reports
                         </Link>
                         <Link
                             href="/ledger/import"

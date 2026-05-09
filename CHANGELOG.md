@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.30] - 2026-05-09
+
+### Changed
+- Moved the Reports button on the Ledger page to the left side, next to the "Ledger" title, so it sits separately from the per-month action group on the right (year/month selectors, Categories, Import, Export).
+
 ## [0.9.29] - 2026-05-09
 
 ### Fixed
