@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.43] - 2026-05-09
+
+### Added
+- Second **+ Add entry** button on the Ledger month view, placed below the entries table, so admins on a long list don't need to scroll back to the top to add a new row.
+
 ## [0.9.42] - 2026-05-09
 
 ### Changed

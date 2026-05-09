@@ -616,6 +616,16 @@ export default function LedgerIndex({
                     </table>
                 </div>
 
+                {/* Add entry button below the table for easier access on long lists */}
+                <div className="mt-3 flex justify-end">
+                    <button
+                        onClick={openCreate}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                        + Add entry
+                    </button>
+                </div>
+
                 <ConfirmModal
                     open={!!confirmDelete}
                     title="Delete entry?"
