@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.25] - 2026-05-09
+
+### Fixed
+- Deleting a Membership Payment was silently re-creating the payment row right after it was deleted. Cause: my Ledger sync hook called `saveQuietly()` to clear `ledger_entry_id`, but on a model with `exists=false` (post-delete) save() flips to INSERT and resurrected the row with the same id. Now the link-clearing save is gated on `$this->exists`, so it runs during normal updates but is skipped during deletion. Linked ledger entry still gets force-deleted as before.
+
 ## [0.9.24] - 2026-05-09
 
 ### Changed
