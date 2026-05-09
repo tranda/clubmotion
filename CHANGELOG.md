@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.19] - 2026-05-09
+
+### Changed
+- Ledger filters revert to a dropdown look but support multi-select via checkboxes inside the dropdown panel. Closed state shows the selected label (or "N selected" when more than one); panel has a "Clear" link when anything is selected. Outside-click closes.
+
 ## [0.9.18] - 2026-05-09
 
 ### Changed

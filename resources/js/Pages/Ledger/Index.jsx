@@ -1,5 +1,5 @@
 import { Link, router, useForm } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Layout from '../../Components/Layout';
 
 const MONTHS = [
@@ -8,6 +8,84 @@ const MONTHS = [
 ];
 
 const BUCKET_LABELS = { cash: 'Cash', bank: 'Bank', eur: 'EUR' };
+
+function MultiSelectDropdown({ placeholder, options, selected, onChange }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    const selectedSet = new Set(selected.map(String));
+    const toggle = (value) => {
+        const v = String(value);
+        const next = selectedSet.has(v)
+            ? selected.map(String).filter((x) => x !== v)
+            : [...selected.map(String), v];
+        onChange(next);
+    };
+
+    const labelOfSelected = () => {
+        if (selectedSet.size === 0) return placeholder;
+        if (selectedSet.size === 1) {
+            const opt = options.find((o) => String(o.value) === [...selectedSet][0]);
+            return opt?.label ?? placeholder;
+        }
+        return `${selectedSet.size} selected`;
+    };
+
+    return (
+        <div className="relative" ref={ref}>
+            <button
+                type="button"
+                onClick={() => setOpen(!open)}
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white hover:bg-gray-50 flex items-center gap-2 min-w-[140px] justify-between"
+            >
+                <span className={selectedSet.size ? 'text-gray-900' : 'text-gray-500'}>
+                    {labelOfSelected()}
+                </span>
+                <svg className="w-4 h-4 text-gray-500" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            {open && (
+                <div className="absolute z-20 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-72 overflow-y-auto">
+                    {selectedSet.size > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => onChange([])}
+                            className="w-full text-left px-3 py-1.5 text-xs text-blue-600 hover:bg-blue-50 border-b border-gray-100"
+                        >
+                            Clear ({selectedSet.size})
+                        </button>
+                    )}
+                    {options.map((opt) => {
+                        const checked = selectedSet.has(String(opt.value));
+                        return (
+                            <label
+                                key={opt.value}
+                                className="flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-gray-50 cursor-pointer"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => toggle(opt.value)}
+                                />
+                                <span>{opt.label}</span>
+                            </label>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
 
 function formatAmount(value, bucket) {
     if (value === null || value === undefined) return '—';
@@ -71,14 +149,10 @@ export default function LedgerIndex({
         return out;
     };
 
-    const toggleFilter = (key, value) => {
-        const current = key === 'type' ? typeFilter : key === 'bucket' ? bucketFilter : categoryFilter;
-        const v = String(value);
-        const next = current.map(String).includes(v)
-            ? current.filter((x) => String(x) !== v)
-            : [...current, v];
-        const params = { year, month, ...activeFilterParams(), [key]: next };
-        if (next.length === 0) delete params[key];
+    const setFilterArray = (key, values) => {
+        const params = { year, month, ...activeFilterParams() };
+        if (values.length) params[key] = values;
+        else delete params[key];
         router.get('/ledger', params, { preserveState: false, preserveScroll: true });
     };
 
@@ -87,13 +161,6 @@ export default function LedgerIndex({
     const clearFilters = () => {
         router.get('/ledger', { year, month }, { preserveState: false });
     };
-
-    const pillClass = (active) =>
-        `px-3 py-1 text-xs rounded-full border transition-colors ${
-            active
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-        }`;
 
     const openCreate = () => {
         entryForm.setData(blankEntry(year, month));
@@ -246,72 +313,44 @@ export default function LedgerIndex({
                 </div>
 
                 {/* Filters */}
-                <div className="mb-3 bg-white rounded-lg shadow p-3 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs uppercase text-gray-500 font-semibold w-20">Type</span>
-                        {[
-                            { v: 'income', label: 'Income' },
-                            { v: 'expense', label: 'Expenses' },
-                        ].map((opt) => (
-                            <button
-                                key={opt.v}
-                                type="button"
-                                onClick={() => toggleFilter('type', opt.v)}
-                                className={pillClass(typeFilter.includes(opt.v))}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs uppercase text-gray-500 font-semibold w-20">Bucket</span>
-                        {[
-                            { v: 'cash', label: 'Cash' },
-                            { v: 'bank', label: 'Bank' },
-                            { v: 'eur', label: 'EUR' },
-                        ].map((opt) => (
-                            <button
-                                key={opt.v}
-                                type="button"
-                                onClick={() => toggleFilter('bucket', opt.v)}
-                                className={pillClass(bucketFilter.includes(opt.v))}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="flex flex-wrap items-start gap-2">
-                        <span className="text-xs uppercase text-gray-500 font-semibold w-20 mt-1">Category</span>
-                        <div className="flex flex-wrap gap-2 flex-1">
-                            <button
-                                type="button"
-                                onClick={() => toggleFilter('category_id', 'none')}
-                                className={pillClass(categoryFilter.includes('none'))}
-                            >
-                                Uncategorized
-                            </button>
-                            {categories.map((c) => (
-                                <button
-                                    key={c.id}
-                                    type="button"
-                                    onClick={() => toggleFilter('category_id', c.id)}
-                                    className={pillClass(categoryFilter.includes(String(c.id)))}
-                                >
-                                    {c.name}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                <div className="mb-3 bg-white rounded-lg shadow p-3 flex flex-wrap items-center gap-2">
+                    <span className="text-xs uppercase text-gray-500 font-semibold mr-1">Filter</span>
+                    <MultiSelectDropdown
+                        placeholder="All types"
+                        options={[
+                            { value: 'income', label: 'Income' },
+                            { value: 'expense', label: 'Expenses' },
+                        ]}
+                        selected={typeFilter}
+                        onChange={(vals) => setFilterArray('type', vals)}
+                    />
+                    <MultiSelectDropdown
+                        placeholder="All buckets"
+                        options={[
+                            { value: 'cash', label: 'Cash' },
+                            { value: 'bank', label: 'Bank' },
+                            { value: 'eur', label: 'EUR' },
+                        ]}
+                        selected={bucketFilter}
+                        onChange={(vals) => setFilterArray('bucket', vals)}
+                    />
+                    <MultiSelectDropdown
+                        placeholder="All categories"
+                        options={[
+                            { value: 'none', label: '— Uncategorized —' },
+                            ...categories.map((c) => ({ value: c.id, label: c.name })),
+                        ]}
+                        selected={categoryFilter}
+                        onChange={(vals) => setFilterArray('category_id', vals)}
+                    />
                     {filtersActive && (
-                        <div className="pt-1">
-                            <button
-                                type="button"
-                                onClick={clearFilters}
-                                className="text-xs text-blue-600 hover:underline"
-                            >
-                                Clear all filters
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            onClick={clearFilters}
+                            className="text-xs text-blue-600 hover:underline ml-2"
+                        >
+                            Clear filters
+                        </button>
                     )}
                 </div>
 
