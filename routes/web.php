@@ -206,6 +206,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/deleted/{year}/{month}', [App\Http\Controllers\LedgerController::class, 'deletedEntries'])->name('deleted');
         Route::get('/export/{year}/{month?}', [App\Http\Controllers\LedgerController::class, 'export'])->name('export');
+
+        Route::get('/reports/annual', [App\Http\Controllers\LedgerReportController::class, 'annual'])->name('reports.annual');
+        Route::get('/reports/annual/pdf', [App\Http\Controllers\LedgerReportController::class, 'annualPdf'])->name('reports.annual.pdf');
+        Route::get('/reports/annual/excel', [App\Http\Controllers\LedgerReportController::class, 'annualExcel'])->name('reports.annual.excel');
     });
 
     // Migration runner - Admin only (remove after first use)

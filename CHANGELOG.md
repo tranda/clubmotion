@@ -2,6 +2,21 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.28] - 2026-05-09
+
+### Added
+- Annual Ledger report page at `/ledger/reports/annual` (admin-only). Year selector at top, then four sections:
+  - Per-bucket year totals (Income / Expense / Net for Cash / Bank / EUR)
+  - Monthly breakdown table (12 rows × 9 columns: income, expense, closing per bucket per month)
+  - Per-category totals (Income, Expense, Net for every category that had activity in the year)
+  - Per-member contributions (Membership / Registration / Other / Total per member, income only)
+- **Download PDF** — server-side render via dompdf, A4 portrait, single-click download.
+- **Download Excel** — multi-sheet workbook (Summary / Monthly / Categories / Members) using PhpSpreadsheet.
+- "Reports" link added to the Ledger month view next to Categories / Import.
+
+### Changed
+- Added composer dependencies: `barryvdh/laravel-dompdf ^2.2` (and its `dompdf/dompdf 2.0.8` engine), both PHP 8.0 compatible. Run `composer install` on the host once after pull.
+
 ## [0.9.27] - 2026-05-09
 
 ### Fixed

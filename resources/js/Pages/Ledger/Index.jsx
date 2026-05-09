@@ -256,6 +256,12 @@ export default function LedgerIndex({
                             Categories
                         </Link>
                         <Link
+                            href={`/ledger/reports/annual?year=${year}`}
+                            className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                        >
+                            Reports
+                        </Link>
+                        <Link
                             href="/ledger/import"
                             className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                         >
