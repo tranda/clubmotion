@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.45] - 2026-05-09
+
+### Removed
+- "imported" badge no longer shown on Ledger entries — visual clutter, no actionable difference between manual and imported entries day-to-day. The `source` field is still on the model and can be inspected via DB or the Edit form if needed.
+
 ## [0.9.44] - 2026-05-09
 
 ### Changed

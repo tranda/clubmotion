@@ -564,12 +564,7 @@ export default function LedgerIndex({
                             )}
                             {runningBalances.map((e) => (
                                 <tr key={e.id} className="border-t border-gray-100 hover:bg-gray-50">
-                                    <td className="px-3 py-2 whitespace-nowrap">
-                                        {e.entry_date_display}
-                                        {e.source === 'import' && (
-                                            <span className="ml-2 text-xs px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded">imported</span>
-                                        )}
-                                    </td>
+                                    <td className="px-3 py-2 whitespace-nowrap">{e.entry_date_display}</td>
                                     <td className="px-3 py-2 text-gray-600">{e.member?.name ?? '—'}</td>
                                     <td className="px-3 py-2 text-gray-600">{e.category?.name ?? '—'}</td>
                                     <td className="px-3 py-2 text-right tabular-nums text-green-700">
