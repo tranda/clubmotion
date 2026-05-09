@@ -116,14 +116,16 @@ function blankEntry(year, month) {
 
 export default function LedgerIndex({
     year, month, entries, opening, closing, monthlyTotals,
-    pettyCashFloat, availableYears, categories, members, filters, deletedCount,
+    pettyCashFloat, pettyCashAudits, availableYears, categories, members, filters, deletedCount,
 }) {
     const [editing, setEditing] = useState(null);
     const [showForm, setShowForm] = useState(false);
-    const [pettyCashEdit, setPettyCashEdit] = useState(false);
+    const [pettyCashMode, setPettyCashMode] = useState(null); // 'edit' | 'add' | 'sub' | null
+    const [showPettyAudits, setShowPettyAudits] = useState(false);
 
     const entryForm = useForm(blankEntry(year, month));
-    const pettyForm = useForm({ amount: pettyCashFloat ?? 0 });
+    const pettyForm = useForm({ amount: pettyCashFloat ?? 0, note: '' });
+    const pettyAdjustForm = useForm({ amount: '', note: '' });
 
     const runningBalances = useMemo(() => {
         const running = { ...opening };
@@ -220,11 +222,35 @@ export default function LedgerIndex({
         router.delete(`/ledger/entries/${entry.id}`, { preserveScroll: true });
     };
 
+    const openPettyMode = (mode) => {
+        if (mode === 'edit') {
+            pettyForm.setData({ amount: pettyCashFloat ?? 0, note: '' });
+        } else {
+            pettyAdjustForm.setData({ amount: '', note: '' });
+        }
+        setPettyCashMode(mode);
+    };
+
+    const closePettyMode = () => {
+        pettyForm.clearErrors();
+        pettyAdjustForm.clearErrors();
+        setPettyCashMode(null);
+    };
+
     const submitPetty = (e) => {
         e.preventDefault();
         pettyForm.put('/ledger/petty-cash', {
             preserveScroll: true,
-            onSuccess: () => setPettyCashEdit(false),
+            onSuccess: () => closePettyMode(),
+        });
+    };
+
+    const submitPettyAdjust = (e) => {
+        e.preventDefault();
+        const url = pettyCashMode === 'add' ? '/ledger/petty-cash/add' : '/ledger/petty-cash/sub';
+        pettyAdjustForm.post(url, {
+            preserveScroll: true,
+            onSuccess: () => closePettyMode(),
         });
     };
 
@@ -299,35 +325,153 @@ export default function LedgerIndex({
                 </div>
 
                 {/* Petty cash float */}
-                <div className="mb-4 bg-white rounded-lg shadow p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                        <div className="text-xs uppercase text-gray-500 font-semibold">Petty cash float (kusur)</div>
-                        <div className="text-lg font-semibold tabular-nums">{formatAmount(pettyCashFloat)} RSD</div>
+                <div className="mb-4 bg-white rounded-lg shadow p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <div className="text-xs uppercase text-gray-500 font-semibold">Petty cash float (kusur)</div>
+                            <div className="text-lg font-semibold tabular-nums">{formatAmount(pettyCashFloat)} RSD</div>
+                        </div>
+                        {pettyCashMode === null && (
+                            <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                    onClick={() => openPettyMode('edit')}
+                                    className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => openPettyMode('add')}
+                                    className="px-3 py-2 text-sm bg-green-50 text-green-700 rounded-lg hover:bg-green-100"
+                                >
+                                    + Add
+                                </button>
+                                <button
+                                    onClick={() => openPettyMode('sub')}
+                                    className="px-3 py-2 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100"
+                                >
+                                    − Sub
+                                </button>
+                                {pettyCashAudits && pettyCashAudits.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPettyAudits((v) => !v)}
+                                        className="text-xs text-blue-600 hover:underline"
+                                    >
+                                        {showPettyAudits ? 'Hide history' : `History (${pettyCashAudits.length})`}
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                        {pettyCashMode === 'edit' && (
+                            <form onSubmit={submitPetty} className="flex flex-wrap items-center gap-2">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={pettyForm.data.amount}
+                                    onChange={(e) => pettyForm.setData('amount', e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg w-32"
+                                    placeholder="New total"
+                                />
+                                <input
+                                    type="text"
+                                    maxLength={255}
+                                    value={pettyForm.data.note}
+                                    onChange={(e) => pettyForm.setData('note', e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg w-48"
+                                    placeholder="Note (optional)"
+                                />
+                                <button type="submit" disabled={pettyForm.processing} className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg">
+                                    Save
+                                </button>
+                                <button type="button" onClick={closePettyMode} className="px-3 py-2 text-sm bg-gray-100 rounded-lg">
+                                    Cancel
+                                </button>
+                            </form>
+                        )}
+                        {(pettyCashMode === 'add' || pettyCashMode === 'sub') && (
+                            <form onSubmit={submitPettyAdjust} className="flex flex-wrap items-center gap-2">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0.01"
+                                    required
+                                    autoFocus
+                                    value={pettyAdjustForm.data.amount}
+                                    onChange={(e) => pettyAdjustForm.setData('amount', e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg w-32"
+                                    placeholder={pettyCashMode === 'add' ? 'Amount to add' : 'Amount to subtract'}
+                                />
+                                <input
+                                    type="text"
+                                    maxLength={255}
+                                    value={pettyAdjustForm.data.note}
+                                    onChange={(e) => pettyAdjustForm.setData('note', e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg w-48"
+                                    placeholder="Note (optional)"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={pettyAdjustForm.processing}
+                                    className={`px-3 py-2 text-sm text-white rounded-lg ${pettyCashMode === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                                >
+                                    {pettyCashMode === 'add' ? 'Add' : 'Subtract'}
+                                </button>
+                                <button type="button" onClick={closePettyMode} className="px-3 py-2 text-sm bg-gray-100 rounded-lg">
+                                    Cancel
+                                </button>
+                            </form>
+                        )}
                     </div>
-                    {!pettyCashEdit ? (
-                        <button
-                            onClick={() => setPettyCashEdit(true)}
-                            className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                        >
-                            Edit
-                        </button>
-                    ) : (
-                        <form onSubmit={submitPetty} className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={pettyForm.data.amount}
-                                onChange={(e) => pettyForm.setData('amount', e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg w-32"
-                            />
-                            <button type="submit" disabled={pettyForm.processing} className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg">
-                                Save
-                            </button>
-                            <button type="button" onClick={() => { pettyForm.reset(); setPettyCashEdit(false); }} className="px-3 py-2 text-sm bg-gray-100 rounded-lg">
-                                Cancel
-                            </button>
-                        </form>
+                    {(pettyForm.errors.amount || pettyAdjustForm.errors.amount) && (
+                        <div className="mt-2 text-xs text-red-700">
+                            {pettyForm.errors.amount || pettyAdjustForm.errors.amount}
+                        </div>
+                    )}
+                    {showPettyAudits && pettyCashAudits && pettyCashAudits.length > 0 && (
+                        <div className="mt-3 border-t border-gray-100 pt-3">
+                            <div className="text-xs uppercase text-gray-500 font-semibold mb-2">Recent changes</div>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full text-xs">
+                                    <thead>
+                                        <tr className="text-gray-500 uppercase">
+                                            <th className="px-2 py-1 text-left">When</th>
+                                            <th className="px-2 py-1 text-left">Who</th>
+                                            <th className="px-2 py-1 text-left">Op</th>
+                                            <th className="px-2 py-1 text-right">Change</th>
+                                            <th className="px-2 py-1 text-right">Before</th>
+                                            <th className="px-2 py-1 text-right">After</th>
+                                            <th className="px-2 py-1 text-left">Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {pettyCashAudits.map((a) => (
+                                            <tr key={a.id} className="border-t border-gray-100">
+                                                <td className="px-2 py-1 whitespace-nowrap text-gray-600">{a.created_at_display}</td>
+                                                <td className="px-2 py-1 text-gray-600">{a.user_name ?? '—'}</td>
+                                                <td className="px-2 py-1">
+                                                    <span className={
+                                                        a.operation === 'add'
+                                                            ? 'px-1.5 py-0.5 rounded bg-green-50 text-green-700'
+                                                            : a.operation === 'sub'
+                                                                ? 'px-1.5 py-0.5 rounded bg-red-50 text-red-700'
+                                                                : 'px-1.5 py-0.5 rounded bg-gray-100 text-gray-700'
+                                                    }>
+                                                        {a.operation}
+                                                    </span>
+                                                </td>
+                                                <td className={`px-2 py-1 text-right tabular-nums ${a.delta > 0 ? 'text-green-700' : a.delta < 0 ? 'text-red-700' : 'text-gray-500'}`}>
+                                                    {a.delta > 0 ? '+' : ''}{formatAmount(a.delta)}
+                                                </td>
+                                                <td className="px-2 py-1 text-right tabular-nums text-gray-500">{formatAmount(a.previous_amount)}</td>
+                                                <td className="px-2 py-1 text-right tabular-nums">{formatAmount(a.new_amount)}</td>
+                                                <td className="px-2 py-1 text-gray-600">{a.note ?? ''}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     )}
                 </div>
 

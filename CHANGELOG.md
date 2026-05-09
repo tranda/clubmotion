@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.40] - 2026-05-09
+
+### Added
+- **Petty cash (kusur):** new `Add` and `Sub` buttons next to `Edit` on the Ledger month view. `Add` increments the float, `Sub` decrements it (with a guard against going negative), `Edit` still sets the absolute value as before. Each form takes an optional note.
+- **Audit log for petty cash changes:** every Edit / Add / Sub now writes a row to a new `ledger_petty_cash_audits` table (operation, delta, previous_amount, new_amount, note, user_id, created_at). The 20 most recent entries are shown in a collapsible "History" panel under the petty cash card, so admins can see who changed it, when, by how much, and why.
+
+### Migrations
+- `2026_05_09_150000_create_ledger_petty_cash_audits_table` — run `php artisan migrate` on the host after pull.
+
 ## [0.9.39] - 2026-05-09
 
 ### Added

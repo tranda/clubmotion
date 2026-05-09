@@ -6,6 +6,7 @@ use App\Models\LedgerCategory;
 use App\Models\LedgerEntry;
 use App\Models\LedgerImportBatch;
 use App\Models\LedgerImportStagingRow;
+use App\Models\LedgerPettyCashAudit;
 use App\Models\Member;
 use App\Models\PaymentSetting;
 use App\Services\Ledger\LedgerCsvParser;
@@ -110,6 +111,20 @@ class LedgerController extends Controller
             'closing' => $closing,
             'monthlyTotals' => $monthlyTotals,
             'pettyCashFloat' => (float) PaymentSetting::get('ledger_petty_cash_float_rsd', 0),
+            'pettyCashAudits' => LedgerPettyCashAudit::with('user:id,name')
+                ->orderByDesc('id')
+                ->limit(20)
+                ->get()
+                ->map(fn ($a) => [
+                    'id' => $a->id,
+                    'operation' => $a->operation,
+                    'delta' => (float) $a->delta,
+                    'previous_amount' => (float) $a->previous_amount,
+                    'new_amount' => (float) $a->new_amount,
+                    'note' => $a->note,
+                    'user_name' => $a->user?->name,
+                    'created_at_display' => $a->created_at?->format('d.m.Y H:i'),
+                ]),
             'availableYears' => $availableYears,
             'categories' => LedgerCategory::orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'kind', 'is_active']),
             'members' => Member::where('is_active', true)->orderBy('name')->get(['id', 'name', 'membership_number']),
@@ -281,9 +296,67 @@ class LedgerController extends Controller
     {
         $data = $request->validate([
             'amount' => 'required|numeric|min:0',
+            'note' => 'nullable|string|max:255',
         ]);
-        PaymentSetting::set('ledger_petty_cash_float_rsd', (string) $data['amount']);
+        $previous = (float) PaymentSetting::get('ledger_petty_cash_float_rsd', 0);
+        $new = round((float) $data['amount'], 2);
+        PaymentSetting::set('ledger_petty_cash_float_rsd', (string) $new);
+        LedgerPettyCashAudit::create([
+            'operation' => 'edit',
+            'delta' => $new - $previous,
+            'previous_amount' => $previous,
+            'new_amount' => $new,
+            'note' => $data['note'] ?? null,
+            'user_id' => auth()->id(),
+        ]);
         return redirect()->back()->with('success', 'Petty cash float updated.');
+    }
+
+    public function addPettyCash(Request $request)
+    {
+        $data = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'note' => 'nullable|string|max:255',
+        ]);
+        $previous = (float) PaymentSetting::get('ledger_petty_cash_float_rsd', 0);
+        $delta = round((float) $data['amount'], 2);
+        $new = round($previous + $delta, 2);
+        PaymentSetting::set('ledger_petty_cash_float_rsd', (string) $new);
+        LedgerPettyCashAudit::create([
+            'operation' => 'add',
+            'delta' => $delta,
+            'previous_amount' => $previous,
+            'new_amount' => $new,
+            'note' => $data['note'] ?? null,
+            'user_id' => auth()->id(),
+        ]);
+        return redirect()->back()->with('success', 'Petty cash increased.');
+    }
+
+    public function subPettyCash(Request $request)
+    {
+        $data = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'note' => 'nullable|string|max:255',
+        ]);
+        $previous = (float) PaymentSetting::get('ledger_petty_cash_float_rsd', 0);
+        $delta = round((float) $data['amount'], 2);
+        if ($delta > $previous) {
+            return redirect()->back()->withErrors([
+                'amount' => "Cannot subtract more than the current float (" . number_format($previous, 2) . ").",
+            ]);
+        }
+        $new = round($previous - $delta, 2);
+        PaymentSetting::set('ledger_petty_cash_float_rsd', (string) $new);
+        LedgerPettyCashAudit::create([
+            'operation' => 'sub',
+            'delta' => -$delta,
+            'previous_amount' => $previous,
+            'new_amount' => $new,
+            'note' => $data['note'] ?? null,
+            'user_id' => auth()->id(),
+        ]);
+        return redirect()->back()->with('success', 'Petty cash decreased.');
     }
 
     public function resetOpeningBalances()
