@@ -37,7 +37,7 @@ function blankEntry(year, month) {
 
 export default function LedgerIndex({
     year, month, entries, opening, closing, monthlyTotals,
-    pettyCashFloat, availableYears, categories, members, deletedCount,
+    pettyCashFloat, availableYears, categories, members, filters, deletedCount,
 }) {
     const [editing, setEditing] = useState(null);
     const [showForm, setShowForm] = useState(false);
@@ -56,7 +56,28 @@ export default function LedgerIndex({
     }, [entries, opening]);
 
     const navigate = (newYear, newMonth) => {
-        router.get('/ledger', { year: newYear, month: newMonth }, { preserveState: false });
+        router.get('/ledger', { year: newYear, month: newMonth, ...activeFilterParams() }, { preserveState: false });
+    };
+
+    const activeFilterParams = () => {
+        const out = {};
+        if (filters?.category_id) out.category_id = filters.category_id;
+        if (filters?.bucket) out.bucket = filters.bucket;
+        if (filters?.type) out.type = filters.type;
+        return out;
+    };
+
+    const setFilter = (key, value) => {
+        const params = { year, month, ...activeFilterParams() };
+        if (value) params[key] = value;
+        else delete params[key];
+        router.get('/ledger', params, { preserveState: false });
+    };
+
+    const filtersActive = !!(filters?.category_id || filters?.bucket || filters?.type);
+
+    const clearFilters = () => {
+        router.get('/ledger', { year, month }, { preserveState: false });
     };
 
     const openCreate = () => {
@@ -209,10 +230,54 @@ export default function LedgerIndex({
                     )}
                 </div>
 
+                {/* Filters */}
+                <div className="mb-3 bg-white rounded-lg shadow p-3 flex flex-wrap items-center gap-3">
+                    <span className="text-xs uppercase text-gray-500 font-semibold">Filter</span>
+                    <select
+                        value={filters?.type ?? ''}
+                        onChange={(e) => setFilter('type', e.target.value)}
+                        className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg"
+                    >
+                        <option value="">All types</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expenses</option>
+                    </select>
+                    <select
+                        value={filters?.bucket ?? ''}
+                        onChange={(e) => setFilter('bucket', e.target.value)}
+                        className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg"
+                    >
+                        <option value="">All buckets</option>
+                        <option value="cash">Cash</option>
+                        <option value="bank">Bank</option>
+                        <option value="eur">EUR</option>
+                    </select>
+                    <select
+                        value={filters?.category_id ?? ''}
+                        onChange={(e) => setFilter('category_id', e.target.value)}
+                        className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg"
+                    >
+                        <option value="">All categories</option>
+                        <option value="none">— Uncategorized —</option>
+                        {categories.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                    </select>
+                    {filtersActive && (
+                        <button
+                            type="button"
+                            onClick={clearFilters}
+                            className="text-xs text-blue-600 hover:underline"
+                        >
+                            Clear filters
+                        </button>
+                    )}
+                </div>
+
                 {/* Action bar */}
                 <div className="mb-3 flex justify-between items-center">
                     <div className="text-sm text-gray-600 flex items-center gap-3">
-                        <span>{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</span>
+                        <span>{entries.length} {entries.length === 1 ? 'entry' : 'entries'}{filtersActive ? ' (filtered)' : ''}</span>
                         {deletedCount > 0 && (
                             <Link
                                 href={`/ledger/deleted/${year}/${month}`}

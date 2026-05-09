@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.17] - 2026-05-09
+
+### Added
+- Three filter dropdowns on the Ledger month view: **Type** (Income / Expenses), **Bucket** (Cash / Bank / EUR), **Category** (any defined category, or Uncategorized). Filters compose, persist across year/month navigation, and a one-click "Clear filters" link removes them all. Summary cards always show the unfiltered month totals so the financial picture stays accurate; only the entries table is filtered.
+
 ## [0.9.16] - 2026-05-09
 
 ### Fixed

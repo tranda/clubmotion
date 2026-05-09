@@ -27,8 +27,24 @@ class LedgerController extends Controller
         $year = max(2000, min(2100, $year));
         $month = max(1, min(12, $month));
 
-        $entries = LedgerEntry::with(['category', 'member'])
-            ->forMonth($year, $month)
+        $categoryFilter = $request->input('category_id') ?: null;
+        $bucketFilter = $request->input('bucket') ?: null;
+        $typeFilter = $request->input('type') ?: null;
+
+        $entriesQuery = LedgerEntry::with(['category', 'member'])
+            ->forMonth($year, $month);
+        if ($categoryFilter === 'none') {
+            $entriesQuery->whereNull('ledger_category_id');
+        } elseif ($categoryFilter) {
+            $entriesQuery->where('ledger_category_id', $categoryFilter);
+        }
+        if ($bucketFilter && in_array($bucketFilter, LedgerEntry::BUCKETS, true)) {
+            $entriesQuery->where('bucket', $bucketFilter);
+        }
+        if ($typeFilter && in_array($typeFilter, LedgerEntry::TYPES, true)) {
+            $entriesQuery->where('type', $typeFilter);
+        }
+        $entries = $entriesQuery
             ->orderBy('entry_date')
             ->orderBy('sort_order')
             ->orderBy('id')
@@ -80,6 +96,11 @@ class LedgerController extends Controller
             'availableYears' => $availableYears,
             'categories' => LedgerCategory::orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'kind', 'is_active']),
             'members' => Member::where('is_active', true)->orderBy('name')->get(['id', 'name', 'membership_number']),
+            'filters' => [
+                'category_id' => $categoryFilter,
+                'bucket' => $bucketFilter,
+                'type' => $typeFilter,
+            ],
             'deletedCount' => LedgerEntry::onlyTrashed()->forMonth($year, $month)->count(),
         ]);
     }
