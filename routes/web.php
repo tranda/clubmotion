@@ -182,8 +182,8 @@ Route::middleware('auth')->group(function () {
             ->name('payments.bulk.paid');
     });
 
-    // Ledger (cash-book) - Admin only
-    Route::middleware('role:admin')->prefix('ledger')->name('ledger.')->group(function () {
+    // Ledger (cash-book) - Admin & Superuser
+    Route::middleware('role:admin,superuser')->prefix('ledger')->name('ledger.')->group(function () {
         Route::get('/', [App\Http\Controllers\LedgerController::class, 'index'])->name('index');
         Route::post('/entries', [App\Http\Controllers\LedgerController::class, 'storeEntry'])->name('entries.store');
         Route::put('/entries/{entry}', [App\Http\Controllers\LedgerController::class, 'updateEntry'])->name('entries.update');
@@ -213,8 +213,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/annual/excel', [App\Http\Controllers\LedgerReportController::class, 'annualExcel'])->name('reports.annual.excel');
     });
 
-    // Tools - Admin only
-    Route::middleware('role:admin')->prefix('tools')->name('tools.')->group(function () {
+    // Tools - Admin & Superuser
+    Route::middleware('role:admin,superuser')->prefix('tools')->name('tools.')->group(function () {
         Route::get('/', [App\Http\Controllers\ToolsController::class, 'index'])->name('index');
         Route::put('/coefs', [App\Http\Controllers\ToolsController::class, 'updateCoefs'])->name('coefs.update');
     });

@@ -88,8 +88,8 @@ export default function Home({ stats }) {
                                 <p className="text-gray-600">Track membership payments</p>
                             </Link>
 
-                            {/* Ledger Card - Admin only */}
-                            {isAdmin && (
+                            {/* Ledger Card - Admin/Superuser */}
+                            {canManage && (
                                 <Link
                                     href="/ledger"
                                     className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
@@ -128,8 +128,8 @@ export default function Home({ stats }) {
                                 <p className="text-gray-600">View personal and club achievements</p>
                             </Link>
 
-                            {/* Tools Card - Admin only */}
-                            {isAdmin && (
+                            {/* Tools Card - Admin/Superuser */}
+                            {canManage && (
                                 <Link
                                     href="/tools"
                                     className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"

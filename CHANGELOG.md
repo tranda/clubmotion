@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.36] - 2026-05-09
+
+### Changed
+- **Ledger** and **Tools** are now accessible to **superuser** in addition to admin. Route middleware (`role:admin` → `role:admin,superuser`) updated for both `/ledger/*` and `/tools/*`. Home dashboard cards and top-nav menu items (desktop + mobile sidebar) now use `canManage` instead of `isAdmin`.
+
 ## [0.9.35] - 2026-05-09
 
 ### Added
