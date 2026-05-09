@@ -122,6 +122,7 @@ export default function LedgerIndex({
     const [showForm, setShowForm] = useState(false);
     const [pettyCashMode, setPettyCashMode] = useState(null); // 'edit' | 'add' | 'sub' | null
     const [showPettyAudits, setShowPettyAudits] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(null); // ledger entry pending delete, or null
 
     const entryForm = useForm(blankEntry(year, month));
     const pettyForm = useForm({ amount: pettyCashFloat ?? 0, note: '' });
@@ -218,8 +219,14 @@ export default function LedgerIndex({
     };
 
     const deleteEntry = (entry) => {
-        if (!window.confirm('Delete this entry? You can restore it later.')) return;
-        router.delete(`/ledger/entries/${entry.id}`, { preserveScroll: true });
+        setConfirmDelete(entry);
+    };
+
+    const confirmDeleteSubmit = () => {
+        if (!confirmDelete) return;
+        const id = confirmDelete.id;
+        setConfirmDelete(null);
+        router.delete(`/ledger/entries/${id}`, { preserveScroll: true });
     };
 
     const openPettyMode = (mode) => {
@@ -610,6 +617,44 @@ export default function LedgerIndex({
                         )}
                     </table>
                 </div>
+
+                {/* Delete confirm modal */}
+                {confirmDelete && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                            <h2 className="text-lg font-bold mb-2">Delete entry?</h2>
+                            <p className="text-sm text-gray-600 mb-1">
+                                <span className="text-gray-400">{confirmDelete.entry_date_display}</span>
+                                {' — '}
+                                <span className="font-medium text-gray-900">{confirmDelete.description}</span>
+                            </p>
+                            <p className="text-sm text-gray-600 mb-4">
+                                <span className="capitalize">{confirmDelete.type}</span>
+                                {' · '}
+                                <span>{BUCKET_LABELS[confirmDelete.bucket]}</span>
+                                {' · '}
+                                <span className="tabular-nums">{formatAmount(confirmDelete.amount)}</span>
+                            </p>
+                            <p className="text-xs text-gray-500 mb-4">You can restore it from the deleted-entries page.</p>
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setConfirmDelete(null)}
+                                    className="px-4 py-2 bg-gray-100 rounded-lg text-sm"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={confirmDeleteSubmit}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Add/edit form modal */}
                 {showForm && (

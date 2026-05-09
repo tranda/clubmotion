@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.41] - 2026-05-09
+
+### Fixed
+- Ledger entry **Delete** appeared to do nothing on mobile Chrome (especially for superuser sessions). Cause: the action used `window.confirm()`, which mobile Chrome can suppress or render off-screen behind the fixed header. Replaced the native confirm with an in-page Tailwind modal that shows the entry's date, description, type, bucket, amount, and a hint about restoring from the deleted-entries page. Cancel / Delete buttons sit inside the modal so the prompt is always visible regardless of browser behaviour.
+
 ## [0.9.40] - 2026-05-09
 
 ### Added
