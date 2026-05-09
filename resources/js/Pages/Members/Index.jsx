@@ -1,8 +1,26 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import Layout from '../../Components/Layout';
 
+const ROLE_BADGE_STYLES = {
+    admin:     'bg-red-100 text-red-800',
+    superuser: 'bg-purple-100 text-purple-800',
+    user:      'bg-gray-100 text-gray-700',
+};
+
+function RoleBadge({ name }) {
+    if (!name) return null;
+    const style = ROLE_BADGE_STYLES[name] || ROLE_BADGE_STYLES.user;
+    return (
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${style}`}>
+            {name}
+        </span>
+    );
+}
+
 export default function Index({ members, filter, categoryStats }) {
+    const { auth } = usePage().props;
+    const viewerIsAdmin = auth.user?.role?.name === 'admin';
     const [viewMode, setViewMode] = useState('list');
     const handleFilterChange = (e) => {
         const value = e.target.value;
@@ -136,6 +154,9 @@ export default function Index({ members, filter, categoryStats }) {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    {viewerIsAdmin && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                    )}
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active</th>
                                 </tr>
                             </thead>
@@ -171,6 +192,11 @@ export default function Index({ members, filter, categoryStats }) {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {member.category?.category_name || 'N/A'}
                                         </td>
+                                        {viewerIsAdmin && (
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                <RoleBadge name={member.user?.role?.name} />
+                                            </td>
+                                        )}
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                                             {member.is_active ? '✅' : '❌'}
                                         </td>
@@ -218,10 +244,11 @@ export default function Index({ members, filter, categoryStats }) {
                                         <p className="text-sm text-gray-500">ID: {member.membership_number}</p>
                                         <p className="text-sm text-gray-500">{member.email}</p>
                                         <p className="text-sm text-gray-500">{member.phone}</p>
-                                        <div className="mt-2 flex items-center gap-2">
+                                        <div className="mt-2 flex items-center gap-2 flex-wrap">
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                 {member.category?.category_name || 'N/A'}
                                             </span>
+                                            {viewerIsAdmin && <RoleBadge name={member.user?.role?.name} />}
                                         </div>
                                     </div>
                                 </div>

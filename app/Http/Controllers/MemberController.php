@@ -27,10 +27,10 @@ class MemberController extends Controller
         $filter = $request->has('filter') ? $request->query('filter') : 'active';
 
         if ($filter === 'active') {
-            $members = Member::with('category')->where('is_active', 1)->orderBy('membership_number')->get();
+            $members = Member::with(['category', 'user.role'])->where('is_active', 1)->orderBy('membership_number')->get();
         } else {
             // 'all' or any other value shows all members
-            $members = Member::with('category')->orderBy('membership_number')->get();
+            $members = Member::with(['category', 'user.role'])->orderBy('membership_number')->get();
         }
 
         // Calculate and update category for each member if needed

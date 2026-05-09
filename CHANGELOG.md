@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.35] - 2026-05-09
+
+### Added
+- **Role** column on Members list (admin-only). Desktop table gets a new column between Category and Active; mobile cards show a role badge alongside the category badge. Color-coded: admin red, superuser purple, user gray. Empty for members without a linked login account. Members list query eager-loads `user.role` to avoid N+1.
+
 ## [0.9.34] - 2026-05-09
 
 ### Added
