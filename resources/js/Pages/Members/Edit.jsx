@@ -1,9 +1,13 @@
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
 import { resizeImageIfNeeded, formatBytes } from '../../utils/resizeImage';
 
-export default function Edit({ member, categories }) {
+export default function Edit({ member, categories, roles = [], linkedUser = null }) {
+    const { auth } = usePage().props;
+    const viewerIsAdmin = auth.user?.role?.name === 'admin';
+    const isSelf = !!(linkedUser && auth.user && linkedUser.id === auth.user.id);
+
     const { data, setData, post, processing, errors } = useForm({
         name: member.name || '',
         membership_number: member.membership_number || '',
@@ -15,6 +19,7 @@ export default function Edit({ member, categories }) {
         medical_validity: member.medical_validity || '',
         is_active: member.is_active || false,
         image: null,
+        role_id: linkedUser?.role_id ?? '',
         _method: 'PUT',
     });
 
@@ -239,6 +244,38 @@ export default function Edit({ member, categories }) {
                             />
                             {errors.medical_validity && <p className="mt-1 text-sm text-red-600">{errors.medical_validity}</p>}
                         </div>
+
+                        {/* Login Role - Admin only */}
+                        {viewerIsAdmin && (
+                            <div>
+                                <label htmlFor="role_id" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Login Role
+                                </label>
+                                {linkedUser ? (
+                                    <>
+                                        <select
+                                            id="role_id"
+                                            value={data.role_id}
+                                            onChange={(e) => setData('role_id', e.target.value)}
+                                            disabled={isSelf}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                        >
+                                            {roles.map((r) => (
+                                                <option key={r.id} value={r.id}>{r.name}</option>
+                                            ))}
+                                        </select>
+                                        {isSelf && (
+                                            <p className="mt-1 text-xs text-gray-500">You cannot change your own role.</p>
+                                        )}
+                                        {errors.role_id && <p className="mt-1 text-sm text-red-600">{errors.role_id}</p>}
+                                    </>
+                                ) : (
+                                    <p className="text-sm text-gray-500 italic">
+                                        Member has no login account yet. Set a password from the member page first to create one.
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
                         {/* Active Status */}
                         <div>

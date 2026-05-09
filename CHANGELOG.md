@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.34] - 2026-05-09
+
+### Added
+- **Login Role** dropdown on Member Edit page (admin-only). Lets admin promote/demote a member's linked login account between admin / superuser / user. Hidden for superusers. Self-demotion blocked (server-side guard + disabled UI). If member has no linked login account, shows hint to create one via password reset on the member page.
+
 ## [0.9.33] - 2026-05-09
 
 ### Added

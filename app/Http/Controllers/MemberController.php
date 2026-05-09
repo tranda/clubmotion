@@ -258,9 +258,17 @@ class MemberController extends Controller
     public function edit(Member $member)
     {
         $categories = MembershipCategory::all();
+        $member->load('user.role');
+
         return Inertia::render('Members/Edit', [
             'member' => $member,
             'categories' => $categories,
+            'roles' => Role::orderBy('id')->get(['id', 'name']),
+            'linkedUser' => $member->user ? [
+                'id' => $member->user->id,
+                'role_id' => $member->user->role_id,
+                'role_name' => $member->user->role?->name,
+            ] : null,
         ]);
     }
 
@@ -307,6 +315,22 @@ class MemberController extends Controller
         }
 
         $member->update($data);
+
+        // Optional role update — admin only, member must have a linked user account.
+        if ($request->has('role_id') && auth()->user()->isAdmin()) {
+            $request->validate([
+                'role_id' => 'nullable|exists:roles,id',
+            ]);
+
+            if ($member->user) {
+                $newRoleId = $request->input('role_id') ?: null;
+                $isSelf = (int) $member->user->id === (int) auth()->id();
+                if ($isSelf && (int) $newRoleId !== (int) $member->user->role_id) {
+                    return back()->with('error', 'You cannot change your own role.');
+                }
+                $member->user->update(['role_id' => $newRoleId]);
+            }
+        }
 
         // Recalculate category if birth date changed and category is age-based
         if ($member->date_of_birth) {
