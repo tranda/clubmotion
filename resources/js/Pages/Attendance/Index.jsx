@@ -265,7 +265,17 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
             <div className="py-6">
                 <div className="mb-6 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Attendance Tracking</h1>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-3xl font-bold text-gray-900">Attendance Tracking</h1>
+                            {canManage && (
+                                <Link
+                                    href={`/attendance/yearly?year=${selectedYear}`}
+                                    className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                                >
+                                    Yearly view
+                                </Link>
+                            )}
+                        </div>
                         <p className="text-gray-600 mt-1">Track member attendance for training sessions</p>
                     </div>
 

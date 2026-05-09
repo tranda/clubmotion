@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.31] - 2026-05-09
+
+### Added
+- New **Yearly attendance grid** at `/attendance/yearly` (admin/superuser only). Members on rows × 12 month columns showing how many sessions each member attended in each month, plus a Total column per member. Header row shows how many sessions were held each month so admin can compare attendance vs. opportunity. Footer row totals attendance across all members per month. Optional filter by session type and active/all members. Year selector mirrors the existing monthly attendance view.
+- "Yearly view" link added to the Attendance Tracking page header (admin/superuser only).
+
 ## [0.9.30] - 2026-05-09
 
 ### Changed

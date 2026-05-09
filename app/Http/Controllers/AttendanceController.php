@@ -207,6 +207,92 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Yearly attendance grid: each active member's session count per
+     * month (rows × 12 month columns + year total). Optional filter by
+     * session type.
+     */
+    public function yearly(Request $request)
+    {
+        $year = (int) $request->input('year', date('Y'));
+        $sessionTypeFilter = $request->input('session_type_id') ?: null;
+        $filter = $request->has('filter') ? $request->query('filter') : 'active';
+
+        $membersQuery = Member::with('category');
+        if ($filter === 'active') {
+            $membersQuery->where('is_active', 1);
+        }
+        $members = $membersQuery->orderBy('membership_number')->get();
+
+        $sessionsQuery = AttendanceSession::whereYear('date', $year);
+        if ($sessionTypeFilter) {
+            $sessionsQuery->where('session_type_id', $sessionTypeFilter);
+        }
+        $sessions = $sessionsQuery->get(['id', 'date']);
+
+        // Map session_id => month-of-year (1..12)
+        $sessionMonths = [];
+        foreach ($sessions as $s) {
+            $sessionMonths[$s->id] = (int) $s->date->format('n');
+        }
+
+        $sessionsPerMonth = array_fill(1, 12, 0);
+        foreach ($sessionMonths as $m) {
+            $sessionsPerMonth[$m] = ($sessionsPerMonth[$m] ?? 0) + 1;
+        }
+        $sessionsTotalYear = array_sum($sessionsPerMonth);
+
+        $records = !empty($sessionMonths)
+            ? AttendanceRecord::whereIn('session_id', array_keys($sessionMonths))
+                ->where('present', true)
+                ->get(['member_id', 'session_id'])
+            : collect();
+
+        $counts = [];
+        foreach ($records as $r) {
+            $month = $sessionMonths[$r->session_id] ?? null;
+            if (!$month) continue;
+            if (!isset($counts[$r->member_id])) {
+                $counts[$r->member_id] = array_fill(1, 12, 0);
+            }
+            $counts[$r->member_id][$month]++;
+        }
+
+        $rows = $members->map(function ($member) use ($counts) {
+            $perMonth = $counts[$member->id] ?? array_fill(1, 12, 0);
+            $total = array_sum($perMonth);
+            return [
+                'id' => $member->id,
+                'name' => $member->name,
+                'membership_number' => $member->membership_number,
+                'category' => $member->category->name ?? '',
+                'months' => $perMonth,
+                'total' => $total,
+            ];
+        });
+
+        $availableYears = AttendanceSession::query()
+            ->selectRaw('DISTINCT YEAR(date) as y')
+            ->orderBy('y', 'desc')
+            ->pluck('y')
+            ->map(fn ($v) => (int) $v)
+            ->toArray();
+        if (empty($availableYears)) {
+            $availableYears = [(int) date('Y')];
+        }
+
+        return Inertia::render('Attendance/Yearly', [
+            'year' => $year,
+            'rows' => $rows,
+            'sessionsPerMonth' => $sessionsPerMonth,
+            'sessionsTotalYear' => $sessionsTotalYear,
+            'availableYears' => $availableYears,
+            'sessionTypes' => SessionType::orderBy('name')->get(['id', 'name']),
+            'sessionTypeFilter' => $sessionTypeFilter,
+            'filter' => $filter,
+        ]);
+    }
+
+    /**
      * Get session types
      */
     public function getSessionTypes()
