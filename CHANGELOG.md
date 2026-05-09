@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.18] - 2026-05-09
+
+### Changed
+- Ledger filters (Type / Bucket / Category) are now multi-select. Each value is a clickable pill — click to add to the filter, click again to remove. E.g. select Cash + Bank to see both buckets at once, or Membership + Registration to see both categories. "Clear all filters" link removes everything in one click.
+
 ## [0.9.17] - 2026-05-09
 
 ### Added

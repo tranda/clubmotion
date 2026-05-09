@@ -55,30 +55,45 @@ export default function LedgerIndex({
         });
     }, [entries, opening]);
 
+    const typeFilter = filters?.type ?? [];
+    const bucketFilter = filters?.bucket ?? [];
+    const categoryFilter = (filters?.category_id ?? []).map(String);
+
     const navigate = (newYear, newMonth) => {
         router.get('/ledger', { year: newYear, month: newMonth, ...activeFilterParams() }, { preserveState: false });
     };
 
     const activeFilterParams = () => {
         const out = {};
-        if (filters?.category_id) out.category_id = filters.category_id;
-        if (filters?.bucket) out.bucket = filters.bucket;
-        if (filters?.type) out.type = filters.type;
+        if (typeFilter.length) out.type = typeFilter;
+        if (bucketFilter.length) out.bucket = bucketFilter;
+        if (categoryFilter.length) out.category_id = categoryFilter;
         return out;
     };
 
-    const setFilter = (key, value) => {
-        const params = { year, month, ...activeFilterParams() };
-        if (value) params[key] = value;
-        else delete params[key];
-        router.get('/ledger', params, { preserveState: false });
+    const toggleFilter = (key, value) => {
+        const current = key === 'type' ? typeFilter : key === 'bucket' ? bucketFilter : categoryFilter;
+        const v = String(value);
+        const next = current.map(String).includes(v)
+            ? current.filter((x) => String(x) !== v)
+            : [...current, v];
+        const params = { year, month, ...activeFilterParams(), [key]: next };
+        if (next.length === 0) delete params[key];
+        router.get('/ledger', params, { preserveState: false, preserveScroll: true });
     };
 
-    const filtersActive = !!(filters?.category_id || filters?.bucket || filters?.type);
+    const filtersActive = typeFilter.length > 0 || bucketFilter.length > 0 || categoryFilter.length > 0;
 
     const clearFilters = () => {
         router.get('/ledger', { year, month }, { preserveState: false });
     };
+
+    const pillClass = (active) =>
+        `px-3 py-1 text-xs rounded-full border transition-colors ${
+            active
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+        }`;
 
     const openCreate = () => {
         entryForm.setData(blankEntry(year, month));
@@ -231,46 +246,72 @@ export default function LedgerIndex({
                 </div>
 
                 {/* Filters */}
-                <div className="mb-3 bg-white rounded-lg shadow p-3 flex flex-wrap items-center gap-3">
-                    <span className="text-xs uppercase text-gray-500 font-semibold">Filter</span>
-                    <select
-                        value={filters?.type ?? ''}
-                        onChange={(e) => setFilter('type', e.target.value)}
-                        className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg"
-                    >
-                        <option value="">All types</option>
-                        <option value="income">Income</option>
-                        <option value="expense">Expenses</option>
-                    </select>
-                    <select
-                        value={filters?.bucket ?? ''}
-                        onChange={(e) => setFilter('bucket', e.target.value)}
-                        className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg"
-                    >
-                        <option value="">All buckets</option>
-                        <option value="cash">Cash</option>
-                        <option value="bank">Bank</option>
-                        <option value="eur">EUR</option>
-                    </select>
-                    <select
-                        value={filters?.category_id ?? ''}
-                        onChange={(e) => setFilter('category_id', e.target.value)}
-                        className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg"
-                    >
-                        <option value="">All categories</option>
-                        <option value="none">— Uncategorized —</option>
-                        {categories.map((c) => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
+                <div className="mb-3 bg-white rounded-lg shadow p-3 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs uppercase text-gray-500 font-semibold w-20">Type</span>
+                        {[
+                            { v: 'income', label: 'Income' },
+                            { v: 'expense', label: 'Expenses' },
+                        ].map((opt) => (
+                            <button
+                                key={opt.v}
+                                type="button"
+                                onClick={() => toggleFilter('type', opt.v)}
+                                className={pillClass(typeFilter.includes(opt.v))}
+                            >
+                                {opt.label}
+                            </button>
                         ))}
-                    </select>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs uppercase text-gray-500 font-semibold w-20">Bucket</span>
+                        {[
+                            { v: 'cash', label: 'Cash' },
+                            { v: 'bank', label: 'Bank' },
+                            { v: 'eur', label: 'EUR' },
+                        ].map((opt) => (
+                            <button
+                                key={opt.v}
+                                type="button"
+                                onClick={() => toggleFilter('bucket', opt.v)}
+                                className={pillClass(bucketFilter.includes(opt.v))}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex flex-wrap items-start gap-2">
+                        <span className="text-xs uppercase text-gray-500 font-semibold w-20 mt-1">Category</span>
+                        <div className="flex flex-wrap gap-2 flex-1">
+                            <button
+                                type="button"
+                                onClick={() => toggleFilter('category_id', 'none')}
+                                className={pillClass(categoryFilter.includes('none'))}
+                            >
+                                Uncategorized
+                            </button>
+                            {categories.map((c) => (
+                                <button
+                                    key={c.id}
+                                    type="button"
+                                    onClick={() => toggleFilter('category_id', c.id)}
+                                    className={pillClass(categoryFilter.includes(String(c.id)))}
+                                >
+                                    {c.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                     {filtersActive && (
-                        <button
-                            type="button"
-                            onClick={clearFilters}
-                            className="text-xs text-blue-600 hover:underline"
-                        >
-                            Clear filters
-                        </button>
+                        <div className="pt-1">
+                            <button
+                                type="button"
+                                onClick={clearFilters}
+                                className="text-xs text-blue-600 hover:underline"
+                            >
+                                Clear all filters
+                            </button>
+                        </div>
                     )}
                 </div>
 

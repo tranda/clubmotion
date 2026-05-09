@@ -27,22 +27,39 @@ class LedgerController extends Controller
         $year = max(2000, min(2100, $year));
         $month = max(1, min(12, $month));
 
-        $categoryFilter = $request->input('category_id') ?: null;
-        $bucketFilter = $request->input('bucket') ?: null;
-        $typeFilter = $request->input('type') ?: null;
+        $typeFilter = array_values(array_intersect(
+            (array) $request->input('type', []),
+            LedgerEntry::TYPES
+        ));
+        $bucketFilter = array_values(array_intersect(
+            (array) $request->input('bucket', []),
+            LedgerEntry::BUCKETS
+        ));
+        $categoryFilterRaw = (array) $request->input('category_id', []);
+        $includeUncategorized = in_array('none', $categoryFilterRaw, true);
+        $categoryIdFilter = array_values(array_filter(
+            $categoryFilterRaw,
+            fn ($v) => is_numeric($v)
+        ));
 
         $entriesQuery = LedgerEntry::with(['category', 'member'])
             ->forMonth($year, $month);
-        if ($categoryFilter === 'none') {
-            $entriesQuery->whereNull('ledger_category_id');
-        } elseif ($categoryFilter) {
-            $entriesQuery->where('ledger_category_id', $categoryFilter);
+
+        if (!empty($typeFilter)) {
+            $entriesQuery->whereIn('type', $typeFilter);
         }
-        if ($bucketFilter && in_array($bucketFilter, LedgerEntry::BUCKETS, true)) {
-            $entriesQuery->where('bucket', $bucketFilter);
+        if (!empty($bucketFilter)) {
+            $entriesQuery->whereIn('bucket', $bucketFilter);
         }
-        if ($typeFilter && in_array($typeFilter, LedgerEntry::TYPES, true)) {
-            $entriesQuery->where('type', $typeFilter);
+        if (!empty($categoryIdFilter) || $includeUncategorized) {
+            $entriesQuery->where(function ($q) use ($categoryIdFilter, $includeUncategorized) {
+                if (!empty($categoryIdFilter)) {
+                    $q->whereIn('ledger_category_id', $categoryIdFilter);
+                }
+                if ($includeUncategorized) {
+                    $q->orWhereNull('ledger_category_id');
+                }
+            });
         }
         $entries = $entriesQuery
             ->orderBy('entry_date')
@@ -97,9 +114,12 @@ class LedgerController extends Controller
             'categories' => LedgerCategory::orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'kind', 'is_active']),
             'members' => Member::where('is_active', true)->orderBy('name')->get(['id', 'name', 'membership_number']),
             'filters' => [
-                'category_id' => $categoryFilter,
-                'bucket' => $bucketFilter,
                 'type' => $typeFilter,
+                'bucket' => $bucketFilter,
+                'category_id' => array_merge(
+                    array_map(fn ($id) => (string) $id, $categoryIdFilter),
+                    $includeUncategorized ? ['none'] : []
+                ),
             ],
             'deletedCount' => LedgerEntry::onlyTrashed()->forMonth($year, $month)->count(),
         ]);
