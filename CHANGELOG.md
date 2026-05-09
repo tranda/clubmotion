@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.21] - 2026-05-09
+
+### Added
+- Totals footer below the Ledger entries table — three bucket cards (Cash / Bank / EUR), each showing Income, Expense, and Net for the currently visible rows. Header reads "Totals (filtered)" when filters are active, otherwise "Totals (this month)". Always reflects exactly what's in the table.
+
 ## [0.9.20] - 2026-05-09
 
 ### Fixed

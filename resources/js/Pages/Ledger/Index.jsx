@@ -133,6 +133,19 @@ export default function LedgerIndex({
         });
     }, [entries, opening]);
 
+    const filteredTotals = useMemo(() => {
+        const acc = {
+            income: { cash: 0, bank: 0, eur: 0 },
+            expense: { cash: 0, bank: 0, eur: 0 },
+        };
+        for (const e of entries) {
+            if (acc[e.type] && acc[e.type][e.bucket] !== undefined) {
+                acc[e.type][e.bucket] += Number(e.amount);
+            }
+        }
+        return acc;
+    }, [entries]);
+
     const typeFilter = filters?.type ?? [];
     const bucketFilter = filters?.bucket ?? [];
     const categoryFilter = (filters?.category_id ?? []).map(String);
@@ -435,6 +448,30 @@ export default function LedgerIndex({
                             ))}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Filtered totals footer */}
+                <div className="mt-3 bg-white rounded-lg shadow p-3">
+                    <div className="text-xs uppercase text-gray-500 font-semibold mb-2">
+                        Totals {filtersActive ? '(filtered)' : '(this month)'}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                        {['cash', 'bank', 'eur'].map((b) => (
+                            <div key={b} className="border border-gray-100 rounded p-2">
+                                <div className="text-xs text-gray-500 mb-1">{BUCKET_LABELS[b]}</div>
+                                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
+                                    <div className="text-green-700">Income</div>
+                                    <div className="text-right tabular-nums text-green-700">+{formatAmount(filteredTotals.income[b])}</div>
+                                    <div className="text-red-700">Expense</div>
+                                    <div className="text-right tabular-nums text-red-700">-{formatAmount(filteredTotals.expense[b])}</div>
+                                    <div className="font-semibold border-t border-gray-100 pt-0.5">Net</div>
+                                    <div className="text-right font-semibold tabular-nums border-t border-gray-100 pt-0.5">
+                                        {formatAmount(filteredTotals.income[b] - filteredTotals.expense[b])}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Add/edit form modal */}
