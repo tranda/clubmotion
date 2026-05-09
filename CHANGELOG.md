@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.32] - 2026-05-09
+
+### Added
+- New **Tools** page at `/tools` (admin-only) accessible from a Home dashboard card and a top-nav menu item (desktop + mobile sidebar).
+- First tool: **Kalkulator vremena** — dragon-boat speed/time calculator. Inputs: distance (m), race time (mm:ss.zzz), wind speed (km/h), wind direction (U leđa / U prsa / Bočni). Live outputs: GPS/average speed, wind-corrected speed, wind-corrected time. Wind correction: tailwind −0.02·v_w, headwind +0.03·v_w, side +0.01·v_w (km/h, floor 0.1 km/h). Ported from the team's Google Sheets calculator.
+
 ## [0.9.31] - 2026-05-09
 
 ### Added

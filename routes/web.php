@@ -213,6 +213,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/annual/excel', [App\Http\Controllers\LedgerReportController::class, 'annualExcel'])->name('reports.annual.excel');
     });
 
+    // Tools - Admin only
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/tools', function () {
+            return Inertia::render('Tools/Index');
+        })->name('tools.index');
+    });
+
     // Migration runner - Admin only (remove after first use)
     Route::get('/migrate', function () {
         if (auth()->user()->role_id !== 1) {
