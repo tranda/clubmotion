@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { router, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
+import ConfirmModal from '../../Components/ConfirmModal';
 
 export default function RatePresets({ presets }) {
     const [editingId, setEditingId] = useState(null);
@@ -89,10 +90,13 @@ export default function RatePresets({ presets }) {
         });
     };
 
-    const handleDelete = (preset) => {
-        if (confirm(`Are you sure you want to delete "${preset.name}"?`)) {
-            router.delete(`/payments/presets/${preset.id}`);
-        }
+    const [confirmDeletePreset, setConfirmDeletePreset] = useState(null);
+    const handleDelete = (preset) => setConfirmDeletePreset(preset);
+    const confirmDeletePresetSubmit = () => {
+        if (!confirmDeletePreset) return;
+        const id = confirmDeletePreset.id;
+        setConfirmDeletePreset(null);
+        router.delete(`/payments/presets/${id}`);
     };
 
     const toggleActive = (preset) => {
@@ -342,6 +346,18 @@ export default function RatePresets({ presets }) {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                open={!!confirmDeletePreset}
+                title="Delete preset?"
+                danger
+                confirmLabel="Delete"
+                message={confirmDeletePreset && (
+                    <>Delete preset <span className="font-semibold">"{confirmDeletePreset.name}"</span>?</>
+                )}
+                onConfirm={confirmDeletePresetSubmit}
+                onCancel={() => setConfirmDeletePreset(null)}
+            />
         </Layout>
     );
 }

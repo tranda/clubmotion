@@ -1,6 +1,7 @@
 import { Link, router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Layout from '../../Components/Layout';
+import ConfirmModal from '../../Components/ConfirmModal';
 
 const MONTHS = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -123,6 +124,7 @@ export default function LedgerIndex({
     const [pettyCashMode, setPettyCashMode] = useState(null); // 'edit' | 'add' | 'sub' | null
     const [showPettyAudits, setShowPettyAudits] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(null); // ledger entry pending delete, or null
+    const [confirmResetOpenings, setConfirmResetOpenings] = useState(false);
 
     const entryForm = useForm(blankEntry(year, month));
     const pettyForm = useForm({ amount: pettyCashFloat ?? 0, note: '' });
@@ -539,11 +541,7 @@ export default function LedgerIndex({
                         )}
                         <button
                             type="button"
-                            onClick={() => {
-                                if (window.confirm('Clear all opening-balance seeds? Use this if balances are showing even though no entries exist. The next import will re-seed them from the XLSX.')) {
-                                    router.post('/ledger/opening-balances/reset');
-                                }
-                            }}
+                            onClick={() => setConfirmResetOpenings(true)}
                             className="text-xs text-red-700 hover:underline"
                         >
                             Reset opening balances
@@ -618,43 +616,44 @@ export default function LedgerIndex({
                     </table>
                 </div>
 
-                {/* Delete confirm modal */}
-                {confirmDelete && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                        <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                            <h2 className="text-lg font-bold mb-2">Delete entry?</h2>
-                            <p className="text-sm text-gray-600 mb-1">
+                <ConfirmModal
+                    open={!!confirmDelete}
+                    title="Delete entry?"
+                    danger
+                    confirmLabel="Delete"
+                    message={confirmDelete && (
+                        <>
+                            <p className="mb-1">
                                 <span className="text-gray-400">{confirmDelete.entry_date_display}</span>
                                 {' — '}
                                 <span className="font-medium text-gray-900">{confirmDelete.description}</span>
                             </p>
-                            <p className="text-sm text-gray-600 mb-4">
+                            <p className="mb-2">
                                 <span className="capitalize">{confirmDelete.type}</span>
                                 {' · '}
                                 <span>{BUCKET_LABELS[confirmDelete.bucket]}</span>
                                 {' · '}
                                 <span className="tabular-nums">{formatAmount(confirmDelete.amount)}</span>
                             </p>
-                            <p className="text-xs text-gray-500 mb-4">You can restore it from the deleted-entries page.</p>
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setConfirmDelete(null)}
-                                    className="px-4 py-2 bg-gray-100 rounded-lg text-sm"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={confirmDeleteSubmit}
-                                    className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm"
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                            <p className="text-xs text-gray-500">You can restore it from the deleted-entries page.</p>
+                        </>
+                    )}
+                    onConfirm={confirmDeleteSubmit}
+                    onCancel={() => setConfirmDelete(null)}
+                />
+
+                <ConfirmModal
+                    open={confirmResetOpenings}
+                    title="Reset opening balances?"
+                    danger
+                    confirmLabel="Reset"
+                    message="Clear all opening-balance seeds. Use this if balances are showing even though no entries exist. The next import will re-seed them from the XLSX."
+                    onConfirm={() => {
+                        setConfirmResetOpenings(false);
+                        router.post('/ledger/opening-balances/reset');
+                    }}
+                    onCancel={() => setConfirmResetOpenings(false)}
+                />
 
                 {/* Add/edit form modal */}
                 {showForm && (

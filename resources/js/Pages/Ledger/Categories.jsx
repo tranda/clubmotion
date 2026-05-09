@@ -1,9 +1,11 @@
 import { Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
+import ConfirmModal from '../../Components/ConfirmModal';
 
 export default function LedgerCategories({ categories }) {
     const [editing, setEditing] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(null);
     const form = useForm({ name: '', kind: 'both', is_active: true, sort_order: 0 });
 
     const startEdit = (cat) => {
@@ -36,9 +38,13 @@ export default function LedgerCategories({ categories }) {
         }
     };
 
-    const remove = (cat) => {
-        if (!window.confirm(`Delete category "${cat.name}"? Existing entries will keep their reference.`)) return;
-        router.delete(`/ledger/categories/${cat.id}`, { preserveScroll: true });
+    const remove = (cat) => setConfirmDelete(cat);
+
+    const confirmRemove = () => {
+        if (!confirmDelete) return;
+        const id = confirmDelete.id;
+        setConfirmDelete(null);
+        router.delete(`/ledger/categories/${id}`, { preserveScroll: true });
     };
 
     return (
@@ -141,6 +147,18 @@ export default function LedgerCategories({ categories }) {
                     </table>
                 </div>
             </div>
+
+            <ConfirmModal
+                open={!!confirmDelete}
+                title="Delete category?"
+                danger
+                confirmLabel="Delete"
+                message={confirmDelete && (
+                    <>Delete category <span className="font-semibold">"{confirmDelete.name}"</span>? Existing entries will keep their reference (just lose the category link).</>
+                )}
+                onConfirm={confirmRemove}
+                onCancel={() => setConfirmDelete(null)}
+            />
         </Layout>
     );
 }

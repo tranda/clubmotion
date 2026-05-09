@@ -1,5 +1,7 @@
 import { Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import Layout from '../../Components/Layout';
+import ConfirmModal from '../../Components/ConfirmModal';
 
 const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', cash_eur: 'Cash EUR', eur: 'Bank EUR' };
 
@@ -10,9 +12,13 @@ function formatAmount(value) {
 }
 
 export default function LedgerDeleted({ year, month, entries }) {
-    const restore = (entry) => {
-        if (!window.confirm('Restore this entry?')) return;
-        router.post(`/ledger/entries/${entry.id}/restore`, {}, { preserveScroll: true });
+    const [confirmRestore, setConfirmRestore] = useState(null);
+    const restore = (entry) => setConfirmRestore(entry);
+    const restoreSubmit = () => {
+        if (!confirmRestore) return;
+        const id = confirmRestore.id;
+        setConfirmRestore(null);
+        router.post(`/ledger/entries/${id}/restore`, {}, { preserveScroll: true });
     };
 
     return (
@@ -57,6 +63,21 @@ export default function LedgerDeleted({ year, month, entries }) {
                     </table>
                 </div>
             </div>
+
+            <ConfirmModal
+                open={!!confirmRestore}
+                title="Restore entry?"
+                confirmLabel="Restore"
+                message={confirmRestore && (
+                    <>
+                        <span className="text-gray-400">{confirmRestore.entry_date_display}</span>
+                        {' — '}
+                        <span className="font-medium text-gray-900">{confirmRestore.description}</span>
+                    </>
+                )}
+                onConfirm={restoreSubmit}
+                onCancel={() => setConfirmRestore(null)}
+            />
         </Layout>
     );
 }

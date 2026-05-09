@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { router, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
+import ConfirmModal from '../../Components/ConfirmModal';
 
 export default function InitializeYear({ year, memberCount, presets = [] }) {
     const [monthlyRates, setMonthlyRates] = useState({
         1: '', 2: '', 3: '', 4: '', 5: '', 6: '',
         7: '', 8: '', 9: '', 10: '', 11: '', 12: ''
     });
+    const [showInitConfirm, setShowInitConfirm] = useState(false);
 
     const monthNames = {
         1: 'January', 2: 'February', 3: 'March', 4: 'April',
@@ -16,13 +18,15 @@ export default function InitializeYear({ year, memberCount, presets = [] }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        setShowInitConfirm(true);
+    };
 
-        if (confirm(`This will create ${memberCount * 12} payment records for ${year}. Continue?`)) {
-            router.post('/payments/initialize', {
-                year,
-                monthly_rates: monthlyRates
-            });
-        }
+    const confirmInit = () => {
+        setShowInitConfirm(false);
+        router.post('/payments/initialize', {
+            year,
+            monthly_rates: monthlyRates
+        });
     };
 
     const setRangeRates = (start, end, value) => {
@@ -137,6 +141,15 @@ export default function InitializeYear({ year, memberCount, presets = [] }) {
                     </form>
                 </div>
             </div>
+
+            <ConfirmModal
+                open={showInitConfirm}
+                title={`Initialize ${year} payments?`}
+                confirmLabel="Create"
+                message={`This will create ${memberCount * 12} payment records for ${year}.`}
+                onConfirm={confirmInit}
+                onCancel={() => setShowInitConfirm(false)}
+            />
         </Layout>
     );
 }

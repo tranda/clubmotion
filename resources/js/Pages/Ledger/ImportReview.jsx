@@ -1,6 +1,7 @@
 import { Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
+import ConfirmModal from '../../Components/ConfirmModal';
 
 const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', cash_eur: 'Cash EUR', eur: 'Bank EUR' };
 
@@ -52,8 +53,10 @@ export default function LedgerImportReview({ batch, groups, summary, categories,
         });
     };
 
-    const cancelImport = () => {
-        if (!window.confirm('Cancel this import? Staged rows will be discarded.')) return;
+    const [confirmCancel, setConfirmCancel] = useState(false);
+    const cancelImport = () => setConfirmCancel(true);
+    const cancelImportSubmit = () => {
+        setConfirmCancel(false);
         router.delete(`/ledger/import/${batch.id}`);
     };
 
@@ -198,6 +201,17 @@ export default function LedgerImportReview({ batch, groups, summary, categories,
                     </div>
                 </form>
             </div>
+
+            <ConfirmModal
+                open={confirmCancel}
+                title="Cancel this import?"
+                danger
+                confirmLabel="Cancel import"
+                cancelLabel="Keep"
+                message="Staged rows will be discarded. This cannot be undone."
+                onConfirm={cancelImportSubmit}
+                onCancel={() => setConfirmCancel(false)}
+            />
         </Layout>
     );
 }

@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.42] - 2026-05-09
+
+### Changed
+- Replaced every `window.confirm()` call across the app with a new reusable `ConfirmModal` component (in-page Tailwind modal), so destructive actions don't fall victim to mobile Chrome dialog suppression. Converted:
+  - **Ledger:** delete entry, reset opening balances, delete category, wipe import batch, cancel import, restore deleted entry
+  - **Payments:** delete payment record, initialize year (12 × N records confirmation), delete rate preset
+  - **Attendance:** delete session
+- Modal supports `danger` (red confirm) / default (blue confirm), custom `confirmLabel`/`cancelLabel`, and either string or rich-React `message` content. Click on the dim backdrop also cancels.
+
 ## [0.9.41] - 2026-05-09
 
 ### Fixed

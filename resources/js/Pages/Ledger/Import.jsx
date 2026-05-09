@@ -1,14 +1,16 @@
 import { Link, router, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import Layout from '../../Components/Layout';
+import ConfirmModal from '../../Components/ConfirmModal';
 
 export default function LedgerImport({ recentBatches }) {
-    const wipeBatch = (b) => {
-        const n = Number(b.entry_count ?? 0);
-        const tail = n > 0
-            ? ` and the ${n} ledger ${n === 1 ? 'entry' : 'entries'} it created`
-            : '';
-        if (!window.confirm(`Permanently delete batch #${b.id}${tail}? This cannot be undone.`)) return;
-        router.delete(`/ledger/import/${b.id}/wipe`);
+    const [confirmWipe, setConfirmWipe] = useState(null);
+    const wipeBatch = (b) => setConfirmWipe(b);
+    const confirmWipeSubmit = () => {
+        if (!confirmWipe) return;
+        const id = confirmWipe.id;
+        setConfirmWipe(null);
+        router.delete(`/ledger/import/${id}/wipe`);
     };
     const form = useForm({
         xlsx_file: null,
@@ -105,6 +107,22 @@ export default function LedgerImport({ recentBatches }) {
                     </>
                 )}
             </div>
+
+            <ConfirmModal
+                open={!!confirmWipe}
+                title="Wipe import batch?"
+                danger
+                confirmLabel="Wipe"
+                message={confirmWipe && (() => {
+                    const n = Number(confirmWipe.entry_count ?? 0);
+                    const tail = n > 0
+                        ? ` and the ${n} ledger ${n === 1 ? 'entry' : 'entries'} it created`
+                        : '';
+                    return <>Permanently delete batch #{confirmWipe.id}{tail}? This cannot be undone.</>;
+                })()}
+                onConfirm={confirmWipeSubmit}
+                onCancel={() => setConfirmWipe(null)}
+            />
         </Layout>
     );
 }

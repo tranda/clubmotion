@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ConfirmModal from '../../Components/ConfirmModal';
 import { Link, router, usePage } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
@@ -391,13 +392,14 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
         });
     };
 
-    const handleDelete = () => {
-        if (confirm('Are you sure you want to delete this payment record?')) {
-            router.delete(`/payments/${payment.id}`, {
-                preserveScroll: true,
-                onSuccess: () => onClose(),
-            });
-        }
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const handleDelete = () => setShowDeleteConfirm(true);
+    const confirmDelete = () => {
+        setShowDeleteConfirm(false);
+        router.delete(`/payments/${payment.id}`, {
+            preserveScroll: true,
+            onSuccess: () => onClose(),
+        });
     };
 
     return (
@@ -531,6 +533,16 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
                     </div>
                 </form>
             </div>
+
+            <ConfirmModal
+                open={showDeleteConfirm}
+                title="Delete payment record?"
+                danger
+                confirmLabel="Delete"
+                message="This payment record will be permanently removed. If a Ledger entry is linked to it, that entry will also be deleted."
+                onConfirm={confirmDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
+            />
         </div>
     );
 }
