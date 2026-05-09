@@ -207,16 +207,20 @@ class LedgerController extends Controller
 
     private function validateEntry(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'entry_date' => 'required|date',
             'type' => 'required|in:income,expense',
             'bucket' => 'required|in:' . implode(',', LedgerEntry::BUCKETS),
             'amount' => 'required|numeric|min:0',
-            'description' => 'required|string|max:255',
+            'description' => 'nullable|string|max:255',
             'ledger_category_id' => 'nullable|exists:ledger_categories,id',
             'member_id' => 'nullable|exists:members,id',
             'notes' => 'nullable|string',
         ]);
+        // The description column is NOT NULL in the DB; coerce missing
+        // values to an empty string so insert/update works.
+        $data['description'] = $data['description'] ?? '';
+        return $data;
     }
 
     // ─── Category CRUD ───────────────────────────────────────────────────────

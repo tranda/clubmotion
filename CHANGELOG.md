@@ -2,6 +2,17 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.44] - 2026-05-09
+
+### Changed
+- **Description** column hidden on the Ledger month-view entries table — Member + Category are usually enough context. Imported badge moved to the Date cell so it's still visible.
+- **Description** field is no longer required on Add / Edit entry. Validation rule relaxed to nullable; backend coerces to empty string for the NOT NULL DB column. Existing entries are unaffected.
+- Delete-confirm modal now hides the dash separator when description is empty and adds Member / Category to the metadata line so the entry is still uniquely identifiable.
+
+### Removed
+- **Reset opening balances** link is hidden from the Ledger action bar so it can't be hit by accident. The backend route stays (`POST /ledger/opening-balances/reset`) so the action can be re-enabled later by adding the button back.
+- **Import** link is hidden from the Ledger action bar — current-year data is in, no more imports planned for now. Routes (`/ledger/import*`) and controller methods are preserved for future use (e.g. importing prior years' XLSX).
+
 ## [0.9.43] - 2026-05-09
 
 ### Added

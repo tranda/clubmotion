@@ -124,7 +124,6 @@ export default function LedgerIndex({
     const [pettyCashMode, setPettyCashMode] = useState(null); // 'edit' | 'add' | 'sub' | null
     const [showPettyAudits, setShowPettyAudits] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(null); // ledger entry pending delete, or null
-    const [confirmResetOpenings, setConfirmResetOpenings] = useState(false);
 
     const entryForm = useForm(blankEntry(year, month));
     const pettyForm = useForm({ amount: pettyCashFloat ?? 0, note: '' });
@@ -299,12 +298,8 @@ export default function LedgerIndex({
                         >
                             Categories
                         </Link>
-                        <Link
-                            href="/ledger/import"
-                            className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                        >
-                            Import
-                        </Link>
+                        {/* Import link hidden — keep routes/controller around so we can
+                            re-enable later if we want to import past years' XLSX again. */}
                         <a
                             href={`/ledger/export/${year}/${month}`}
                             className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
@@ -539,13 +534,6 @@ export default function LedgerIndex({
                                 {deletedCount} deleted →
                             </Link>
                         )}
-                        <button
-                            type="button"
-                            onClick={() => setConfirmResetOpenings(true)}
-                            className="text-xs text-red-700 hover:underline"
-                        >
-                            Reset opening balances
-                        </button>
                     </div>
                     <button
                         onClick={openCreate}
@@ -561,7 +549,6 @@ export default function LedgerIndex({
                         <thead>
                             <tr className="bg-gray-50 text-gray-600 uppercase text-xs">
                                 <th className="px-3 py-2 text-left">Date</th>
-                                <th className="px-3 py-2 text-left">Description</th>
                                 <th className="px-3 py-2 text-left">Member</th>
                                 <th className="px-3 py-2 text-left">Category</th>
                                 <th className="px-3 py-2 text-right">Income</th>
@@ -573,13 +560,12 @@ export default function LedgerIndex({
                         </thead>
                         <tbody>
                             {runningBalances.length === 0 && (
-                                <tr><td colSpan="9" className="px-3 py-6 text-center text-gray-400">No entries yet for {MONTHS[month - 1]} {year}.</td></tr>
+                                <tr><td colSpan="8" className="px-3 py-6 text-center text-gray-400">No entries yet for {MONTHS[month - 1]} {year}.</td></tr>
                             )}
                             {runningBalances.map((e) => (
                                 <tr key={e.id} className="border-t border-gray-100 hover:bg-gray-50">
-                                    <td className="px-3 py-2 whitespace-nowrap">{e.entry_date_display}</td>
-                                    <td className="px-3 py-2">
-                                        {e.description}
+                                    <td className="px-3 py-2 whitespace-nowrap">
+                                        {e.entry_date_display}
                                         {e.source === 'import' && (
                                             <span className="ml-2 text-xs px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded">imported</span>
                                         )}
@@ -606,7 +592,7 @@ export default function LedgerIndex({
                         {entries.length > 0 && (
                             <tfoot>
                                 <tr className="bg-gray-50 border-t-2 border-gray-200 font-semibold">
-                                    <td colSpan="4" className="px-3 py-2 text-right uppercase text-xs text-gray-600">Total</td>
+                                    <td colSpan="3" className="px-3 py-2 text-right uppercase text-xs text-gray-600">Total</td>
                                     <td className="px-3 py-2 text-right tabular-nums text-green-700">{formatAmount(filteredTotals.income)}</td>
                                     <td className="px-3 py-2 text-right tabular-nums text-red-700">{formatAmount(filteredTotals.expense)}</td>
                                     <td colSpan="3"></td>
@@ -635,8 +621,12 @@ export default function LedgerIndex({
                         <>
                             <p className="mb-1">
                                 <span className="text-gray-400">{confirmDelete.entry_date_display}</span>
-                                {' — '}
-                                <span className="font-medium text-gray-900">{confirmDelete.description}</span>
+                                {confirmDelete.description && (
+                                    <>
+                                        {' — '}
+                                        <span className="font-medium text-gray-900">{confirmDelete.description}</span>
+                                    </>
+                                )}
                             </p>
                             <p className="mb-2">
                                 <span className="capitalize">{confirmDelete.type}</span>
@@ -644,25 +634,24 @@ export default function LedgerIndex({
                                 <span>{BUCKET_LABELS[confirmDelete.bucket]}</span>
                                 {' · '}
                                 <span className="tabular-nums">{formatAmount(confirmDelete.amount)}</span>
+                                {confirmDelete.member?.name && (
+                                    <>
+                                        {' · '}
+                                        <span>{confirmDelete.member.name}</span>
+                                    </>
+                                )}
+                                {confirmDelete.category?.name && (
+                                    <>
+                                        {' · '}
+                                        <span>{confirmDelete.category.name}</span>
+                                    </>
+                                )}
                             </p>
                             <p className="text-xs text-gray-500">You can restore it from the deleted-entries page.</p>
                         </>
                     )}
                     onConfirm={confirmDeleteSubmit}
                     onCancel={() => setConfirmDelete(null)}
-                />
-
-                <ConfirmModal
-                    open={confirmResetOpenings}
-                    title="Reset opening balances?"
-                    danger
-                    confirmLabel="Reset"
-                    message="Clear all opening-balance seeds. Use this if balances are showing even though no entries exist. The next import will re-seed them from the XLSX."
-                    onConfirm={() => {
-                        setConfirmResetOpenings(false);
-                        router.post('/ledger/opening-balances/reset');
-                    }}
-                    onCancel={() => setConfirmResetOpenings(false)}
                 />
 
                 {/* Add/edit form modal */}
@@ -722,12 +711,11 @@ export default function LedgerIndex({
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-gray-600 mb-1">Description</label>
+                                    <label className="block text-xs text-gray-600 mb-1">Description (optional)</label>
                                     <input
                                         type="text"
-                                        required
                                         maxLength={255}
-                                        value={entryForm.data.description}
+                                        value={entryForm.data.description ?? ''}
                                         onChange={(e) => entryForm.setData('description', e.target.value)}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                     />
