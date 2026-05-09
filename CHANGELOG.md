@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.20] - 2026-05-09
+
+### Fixed
+- Ledger filter dropdowns closed immediately on every selection because the Inertia navigation was using `preserveState: false`, which tore down React state on each request. Switched filter changes to `preserveState: true` so the open dropdown stays open while the user picks multiple values.
+
 ## [0.9.19] - 2026-05-09
 
 ### Changed

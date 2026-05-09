@@ -153,7 +153,7 @@ export default function LedgerIndex({
         const params = { year, month, ...activeFilterParams() };
         if (values.length) params[key] = values;
         else delete params[key];
-        router.get('/ledger', params, { preserveState: false, preserveScroll: true });
+        router.get('/ledger', params, { preserveState: true, preserveScroll: true });
     };
 
     const filtersActive = typeFilter.length > 0 || bucketFilter.length > 0 || categoryFilter.length > 0;
