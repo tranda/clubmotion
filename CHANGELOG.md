@@ -2,6 +2,16 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.23] - 2026-05-09
+
+### Added
+- Membership payments are now mirrored into the Ledger automatically. When a `MembershipPayment` is saved with status=paid, paid_amount > 0, payment_date, and a payment_method, a `LedgerEntry` is created (or updated, if it already existed) with: type=income, member linked, category="Membership" (auto-created), bucket = cash for `cash` method or bank for `card`/`bank_transfer`, description like "Member Name — Membership APR 2026". Payments and entries have a 1:1 link via `membership_payments.ledger_entry_id`.
+- Clearing any of the qualifying fields (status away from paid, amount → 0, date null, method null) deletes the linked ledger entry. Deleting the payment removes the entry too.
+- Manual deletion of the ledger entry from the Ledger view nulls out the link on the payment side (FK uses nullOnDelete); the next time the payment is touched, a fresh entry is created.
+
+### Migration
+- Adds `ledger_entry_id` (nullable FK to `ledger_entries`, nullOnDelete) on `membership_payments`.
+
 ## [0.9.22] - 2026-05-09
 
 ### Changed
