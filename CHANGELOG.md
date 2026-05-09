@@ -2,6 +2,18 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.33] - 2026-05-09
+
+### Added
+- Kalkulator vremena — drugi režim **Iz brzine → vreme**: unesi GPS brzinu (km/h) i dobiješ vreme za odabranu distancu, plus korekciju za vetar.
+- Kalkulator vremena — sekcija **Podešavanja koeficijenata vetra po distanci** (collapsible). Tabela 4 distance × 3 faktora (U leđa / U prsa / Bočni). Eksplicitno **Sačuvaj** dugme + indikator nesačuvanih izmena + dugme "Vrati podrazumevano" (0.02 / 0.03 / 0.01 za svaku distancu).
+- **Nova tabela `tool_settings`** (key/value), model `App\Models\ToolSetting`, novi `ToolsController` sa `GET /tools` i `PUT /tools/coefs` (admin only). Po-distanca koeficijenti se čuvaju u DB pod ključevima `wind_coef_{200|500|1000|2000}_{tail|head|side}` i važe za sve admine. **Pokrenuti `php artisan migrate` na serveru posle pull-a.**
+- Custom distanca koristi koeficijente najbliže predefinisane (200/500/1000/2000), uz vidljiv hint koja je odabrana.
+- "Custom" kao poslednja opcija u distance select-u — kad se odabere, ispod se pojavljuje slobodan numerički input za bilo koju distancu.
+
+### Changed
+- Distanca je sada select sa standardnim dragon-boat distancama (200 / 500 / 1000 / 2000 m) + Custom, umesto slobodnog unosa.
+
 ## [0.9.32] - 2026-05-09
 
 ### Added

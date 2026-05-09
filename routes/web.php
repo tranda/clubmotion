@@ -214,10 +214,9 @@ Route::middleware('auth')->group(function () {
     });
 
     // Tools - Admin only
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/tools', function () {
-            return Inertia::render('Tools/Index');
-        })->name('tools.index');
+    Route::middleware('role:admin')->prefix('tools')->name('tools.')->group(function () {
+        Route::get('/', [App\Http\Controllers\ToolsController::class, 'index'])->name('index');
+        Route::put('/coefs', [App\Http\Controllers\ToolsController::class, 'updateCoefs'])->name('coefs.update');
     });
 
     // Migration runner - Admin only (remove after first use)
