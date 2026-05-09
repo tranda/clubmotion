@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.37] - 2026-05-09
+
+### Changed
+- Renamed bucket display labels everywhere they appear: **Cash → Cash RSD**, **Bank → Bank RSD**, **EUR → Bank EUR**. Underlying enum values (`cash`, `bank`, `eur`) are unchanged, so no migration and no data conversion. Updated locations: Ledger month view (summary cards, entries table, filter dropdowns, entry form), Annual Report page + PDF + Excel column headers, Import Review page, Deleted entries page.
+
 ## [0.9.36] - 2026-05-09
 
 ### Changed

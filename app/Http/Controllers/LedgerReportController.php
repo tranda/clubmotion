@@ -239,9 +239,9 @@ class LedgerReportController extends Controller
         $sheet->mergeCells('A1:D1');
 
         $sheet->setCellValue('A3', '');
-        $sheet->setCellValue('B3', 'Cash');
-        $sheet->setCellValue('C3', 'Bank');
-        $sheet->setCellValue('D3', 'EUR');
+        $sheet->setCellValue('B3', 'Cash RSD');
+        $sheet->setCellValue('C3', 'Bank RSD');
+        $sheet->setCellValue('D3', 'Bank EUR');
         $this->headerStyle($sheet, 'A3:D3');
 
         $rows = [
@@ -268,15 +268,15 @@ class LedgerReportController extends Controller
     {
         $sheet->setTitle('Monthly');
         $sheet->setCellValue('A1', 'Month');
-        $sheet->setCellValue('B1', 'Income (Cash)');
-        $sheet->setCellValue('C1', 'Income (Bank)');
-        $sheet->setCellValue('D1', 'Income (EUR)');
-        $sheet->setCellValue('E1', 'Expense (Cash)');
-        $sheet->setCellValue('F1', 'Expense (Bank)');
-        $sheet->setCellValue('G1', 'Expense (EUR)');
-        $sheet->setCellValue('H1', 'Closing (Cash)');
-        $sheet->setCellValue('I1', 'Closing (Bank)');
-        $sheet->setCellValue('J1', 'Closing (EUR)');
+        $sheet->setCellValue('B1', 'Income (Cash RSD)');
+        $sheet->setCellValue('C1', 'Income (Bank RSD)');
+        $sheet->setCellValue('D1', 'Income (Bank EUR)');
+        $sheet->setCellValue('E1', 'Expense (Cash RSD)');
+        $sheet->setCellValue('F1', 'Expense (Bank RSD)');
+        $sheet->setCellValue('G1', 'Expense (Bank EUR)');
+        $sheet->setCellValue('H1', 'Closing (Cash RSD)');
+        $sheet->setCellValue('I1', 'Closing (Bank RSD)');
+        $sheet->setCellValue('J1', 'Closing (Bank EUR)');
         $this->headerStyle($sheet, 'A1:J1');
 
         $r = 2;

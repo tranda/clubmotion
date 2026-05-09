@@ -7,7 +7,7 @@ const MONTHS = [
     'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-const BUCKET_LABELS = { cash: 'Cash', bank: 'Bank', eur: 'EUR' };
+const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', eur: 'Bank EUR' };
 
 function MultiSelectDropdown({ placeholder, options, selected, onChange }) {
     const [open, setOpen] = useState(false);
@@ -345,9 +345,9 @@ export default function LedgerIndex({
                     <MultiSelectDropdown
                         placeholder="All buckets"
                         options={[
-                            { value: 'cash', label: 'Cash' },
-                            { value: 'bank', label: 'Bank' },
-                            { value: 'eur', label: 'EUR' },
+                            { value: 'cash', label: 'Cash RSD' },
+                            { value: 'bank', label: 'Bank RSD' },
+                            { value: 'eur', label: 'Bank EUR' },
                         ]}
                         selected={bucketFilter}
                         onChange={(vals) => setFilterArray('bucket', vals)}
@@ -502,9 +502,9 @@ export default function LedgerIndex({
                                             onChange={(e) => entryForm.setData('bucket', e.target.value)}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                         >
-                                            <option value="cash">Cash (keš)</option>
-                                            <option value="bank">Bank (račun)</option>
-                                            <option value="eur">EUR (evri)</option>
+                                            <option value="cash">Cash RSD (keš)</option>
+                                            <option value="bank">Bank RSD (račun)</option>
+                                            <option value="eur">Bank EUR (evri)</option>
                                         </select>
                                     </div>
                                     <div>

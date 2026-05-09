@@ -37,7 +37,7 @@
 
 <h2>Year totals</h2>
 <div>
-    @foreach (['cash' => 'Cash', 'bank' => 'Bank', 'eur' => 'EUR'] as $b => $label)
+    @foreach (['cash' => 'Cash RSD', 'bank' => 'Bank RSD', 'eur' => 'Bank EUR'] as $b => $label)
     <div class="totals-card">
         <div class="inner">
             <div class="label">{{ $label }}</div>
@@ -55,15 +55,15 @@
     <thead>
         <tr>
             <th>Month</th>
-            <th class="r">Inc Cash</th>
-            <th class="r">Inc Bank</th>
-            <th class="r">Inc EUR</th>
-            <th class="r">Exp Cash</th>
-            <th class="r">Exp Bank</th>
-            <th class="r">Exp EUR</th>
-            <th class="r">End Cash</th>
-            <th class="r">End Bank</th>
-            <th class="r">End EUR</th>
+            <th class="r">Inc Cash RSD</th>
+            <th class="r">Inc Bank RSD</th>
+            <th class="r">Inc Bank EUR</th>
+            <th class="r">Exp Cash RSD</th>
+            <th class="r">Exp Bank RSD</th>
+            <th class="r">Exp Bank EUR</th>
+            <th class="r">End Cash RSD</th>
+            <th class="r">End Bank RSD</th>
+            <th class="r">End Bank EUR</th>
         </tr>
     </thead>
     <tbody>

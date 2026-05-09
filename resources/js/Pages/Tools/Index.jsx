@@ -39,7 +39,15 @@ function nearestPresetDistance(d) {
     return best;
 }
 
-// Parse "mm:ss.zzz" / "m:ss.zzz" / "ss.zzz" into seconds. Returns null on invalid.
+// Parse decimal accepting either "." or "," as separator (for mobile keyboards in locales without dot).
+function parseDecimal(value) {
+    if (value === null || value === undefined) return NaN;
+    const str = String(value).trim().replace(',', '.');
+    if (str === '') return NaN;
+    return Number(str);
+}
+
+// Parse "mm:ss.zzz" / "m:ss,zzz" / "ss.zzz" into seconds. Returns null on invalid.
 function parseTimeToSeconds(input) {
     if (input === null || input === undefined) return null;
     const str = String(input).trim();
@@ -50,11 +58,11 @@ function parseTimeToSeconds(input) {
 
     let h = 0, m = 0, s = 0;
     if (parts.length === 3) {
-        h = Number(parts[0]); m = Number(parts[1]); s = Number(parts[2]);
+        h = parseDecimal(parts[0]); m = parseDecimal(parts[1]); s = parseDecimal(parts[2]);
     } else if (parts.length === 2) {
-        m = Number(parts[0]); s = Number(parts[1]);
+        m = parseDecimal(parts[0]); s = parseDecimal(parts[1]);
     } else {
-        s = Number(parts[0]);
+        s = parseDecimal(parts[0]);
     }
     if (!Number.isFinite(h) || !Number.isFinite(m) || !Number.isFinite(s)) return null;
     if (h < 0 || m < 0 || s < 0) return null;

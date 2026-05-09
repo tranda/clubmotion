@@ -1,7 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import Layout from '../../../Components/Layout';
 
-const BUCKET_LABELS = { cash: 'Cash', bank: 'Bank', eur: 'EUR' };
+const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', eur: 'Bank EUR' };
 
 function fmt(value) {
     const n = Number(value ?? 0);
@@ -78,15 +78,15 @@ export default function AnnualReport({ year, totals, monthly, categories, member
                             </tr>
                             <tr className="bg-gray-50 text-gray-500 text-xs">
                                 <th></th>
-                                <th className="px-3 py-1 text-right font-normal">Cash</th>
-                                <th className="px-3 py-1 text-right font-normal">Bank</th>
-                                <th className="px-3 py-1 text-right font-normal">EUR</th>
-                                <th className="px-3 py-1 text-right font-normal">Cash</th>
-                                <th className="px-3 py-1 text-right font-normal">Bank</th>
-                                <th className="px-3 py-1 text-right font-normal">EUR</th>
-                                <th className="px-3 py-1 text-right font-normal">Cash</th>
-                                <th className="px-3 py-1 text-right font-normal">Bank</th>
-                                <th className="px-3 py-1 text-right font-normal">EUR</th>
+                                <th className="px-3 py-1 text-right font-normal">Cash RSD</th>
+                                <th className="px-3 py-1 text-right font-normal">Bank RSD</th>
+                                <th className="px-3 py-1 text-right font-normal">Bank EUR</th>
+                                <th className="px-3 py-1 text-right font-normal">Cash RSD</th>
+                                <th className="px-3 py-1 text-right font-normal">Bank RSD</th>
+                                <th className="px-3 py-1 text-right font-normal">Bank EUR</th>
+                                <th className="px-3 py-1 text-right font-normal">Cash RSD</th>
+                                <th className="px-3 py-1 text-right font-normal">Bank RSD</th>
+                                <th className="px-3 py-1 text-right font-normal">Bank EUR</th>
                             </tr>
                         </thead>
                         <tbody>

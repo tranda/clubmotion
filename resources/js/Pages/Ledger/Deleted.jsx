@@ -1,7 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-const BUCKET_LABELS = { cash: 'Cash', bank: 'Bank', eur: 'EUR' };
+const BUCKET_LABELS = { cash: 'Cash RSD', bank: 'Bank RSD', eur: 'Bank EUR' };
 
 function formatAmount(value) {
     const n = Number(value);
