@@ -128,7 +128,7 @@ function coefsToStrings(coefs) {
 }
 
 export default function ToolsIndex({ coefs: serverCoefs }) {
-    // Mode: 'time' (distance + time -> speed) | 'speed' (distance + GPS speed -> time)
+    // Mode: 'time' (distance + time -> speed) | 'speed' (distance + GPS speed -> time) | 'distance' (speed + time -> distance, no wind)
     const [mode, setMode] = useState('time');
 
     const [distanceKey, setDistanceKey] = useState('200');
@@ -177,6 +177,7 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
 
         let baseKmh = null;
         let baseTimeSec = null;
+        let computedDistance = null;
 
         if (mode === 'time') {
             const seconds = parseTimeToSeconds(raceTime);
@@ -185,25 +186,36 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
                 baseKmh = (distInfo.dist / seconds) * 3.6;
                 baseTimeSec = seconds;
             }
-        } else {
+        } else if (mode === 'speed') {
             const v = gpsSpeed === '' ? null : parseDecimal(gpsSpeed);
             const speedOk = v !== null && Number.isFinite(v) && v > 0;
             if (speedOk) {
                 baseKmh = v;
                 if (distOk) baseTimeSec = distInfo.dist / (v / 3.6);
             }
+        } else {
+            // 'distance' mode: speed + time -> distance (no wind correction)
+            const v = gpsSpeed === '' ? null : parseDecimal(gpsSpeed);
+            const speedOk = v !== null && Number.isFinite(v) && v > 0;
+            const seconds = parseTimeToSeconds(raceTime);
+            const timeOk = seconds !== null && Number.isFinite(seconds) && seconds > 0;
+            if (speedOk && timeOk) {
+                computedDistance = (v / 3.6) * seconds;
+                baseKmh = v;
+                baseTimeSec = seconds;
+            }
         }
 
         let correctedKmh = null;
         let correctedTimeSec = null;
-        if (baseKmh !== null && windOk) {
+        if (mode !== 'distance' && baseKmh !== null && windOk) {
             correctedKmh = Math.max(0.1, baseKmh + wind * factor);
             if (distOk) {
                 correctedTimeSec = distInfo.dist / (correctedKmh / 3.6);
             }
         }
 
-        return { baseKmh, baseTimeSec, correctedKmh, correctedTimeSec };
+        return { baseKmh, baseTimeSec, correctedKmh, correctedTimeSec, computedDistance };
     }, [mode, distInfo, raceTime, gpsSpeed, windSpeed, windDir, savedCoefs]);
 
     const fmtKmh = (v) => v === null ? '—' : v.toFixed(3) + ' km/h';
@@ -283,47 +295,50 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
                         Dragon-boat: izračunaj brzinu/vreme i korekciju zbog vetra.
                     </p>
 
-                    <div className="flex items-center gap-2 mb-5">
+                    <div className="flex items-center gap-2 mb-5 flex-wrap">
                         <span className="text-sm text-gray-600 mr-1">Režim:</span>
                         <ModeButton value="time">Iz vremena → brzina</ModeButton>
                         <ModeButton value="speed">Iz brzine → vreme</ModeButton>
+                        <ModeButton value="distance">Iz brzine i vremena → distanca</ModeButton>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Distanca (m)
-                            </label>
-                            <select
-                                value={distanceKey}
-                                onChange={(e) => setDistanceKey(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                            >
-                                {DISTANCE_OPTIONS.map(d => (
-                                    <option key={d.value} value={d.value}>{d.label}</option>
-                                ))}
-                            </select>
-                            {distanceKey === 'custom' && (
-                                <>
-                                    <input
-                                        type="text"
-                                        inputMode="decimal"
-                                        value={customDistance}
-                                        onChange={(e) => setCustomDistance(e.target.value)}
-                                        className="w-full px-3 py-2 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="npr. 750"
-                                        autoFocus
-                                    />
-                                    {distInfo.isFallback && (
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Koristi koeficijente za <strong>{distInfo.presetKey} m</strong> (najbliža predefinisana distanca).
-                                        </p>
-                                    )}
-                                </>
-                            )}
-                        </div>
+                        {mode !== 'distance' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Distanca (m)
+                                </label>
+                                <select
+                                    value={distanceKey}
+                                    onChange={(e) => setDistanceKey(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                >
+                                    {DISTANCE_OPTIONS.map(d => (
+                                        <option key={d.value} value={d.value}>{d.label}</option>
+                                    ))}
+                                </select>
+                                {distanceKey === 'custom' && (
+                                    <>
+                                        <input
+                                            type="text"
+                                            inputMode="decimal"
+                                            value={customDistance}
+                                            onChange={(e) => setCustomDistance(e.target.value)}
+                                            className="w-full px-3 py-2 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="npr. 750"
+                                            autoFocus
+                                        />
+                                        {distInfo.isFallback && (
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Koristi koeficijente za <strong>{distInfo.presetKey} m</strong> (najbliža predefinisana distanca).
+                                            </p>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
 
-                        {mode === 'time' ? (
+                        {mode === 'time' && (
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Vreme trke (mm:ss.zzz)
@@ -337,7 +352,9 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
                                 />
                                 <p className="text-xs text-gray-500 mt-1">npr. 00:45.000 ili 1:23.456</p>
                             </div>
-                        ) : (
+                        )}
+
+                        {mode === 'speed' && (
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     GPS brzina (km/h)
@@ -354,54 +371,101 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
                             </div>
                         )}
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Brzina vetra (km/h)
-                            </label>
-                            <input
-                                type="text"
-                                inputMode="decimal"
-                                value={windSpeed}
-                                onChange={(e) => setWindSpeed(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="10"
-                            />
-                        </div>
+                        {mode === 'distance' && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Brzina (km/h)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        inputMode="decimal"
+                                        value={gpsSpeed}
+                                        onChange={(e) => setGpsSpeed(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="16"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">izmerena brzina (npr. sa GPS-a)</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Vreme (mm:ss.zzz)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={raceTime}
+                                        onChange={(e) => setRaceTime(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="00:45.000"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">npr. 00:45.000 ili 1:23.456</p>
+                                </div>
+                            </>
+                        )}
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Smer vetra
-                            </label>
-                            <select
-                                value={windDir}
-                                onChange={(e) => setWindDir(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                            >
-                                {WIND_DIR_OPTIONS.map(d => (
-                                    <option key={d.value} value={d.value}>{d.label}</option>
-                                ))}
-                            </select>
-                        </div>
+                        {mode !== 'distance' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Brzina vetra (km/h)
+                                </label>
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={windSpeed}
+                                    onChange={(e) => setWindSpeed(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="10"
+                                />
+                            </div>
+                        )}
+
+                        {mode !== 'distance' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Smer vetra
+                                </label>
+                                <select
+                                    value={windDir}
+                                    onChange={(e) => setWindDir(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                >
+                                    {WIND_DIR_OPTIONS.map(d => (
+                                        <option key={d.value} value={d.value}>{d.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-4 bg-blue-50 rounded-lg">
-                            <p className="text-xs text-gray-600 uppercase tracking-wide">
-                                {mode === 'time' ? 'GPS / prosečna brzina' : 'Vreme (iz GPS brzine)'}
-                            </p>
-                            <p className="text-xl font-semibold text-blue-700 mt-1">
-                                {mode === 'time' ? fmtKmh(result.baseKmh) : fmtTime(result.baseTimeSec)}
-                            </p>
+                    {mode === 'distance' ? (
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="p-4 bg-blue-50 rounded-lg">
+                                <p className="text-xs text-gray-600 uppercase tracking-wide">Distanca</p>
+                                <p className="text-xl font-semibold text-blue-700 mt-1">
+                                    {result.computedDistance === null ? '—' : `${result.computedDistance.toFixed(2)} m`}
+                                </p>
+                            </div>
                         </div>
-                        <div className="p-4 bg-green-50 rounded-lg">
-                            <p className="text-xs text-gray-600 uppercase tracking-wide">Korigovana brzina</p>
-                            <p className="text-xl font-semibold text-green-700 mt-1">{fmtKmh(result.correctedKmh)}</p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="p-4 bg-blue-50 rounded-lg">
+                                <p className="text-xs text-gray-600 uppercase tracking-wide">
+                                    {mode === 'time' ? 'GPS / prosečna brzina' : 'Vreme (iz GPS brzine)'}
+                                </p>
+                                <p className="text-xl font-semibold text-blue-700 mt-1">
+                                    {mode === 'time' ? fmtKmh(result.baseKmh) : fmtTime(result.baseTimeSec)}
+                                </p>
+                            </div>
+                            <div className="p-4 bg-green-50 rounded-lg">
+                                <p className="text-xs text-gray-600 uppercase tracking-wide">Korigovana brzina</p>
+                                <p className="text-xl font-semibold text-green-700 mt-1">{fmtKmh(result.correctedKmh)}</p>
+                            </div>
+                            <div className="p-4 bg-purple-50 rounded-lg">
+                                <p className="text-xs text-gray-600 uppercase tracking-wide">Korigovano vreme</p>
+                                <p className="text-xl font-semibold text-purple-700 mt-1">{fmtTime(result.correctedTimeSec)}</p>
+                            </div>
                         </div>
-                        <div className="p-4 bg-purple-50 rounded-lg">
-                            <p className="text-xs text-gray-600 uppercase tracking-wide">Korigovano vreme</p>
-                            <p className="text-xl font-semibold text-purple-700 mt-1">{fmtTime(result.correctedTimeSec)}</p>
-                        </div>
-                    </div>
+                    )}
 
                     {/* Coefficient settings */}
                     <div className="mt-6 border-t border-gray-200 pt-4">

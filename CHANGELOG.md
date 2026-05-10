@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.46] - 2026-05-10
+
+### Added
+- Tools → Kalkulator vremena: third mode **„Iz brzine i vremena → distanca"**. Given speed (km/h) and time (mm:ss.zzz), computes the distance in meters. Wind correction is intentionally not applied in this mode — distance/wind hidden when the mode is active.
+
 ## [0.9.45] - 2026-05-09
 
 ### Removed
