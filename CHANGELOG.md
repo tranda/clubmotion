@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.49] - 2026-05-11
+
+### Added
+- Home dashboard: **Notes** card (rose tile) linking to `/notes`. Visible only to admin/superuser, placed right after the Ledger card.
+
 ## [0.9.48] - 2026-05-11
 
 ### Added

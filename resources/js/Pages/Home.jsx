@@ -109,6 +109,27 @@ export default function Home({ stats }) {
                                 </Link>
                             )}
 
+                            {/* Notes Card - Admin/Superuser */}
+                            {canManage && (
+                                <Link
+                                    href="/notes"
+                                    className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                                >
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="p-3 bg-rose-100 rounded-full">
+                                            <svg className="w-8 h-8 text-rose-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </div>
+                                        <svg className="w-6 h-6 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </div>
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Notes</h2>
+                                    <p className="text-gray-600">Per-member notes, not counted into the Ledger</p>
+                                </Link>
+                            )}
+
                             {/* Achievements Card */}
                             <Link
                                 href="/achievements"
