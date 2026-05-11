@@ -215,6 +215,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/annual/excel', [App\Http\Controllers\LedgerReportController::class, 'annualExcel'])->name('reports.annual.excel');
     });
 
+    // Notes (admin scratch-pad, not counted into Ledger) - Admin & Superuser
+    Route::middleware('role:admin,superuser')->prefix('notes')->name('notes.')->group(function () {
+        Route::get('/', [App\Http\Controllers\NoteController::class, 'index'])->name('index');
+        Route::post('/entries', [App\Http\Controllers\NoteController::class, 'storeEntry'])->name('entries.store');
+        Route::put('/entries/{note}', [App\Http\Controllers\NoteController::class, 'updateEntry'])->name('entries.update');
+        Route::delete('/entries/{note}', [App\Http\Controllers\NoteController::class, 'destroyEntry'])->name('entries.destroy');
+        Route::post('/entries/{id}/restore', [App\Http\Controllers\NoteController::class, 'restoreEntry'])->name('entries.restore');
+
+        Route::get('/categories', [App\Http\Controllers\NoteController::class, 'categoriesIndex'])->name('categories.index');
+        Route::post('/categories', [App\Http\Controllers\NoteController::class, 'categoriesStore'])->name('categories.store');
+        Route::put('/categories/{category}', [App\Http\Controllers\NoteController::class, 'categoriesUpdate'])->name('categories.update');
+        Route::delete('/categories/{category}', [App\Http\Controllers\NoteController::class, 'categoriesDestroy'])->name('categories.destroy');
+
+        Route::get('/deleted', [App\Http\Controllers\NoteController::class, 'deletedEntries'])->name('deleted');
+    });
+
     // Tools - Admin & Superuser
     Route::middleware('role:admin,superuser')->prefix('tools')->name('tools.')->group(function () {
         Route::get('/', [App\Http\Controllers\ToolsController::class, 'index'])->name('index');

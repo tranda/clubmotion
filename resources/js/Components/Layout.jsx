@@ -112,6 +112,18 @@ export default function Layout({ children }) {
 
                             {canManage && (
                                 <Link
+                                    href="/notes"
+                                    className="flex items-center px-4 py-2 text-gray-800 font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                                >
+                                    <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Notes
+                                </Link>
+                            )}
+
+                            {canManage && (
+                                <Link
                                     href="/tools"
                                     className="flex items-center px-4 py-2 text-gray-800 font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
                                 >
@@ -277,6 +289,19 @@ export default function Layout({ children }) {
                                     <path d="M9 17v-2a4 4 0 014-4h6m-6 0V7a4 4 0 00-4-4H5a2 2 0 00-2 2v14a2 2 0 002 2h4m6-12l4 4-4 4" />
                                 </svg>
                                 Ledger
+                            </Link>
+                        )}
+
+                        {canManage && (
+                            <Link
+                                href="/notes"
+                                onClick={closeMenu}
+                                className="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                            >
+                                <svg className="w-5 h-5 mr-3" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Notes
                             </Link>
                         )}
 

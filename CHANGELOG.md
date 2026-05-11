@@ -2,6 +2,16 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.48] - 2026-05-11
+
+### Added
+- **Notes** — new admin-only section (sibling to Ledger), reachable from the main nav. Records are explicitly **not counted into the official Ledger balance** — this is a simple scratch-pad for amounts the club wants to track per member that should *not* affect cash/bank balances.
+  - Entry fields: `entry_date`, `member_id` (required), `note_category_id` (required), `amount` (required, `decimal(12,2)`), `description` (optional).
+  - Index page lists all notes with **member** and **category** multi-select filters, plus a total of the currently-filtered set. Add / edit form is in-page; soft-deleted entries can be restored from `/notes/deleted`.
+  - Categories live in a **separate `note_categories` table** (no relation to Ledger categories) and are managed at `/notes/categories` with the same name+sort+active shape Ledger uses. No `kind` field — categories here are flat since amounts don't roll up.
+  - Routes are gated by `middleware('role:admin,superuser')` same as Ledger.
+  - **Run `php artisan migrate` on the server** to create `note_categories` and `notes` tables before the page becomes usable.
+
 ## [0.9.47] - 2026-05-10
 
 ### Changed
