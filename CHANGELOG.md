@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.47] - 2026-05-10
+
+### Changed
+- Payments page: when an admin registers a member's payment, the auto-created Ledger entry is now assigned to category **članarina** (Serbian) instead of **Membership**. Applies to the import flow as well.
+- Migration `2026_05_10_120000_rename_membership_category_to_clanarina` renames the existing **Membership** ledger category to **članarina** in place, so historical Ledger entries (which reference the category by id) display the new label automatically. If a **članarina** category already exists, the old row is merged into it (entries + staging rows repointed) and the orphan **Membership** row is deleted. **Run `php artisan migrate` on the server to apply.**
+
 ## [0.9.46] - 2026-05-10
 
 ### Added

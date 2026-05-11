@@ -418,7 +418,7 @@ class LedgerController extends Controller
         $defaultYear = $request->input('default_year') ?? (int) Carbon::now()->year;
 
         $memberMatcher = $this->buildMemberMatcher();
-        $membershipCatId = $this->ensureCategory('Membership', 'income');
+        $membershipCatId = $this->ensureCategory('članarina', 'income');
         $registrationCatId = $this->ensureCategory('Registration', 'income');
 
         foreach ($tabs as $tab) {
@@ -432,7 +432,7 @@ class LedgerController extends Controller
                 $suggestedMemberId = $memberMatcher($normalized);
 
                 // For INCOME rows with a suggested member, auto-pick category:
-                // 'reg' in description → Registration, otherwise → Membership.
+                // 'reg' in description → Registration, otherwise → članarina.
                 if ($suggestedMemberId && ($row['type'] ?? null) === 'income') {
                     $suggestedCatId = str_contains($normalized, 'reg')
                         ? $registrationCatId
@@ -526,7 +526,7 @@ class LedgerController extends Controller
             'categories' => LedgerCategory::orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'kind']),
             'members' => Member::where('is_active', true)->orderBy('name')->get(['id', 'name', 'membership_number']),
             'memberCategoryIds' => [
-                'membership' => $this->ensureCategory('Membership', 'income'),
+                'membership' => $this->ensureCategory('članarina', 'income'),
                 'registration' => $this->ensureCategory('Registration', 'income'),
             ],
         ]);

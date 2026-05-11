@@ -209,10 +209,10 @@ class MembershipPayment extends Model
         static $cached = null;
         if ($cached !== null) return $cached;
 
-        $normalized = LedgerCategory::normalize('Membership');
+        $normalized = LedgerCategory::normalize('članarina');
         $cat = LedgerCategory::firstOrCreate(
             ['normalized_name' => $normalized],
-            ['name' => 'Membership', 'kind' => 'income', 'is_active' => true, 'sort_order' => 0]
+            ['name' => 'članarina', 'kind' => 'income', 'is_active' => true, 'sort_order' => 0]
         );
         return $cached = $cat->id;
     }
