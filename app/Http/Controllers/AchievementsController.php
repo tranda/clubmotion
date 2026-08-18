@@ -83,6 +83,93 @@ class AchievementsController extends Controller
     }
 
     /**
+     * Export achievements for a specific event as a CSV pivot matrix.
+     * Columns: ID (membership_number), Name, then one column per competition
+     * class in the event. Each cell holds the member's medal (or is blank).
+     */
+    public function export(Request $request)
+    {
+        $eventName = trim((string) $request->query('event', ''));
+
+        if ($eventName === '') {
+            abort(404, 'Event not specified.');
+        }
+
+        // All achievements for this event, with their member records.
+        $achievements = Achievement::where('event_name', $eventName)
+            ->with('member')
+            ->get();
+
+        if ($achievements->isEmpty()) {
+            abort(404, 'No achievements found for this event.');
+        }
+
+        // Race columns = distinct competition classes in the event.
+        $classes = $achievements->pluck('competition_class')
+            ->unique()
+            ->sort()
+            ->values();
+
+        // Header row.
+        $header = ['ID', 'Name'];
+        foreach ($classes as $class) {
+            $header[] = $class;
+        }
+
+        $csv = [$header];
+
+        // One row per member, sorted by membership number.
+        $rows = [];
+        foreach ($achievements->groupBy('member_id') as $memberAchievements) {
+            $member = $memberAchievements->first()->member;
+
+            if (!$member) {
+                continue;
+            }
+
+            $medalByClass = $memberAchievements->keyBy('competition_class');
+
+            $row = [
+                $member->membership_number,
+                $member->name,
+            ];
+
+            foreach ($classes as $class) {
+                $achievement = $medalByClass->get($class);
+                $row[] = $achievement ? $achievement->medal : '';
+            }
+
+            $rows[] = [
+                'sort' => (int) $member->membership_number,
+                'row' => $row,
+            ];
+        }
+
+        usort($rows, fn($a, $b) => $a['sort'] <=> $b['sort']);
+
+        foreach ($rows as $r) {
+            $csv[] = $r['row'];
+        }
+
+        // Build CSV string.
+        $output = fopen('php://temp', 'r+');
+        foreach ($csv as $row) {
+            fputcsv($output, $row);
+        }
+        rewind($output);
+        $csvContent = stream_get_contents($output);
+        fclose($output);
+
+        // Safe filename from the event name.
+        $safeName = preg_replace('/[^A-Za-z0-9 _-]+/', '', $eventName);
+        $safeName = trim($safeName) !== '' ? trim($safeName) : 'achievements';
+
+        return response($csvContent)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', "attachment; filename=\"{$safeName}.csv\"");
+    }
+
+    /**
      * Show import page
      */
     public function showImport()

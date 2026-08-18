@@ -111,6 +111,8 @@ Route::middleware('auth')->group(function () {
             ->name('achievements.import');
         Route::post('/achievements/import', [AchievementsController::class, 'import'])
             ->name('achievements.import.store');
+        Route::get('/achievements/export', [AchievementsController::class, 'export'])
+            ->name('achievements.export');
     });
 
     // Payments - My payments for all authenticated users

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.50] - 2026-08-18
+
+### Added
+- **Achievements — CSV export per event.** New "Export CSV" button on each event card in the Achievements panel (admin/superuser only) at `GET /achievements/export?event=<event_name>`. Produces a pivot matrix matching the club's paddler template: columns are `ID` (membership number), `Name`, then one column per competition class in the event; each cell holds the member's medal (`GOLD`/`SILVER`/`BRONZE`) or is blank. Rows are sorted by membership number.
+
 ## [0.9.49] - 2026-05-11
 
 ### Added
