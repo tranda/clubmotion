@@ -147,25 +147,12 @@ export default function AchievementsIndex({ myAchievementsByEvent, clubAchieveme
                         {Object.entries(achievementsByEvent).map(([eventName, achievements]) => (
                             <div key={eventName} className="bg-white rounded-lg shadow p-4">
                                 {/* Event Name Header */}
-                                <div className="mb-4 pb-2 border-b border-gray-200 flex items-center justify-between gap-3">
-                                    <h2 className="text-xl font-bold text-gray-900">
-                                        {eventName}
-                                        {achievements[0]?.year && (
-                                            <span className="ml-2 text-sm font-normal text-gray-600">({achievements[0].year})</span>
-                                        )}
-                                    </h2>
-                                    {canManage && (
-                                        <a
-                                            href={`/achievements/export?event=${encodeURIComponent(eventName)}`}
-                                            className="inline-flex items-center shrink-0 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm"
-                                        >
-                                            <svg className="w-4 h-4 mr-1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                            </svg>
-                                            Export CSV
-                                        </a>
+                                <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                                    {eventName}
+                                    {achievements[0]?.year && (
+                                        <span className="ml-2 text-sm font-normal text-gray-600">({achievements[0].year})</span>
                                     )}
-                                </div>
+                                </h2>
 
                                 {/* Achievements List */}
                                 <div className="space-y-2">
