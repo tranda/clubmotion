@@ -107,6 +107,21 @@ class AchievementsController extends Controller
     }
 
     /**
+     * Turn a failed dbcrews HTTP response into a JSON error response,
+     * with a clear message for auth failures.
+     */
+    private function dbcrewsFailure($response)
+    {
+        if ($response->status() === 401) {
+            return response()->json([
+                'error' => 'dbcrews API key missing or invalid. Set DBCREWS_API_KEY in the server .env.',
+            ], 401);
+        }
+
+        return response()->json(['error' => 'dbcrews returned status ' . $response->status()], 502);
+    }
+
+    /**
      * Show the "Pull from dbcrews" page.
      */
     public function showPull()
@@ -123,7 +138,7 @@ class AchievementsController extends Controller
             $response = $this->dbcrewsClient()->get($this->dbcrewsBase() . '/teams');
 
             if ($response->failed()) {
-                return response()->json(['error' => 'dbcrews returned status ' . $response->status()], 502);
+                return $this->dbcrewsFailure($response);
             }
 
             return response()->json(['teams' => $response->json('teams', [])]);
@@ -145,7 +160,7 @@ class AchievementsController extends Controller
             ]);
 
             if ($response->failed()) {
-                return response()->json(['error' => 'dbcrews returned status ' . $response->status()], 502);
+                return $this->dbcrewsFailure($response);
             }
 
             return response()->json(['competitions' => $response->json('competitions', [])]);
@@ -179,7 +194,7 @@ class AchievementsController extends Controller
             $response = $this->dbcrewsClient()->get($this->dbcrewsBase() . '/results', $query);
 
             if ($response->failed()) {
-                return response()->json(['error' => 'dbcrews returned status ' . $response->status()], 502);
+                return $this->dbcrewsFailure($response);
             }
 
             $results = $response->json('results', []);

@@ -33,7 +33,9 @@ return [
 
     'dbcrews' => [
         'base_url' => env('DBCREWS_BASE_URL', 'https://dbcrews.motion.rs/api/public'),
-        'key' => env('DBCREWS_RESULTS_KEY'), // optional; sent as X-Api-Key when set
+        // Required now (feeds are key-protected). Sent as the X-Api-Key header.
+        // Falls back to the older DBCREWS_RESULTS_KEY name if that's what's set.
+        'key' => env('DBCREWS_API_KEY', env('DBCREWS_RESULTS_KEY')),
     ],
 
 ];

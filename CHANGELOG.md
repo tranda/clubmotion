@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.54] - 2026-08-19
+
+### Changed
+- **dbcrews pull — API key required.** The dbcrews public feeds are now key-protected. The pull integration sends the key as the `X-Api-Key` header on all three endpoints (teams, competitions, results). Key is read from `DBCREWS_API_KEY` in the server `.env` (never hardcoded); falls back to the older `DBCREWS_RESULTS_KEY` name. A 401 now surfaces a clear "dbcrews API key missing or invalid" message.
+  - **Set `DBCREWS_API_KEY=<key>` in the server `.env`**, then hit `/clear-cache` (as admin) so config picks it up. Without it, the pull page shows the 401 error.
+
 ## [0.9.53] - 2026-08-19
 
 ### Changed
