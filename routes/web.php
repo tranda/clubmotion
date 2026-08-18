@@ -121,6 +121,10 @@ Route::middleware('auth')->group(function () {
             ->name('achievements.dbcrews.competitions');
         Route::post('/achievements/pull', [AchievementsController::class, 'pullFromDbcrews'])
             ->name('achievements.pull.store');
+
+        // Delete all achievements for one event (e.g. clear a renamed event before re-pull)
+        Route::delete('/achievements/event', [AchievementsController::class, 'deleteEvent'])
+            ->name('achievements.event.delete');
     });
 
     // Payments - My payments for all authenticated users

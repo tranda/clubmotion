@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.52] - 2026-08-19
+
+### Added
+- **Achievements — delete an event.** In Club Achievements view, admin/superuser get a "Delete event" button on each event card that removes every member's achievements for that event (with confirm). Handy for clearing a renamed event before re-pulling from dbcrews.
+
+### Changed
+- **dbcrews pull — clearer skip breakdown.** The pull/preview report now splits "skipped" into **already recorded** (dedupe hit), **unmatched member** (no local membership number), and **invalid** (missing fields), so it's obvious when existing records are correctly detected. Dedupe key is unchanged (member + event_name + competition_class + medal); note it is sensitive to event renames on the dbcrews side.
+
 ## [0.9.51] - 2026-08-19
 
 ### Added

@@ -175,7 +175,10 @@ export default function PullDbcrews() {
                     {preview && (
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                             <p className="text-blue-900 font-semibold">
-                                Dry run — <strong>{preview.inserted}</strong> would be inserted, {preview.skipped} skipped (of {preview.total} record{preview.total === 1 ? '' : 's'}). Nothing was written.
+                                Dry run — <strong>{preview.inserted}</strong> would be inserted (of {preview.total} record{preview.total === 1 ? '' : 's'}). Nothing was written.
+                            </p>
+                            <p className="text-sm text-blue-800">
+                                Skipped: {preview.existing} already recorded · {preview.unmatched?.length || 0} unmatched member · {preview.invalid} invalid
                             </p>
                             {preview.inserted > 0 ? (
                                 <div className="text-sm text-blue-900">
@@ -209,7 +212,10 @@ export default function PullDbcrews() {
                     {applied && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
                             <p className="text-green-900 font-semibold">
-                                Applied — <strong>{applied.inserted}</strong> inserted, {applied.skipped} skipped (of {applied.total} record{applied.total === 1 ? '' : 's'}).
+                                Applied — <strong>{applied.inserted}</strong> inserted (of {applied.total} record{applied.total === 1 ? '' : 's'}).
+                            </p>
+                            <p className="text-sm text-green-800">
+                                Skipped: {applied.existing} already recorded · {applied.unmatched?.length || 0} unmatched member · {applied.invalid} invalid
                             </p>
                             {applied.unmatched?.length > 0 && (
                                 <div className="text-sm text-green-900">

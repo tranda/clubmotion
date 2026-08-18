@@ -187,10 +187,11 @@ class AchievementsController extends Controller
             return response()->json(['error' => 'Could not reach dbcrews: ' . $e->getMessage()], 502);
         }
 
-        $inserted = 0; // in dry-run: how many WOULD be inserted
-        $skipped = 0;
-        $unmatched = []; // [membership_number => name] for reporting
-        $preview = []; // rows that would be inserted (dry-run report)
+        $inserted = 0;   // in dry-run: how many WOULD be inserted
+        $existing = 0;   // already in the DB (dedupe hit) — skipped
+        $invalid = 0;    // missing essential fields — skipped
+        $unmatched = []; // [membership_number => name] — no local member, skipped
+        $preview = [];   // rows that would be inserted (dry-run report)
 
         // Cache members by membership_number to avoid repeated lookups.
         $membersByNumber = Member::whereNotNull('membership_number')
@@ -206,7 +207,7 @@ class AchievementsController extends Controller
 
             // Skip records missing essentials.
             if ($memberId === null || $eventName === '' || $competitionClass === '' || $medal === '') {
-                $skipped++;
+                $invalid++;
                 continue;
             }
 
@@ -215,7 +216,6 @@ class AchievementsController extends Controller
             if (!$member) {
                 // No local member for this membership_number.
                 $unmatched[$memberId] = $row['name'] ?? '';
-                $skipped++;
                 continue;
             }
 
@@ -227,7 +227,7 @@ class AchievementsController extends Controller
                 ->exists();
 
             if ($exists) {
-                $skipped++;
+                $existing++;
                 continue;
             }
 
@@ -263,11 +263,26 @@ class AchievementsController extends Controller
         return response()->json([
             'dry_run' => $dryRun,
             'inserted' => $inserted, // would-insert count when dry_run
-            'skipped' => $skipped,
+            'existing' => $existing, // already in DB (dedupe hit)
+            'invalid' => $invalid,   // missing essential fields
+            'skipped' => $existing + $invalid + count($unmatchedList), // combined, for convenience
             'unmatched' => $unmatchedList,
             'preview' => $preview, // populated only on dry_run
             'total' => count($results),
         ]);
+    }
+
+    /**
+     * Delete all achievements for a given event (admin/superuser).
+     * Useful for clearing a mis-named event before re-pulling from dbcrews.
+     */
+    public function deleteEvent(Request $request)
+    {
+        $validated = $request->validate(['event' => 'required|string']);
+
+        $count = Achievement::where('event_name', $validated['event'])->delete();
+
+        return redirect()->back()->with('success', "Deleted {$count} achievement(s) for \"{$validated['event']}\".");
     }
 
     /**

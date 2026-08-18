@@ -36,6 +36,16 @@ export default function AchievementsIndex({ myAchievementsByEvent, clubAchieveme
         }
     };
 
+    // Delete all achievements for an event (admin/superuser)
+    const handleDeleteEvent = (eventName) => {
+        if (!confirm(`Delete ALL achievements for "${eventName}"? This removes every member's records for this event and cannot be undone.`)) {
+            return;
+        }
+        router.delete(`/achievements/event?event=${encodeURIComponent(eventName)}`, {
+            preserveScroll: true,
+        });
+    };
+
     // Check if user has won this achievement
     const hasWonAchievement = (achievement) => {
         const key = `${achievement.event_name}|${achievement.competition_class}|${achievement.medal}`;
@@ -158,12 +168,26 @@ export default function AchievementsIndex({ myAchievementsByEvent, clubAchieveme
                         {Object.entries(achievementsByEvent).map(([eventName, achievements]) => (
                             <div key={eventName} className="bg-white rounded-lg shadow p-4">
                                 {/* Event Name Header */}
-                                <h2 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                                    {eventName}
-                                    {achievements[0]?.year && (
-                                        <span className="ml-2 text-sm font-normal text-gray-600">({achievements[0].year})</span>
+                                <div className="mb-4 pb-2 border-b border-gray-200 flex items-center justify-between gap-3">
+                                    <h2 className="text-xl font-bold text-gray-900">
+                                        {eventName}
+                                        {achievements[0]?.year && (
+                                            <span className="ml-2 text-sm font-normal text-gray-600">({achievements[0].year})</span>
+                                        )}
+                                    </h2>
+                                    {canManage && view === 'club' && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteEvent(eventName)}
+                                            className="inline-flex items-center shrink-0 px-3 py-1.5 text-sm font-medium text-red-700 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                                        >
+                                            <svg className="w-4 h-4 mr-1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Delete event
+                                        </button>
                                     )}
-                                </h2>
+                                </div>
 
                                 {/* Achievements List */}
                                 <div className="space-y-2">
