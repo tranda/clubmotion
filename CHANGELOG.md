@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.50] - 2026-08-19
+
+### Added
+- **Achievements — Pull from dbcrews.** New admin/superuser page (`/achievements/pull`) that imports competition results from the dbcrews public feed (`https://dbcrews.motion.rs/api/public`). Flow mirrors dbcrews: pick a **Team**, then a **Competition** (or "All competitions"), then pull.
+  - Fetches teams (`/teams`) and competitions (`/competitions?team=`) via server-side proxies so the optional API key stays server-side (sent as `X-Api-Key` when `DBCREWS_RESULTS_KEY` is set).
+  - Inserts results into `achievements` **insert-only**, keyed by `member_id + event_name + competition_class + medal` — never updates or deletes existing rows. `memberId` from the feed is matched to our `membership_number`; `race`→`competition_class`, `event`→`event_name`, `medal` uppercased.
+  - Reports **inserted / skipped / unmatched** counts, listing membership numbers with no local member.
+  - Config in `config/services.php` (`services.dbcrews`); optional `.env`: `DBCREWS_BASE_URL`, `DBCREWS_RESULTS_KEY`.
+
 ## [0.9.49] - 2026-05-11
 
 ### Added

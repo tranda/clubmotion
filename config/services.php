@@ -31,4 +31,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'dbcrews' => [
+        'base_url' => env('DBCREWS_BASE_URL', 'https://dbcrews.motion.rs/api/public'),
+        'key' => env('DBCREWS_RESULTS_KEY'), // optional; sent as X-Api-Key when set
+    ],
+
 ];

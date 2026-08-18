@@ -111,6 +111,16 @@ Route::middleware('auth')->group(function () {
             ->name('achievements.import');
         Route::post('/achievements/import', [AchievementsController::class, 'import'])
             ->name('achievements.import.store');
+
+        // Pull achievements from dbcrews
+        Route::get('/achievements/pull', [AchievementsController::class, 'showPull'])
+            ->name('achievements.pull');
+        Route::get('/achievements/dbcrews/teams', [AchievementsController::class, 'dbcrewsTeams'])
+            ->name('achievements.dbcrews.teams');
+        Route::get('/achievements/dbcrews/competitions', [AchievementsController::class, 'dbcrewsCompetitions'])
+            ->name('achievements.dbcrews.competitions');
+        Route::post('/achievements/pull', [AchievementsController::class, 'pullFromDbcrews'])
+            ->name('achievements.pull.store');
     });
 
     // Payments - My payments for all authenticated users

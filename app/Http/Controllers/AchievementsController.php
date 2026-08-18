@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use App\Models\Achievement;
 use App\Models\Member;
 use Inertia\Inertia;
@@ -79,6 +80,175 @@ class AchievementsController extends Controller
         return Inertia::render('Achievements/Club', [
             'achievements' => $uniqueAchievements,
             'achievementsByEvent' => $achievementsByEvent,
+        ]);
+    }
+
+    /**
+     * Base URL for the dbcrews public feed (no trailing slash).
+     */
+    private function dbcrewsBase(): string
+    {
+        return rtrim(config('services.dbcrews.base_url'), '/');
+    }
+
+    /**
+     * Build an HTTP client for dbcrews, attaching the API key when configured.
+     */
+    private function dbcrewsClient()
+    {
+        $client = Http::acceptJson()->timeout(20);
+
+        $key = config('services.dbcrews.key');
+        if (!empty($key)) {
+            $client = $client->withHeaders(['X-Api-Key' => $key]);
+        }
+
+        return $client;
+    }
+
+    /**
+     * Show the "Pull from dbcrews" page.
+     */
+    public function showPull()
+    {
+        return Inertia::render('Achievements/PullDbcrews');
+    }
+
+    /**
+     * Proxy: list dbcrews teams. Keeps the API key server-side.
+     */
+    public function dbcrewsTeams()
+    {
+        try {
+            $response = $this->dbcrewsClient()->get($this->dbcrewsBase() . '/teams');
+
+            if ($response->failed()) {
+                return response()->json(['error' => 'dbcrews returned status ' . $response->status()], 502);
+            }
+
+            return response()->json(['teams' => $response->json('teams', [])]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Could not reach dbcrews: ' . $e->getMessage()], 502);
+        }
+    }
+
+    /**
+     * Proxy: list competitions for a team.
+     */
+    public function dbcrewsCompetitions(Request $request)
+    {
+        $request->validate(['team' => 'required']);
+
+        try {
+            $response = $this->dbcrewsClient()->get($this->dbcrewsBase() . '/competitions', [
+                'team' => $request->query('team'),
+            ]);
+
+            if ($response->failed()) {
+                return response()->json(['error' => 'dbcrews returned status ' . $response->status()], 502);
+            }
+
+            return response()->json(['competitions' => $response->json('competitions', [])]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Could not reach dbcrews: ' . $e->getMessage()], 502);
+        }
+    }
+
+    /**
+     * Pull results from dbcrews and insert new achievements.
+     *
+     * Insert-only, keyed by (member_id, event_name, competition_class, medal).
+     * Never updates or deletes existing rows.
+     */
+    public function pullFromDbcrews(Request $request)
+    {
+        $validated = $request->validate([
+            'team' => 'required',
+            'competition' => 'nullable',
+        ]);
+
+        try {
+            $query = ['team' => $validated['team']];
+            if (!empty($validated['competition'])) {
+                $query['competition'] = $validated['competition'];
+            }
+
+            $response = $this->dbcrewsClient()->get($this->dbcrewsBase() . '/results', $query);
+
+            if ($response->failed()) {
+                return response()->json(['error' => 'dbcrews returned status ' . $response->status()], 502);
+            }
+
+            $results = $response->json('results', []);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Could not reach dbcrews: ' . $e->getMessage()], 502);
+        }
+
+        $inserted = 0;
+        $skipped = 0;
+        $unmatched = []; // [membership_number => name] for reporting
+
+        // Cache members by membership_number to avoid repeated lookups.
+        $membersByNumber = Member::whereNotNull('membership_number')
+            ->get()
+            ->keyBy('membership_number');
+
+        foreach ($results as $row) {
+            $memberId = $row['memberId'] ?? null;
+            $eventName = trim($row['event'] ?? '');
+            $competitionClass = trim($row['race'] ?? '');
+            $medal = strtoupper(trim($row['medal'] ?? ''));
+            $year = $row['year'] ?? null;
+
+            // Skip records missing essentials.
+            if ($memberId === null || $eventName === '' || $competitionClass === '' || $medal === '') {
+                $skipped++;
+                continue;
+            }
+
+            $member = $membersByNumber->get($memberId);
+
+            if (!$member) {
+                // No local member for this membership_number.
+                $unmatched[$memberId] = $row['name'] ?? '';
+                $skipped++;
+                continue;
+            }
+
+            // Insert-only dedupe key: member + event + race + medal.
+            $exists = Achievement::where('member_id', $member->id)
+                ->where('event_name', $eventName)
+                ->where('competition_class', $competitionClass)
+                ->where('medal', $medal)
+                ->exists();
+
+            if ($exists) {
+                $skipped++;
+                continue;
+            }
+
+            Achievement::create([
+                'member_id' => $member->id,
+                'event_name' => $eventName,
+                'competition_class' => $competitionClass,
+                'medal' => $medal,
+                'year' => $year ? (int) $year : null,
+            ]);
+
+            $inserted++;
+        }
+
+        // Shape unmatched for reporting: list of {membership_number, name}.
+        $unmatchedList = [];
+        foreach ($unmatched as $number => $name) {
+            $unmatchedList[] = ['membership_number' => $number, 'name' => $name];
+        }
+
+        return response()->json([
+            'inserted' => $inserted,
+            'skipped' => $skipped,
+            'unmatched' => $unmatchedList,
+            'total' => count($results),
         ]);
     }
 
