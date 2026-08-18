@@ -11,6 +11,7 @@ class Achievement extends Model
         'competition_class',
         'medal',
         'event_name',
+        'dbcrews_competition_id',
         'year',
     ];
 

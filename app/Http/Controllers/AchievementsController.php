@@ -204,6 +204,10 @@ class AchievementsController extends Controller
             $competitionClass = trim($row['race'] ?? '');
             $medal = strtoupper(trim($row['medal'] ?? ''));
             $year = $row['year'] ?? null;
+            // Stable competition id (rename-proof). Null when the feed doesn't send it.
+            $competitionId = isset($row['competitionId']) && $row['competitionId'] !== ''
+                ? (int) $row['competitionId']
+                : null;
 
             // Skip records missing essentials.
             if ($memberId === null || $eventName === '' || $competitionClass === '' || $medal === '') {
@@ -219,14 +223,20 @@ class AchievementsController extends Controller
                 continue;
             }
 
-            // Insert-only dedupe key: member + event + race + medal.
-            $exists = Achievement::where('member_id', $member->id)
-                ->where('event_name', $eventName)
+            // Insert-only dedupe. Prefer the stable competition id (immune to event
+            // renames); fall back to event_name when the feed has no competition id.
+            $dedupe = Achievement::where('member_id', $member->id)
                 ->where('competition_class', $competitionClass)
-                ->where('medal', $medal)
-                ->exists();
+                ->where('medal', $medal);
 
-            if ($exists) {
+            if ($competitionId !== null) {
+                $dedupe->where('dbcrews_competition_id', $competitionId);
+            } else {
+                $dedupe->where('event_name', $eventName)
+                    ->whereNull('dbcrews_competition_id');
+            }
+
+            if ($dedupe->exists()) {
                 $existing++;
                 continue;
             }
@@ -245,6 +255,7 @@ class AchievementsController extends Controller
                 Achievement::create([
                     'member_id' => $member->id,
                     'event_name' => $eventName,
+                    'dbcrews_competition_id' => $competitionId,
                     'competition_class' => $competitionClass,
                     'medal' => $medal,
                     'year' => $year ? (int) $year : null,

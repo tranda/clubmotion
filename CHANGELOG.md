@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.53] - 2026-08-19
+
+### Changed
+- **dbcrews pull — rename-proof dedupe via stable competition id.** Each result row now carries `competitionId` from dbcrews. Achievements gained a nullable `dbcrews_competition_id` column, and the pull dedupe key is now **member + dbcrews_competition_id + competition_class + medal** when a competition id is present (immune to event renames). Rows without a competition id (older CSV imports) still dedupe by event name.
+  - **Run the migration after deploy:** visit `/migrate` as admin (adds `dbcrews_competition_id`). Do this **before** the next pull.
+
 ## [0.9.52] - 2026-08-19
 
 ### Added
