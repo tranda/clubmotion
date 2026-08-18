@@ -165,7 +165,10 @@ class AchievementsController extends Controller
         $validated = $request->validate([
             'team' => 'required',
             'competition' => 'nullable',
+            'dry_run' => 'nullable',
         ]);
+
+        $dryRun = filter_var($validated['dry_run'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         try {
             $query = ['team' => $validated['team']];
@@ -184,9 +187,10 @@ class AchievementsController extends Controller
             return response()->json(['error' => 'Could not reach dbcrews: ' . $e->getMessage()], 502);
         }
 
-        $inserted = 0;
+        $inserted = 0; // in dry-run: how many WOULD be inserted
         $skipped = 0;
         $unmatched = []; // [membership_number => name] for reporting
+        $preview = []; // rows that would be inserted (dry-run report)
 
         // Cache members by membership_number to avoid repeated lookups.
         $membersByNumber = Member::whereNotNull('membership_number')
@@ -227,13 +231,25 @@ class AchievementsController extends Controller
                 continue;
             }
 
-            Achievement::create([
-                'member_id' => $member->id,
-                'event_name' => $eventName,
-                'competition_class' => $competitionClass,
-                'medal' => $medal,
-                'year' => $year ? (int) $year : null,
-            ]);
+            if ($dryRun) {
+                // Preview only — do not write.
+                $preview[] = [
+                    'membership_number' => $memberId,
+                    'name' => $member->name,
+                    'event' => $eventName,
+                    'race' => $competitionClass,
+                    'medal' => $medal,
+                    'year' => $year ? (int) $year : null,
+                ];
+            } else {
+                Achievement::create([
+                    'member_id' => $member->id,
+                    'event_name' => $eventName,
+                    'competition_class' => $competitionClass,
+                    'medal' => $medal,
+                    'year' => $year ? (int) $year : null,
+                ]);
+            }
 
             $inserted++;
         }
@@ -245,9 +261,11 @@ class AchievementsController extends Controller
         }
 
         return response()->json([
-            'inserted' => $inserted,
+            'dry_run' => $dryRun,
+            'inserted' => $inserted, // would-insert count when dry_run
             'skipped' => $skipped,
             'unmatched' => $unmatchedList,
+            'preview' => $preview, // populated only on dry_run
             'total' => count($results),
         ]);
     }

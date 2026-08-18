@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.51] - 2026-08-19
+
+### Added
+- **Achievements — Pull from dbcrews: dry-run + Apply.** The pull page now has a **Preview (dry run)** button that reports exactly what *would* be inserted (a full list of member / race / medal / event rows) plus skipped and unmatched counts, **without writing anything**. A separate **Apply** button (enabled only after a preview that has new rows, showing the count) performs the actual insert-only import.
+
 ## [0.9.50] - 2026-08-19
 
 ### Added
