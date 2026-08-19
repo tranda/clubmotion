@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.55] - 2026-08-19
+
+### Fixed
+- **Payments — empty cell now pre-fills the default amount for new members.** Clicking an empty month cell filled the amount with the expected/default for older members but not for recently-added ones. New members have no payment records yet (records are only created when a year is initialized), so there was no `expected_amount` to fall back on. The payments page now derives a per-month default from the active rate presets and uses it as the fallback, so an empty cell fills correctly for every member.
+
 ## [0.9.54] - 2026-08-19
 
 ### Changed

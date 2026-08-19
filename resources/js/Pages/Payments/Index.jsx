@@ -3,7 +3,7 @@ import ConfirmModal from '../../Components/ConfirmModal';
 import { Link, router, usePage } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-export default function Index({ year, members, stats, availableYears, filter, annualConfig }) {
+export default function Index({ year, members, stats, availableYears, filter, annualConfig, monthlyDefaults }) {
     const { auth } = usePage().props;
     const [selectedPayment, setSelectedPayment] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -329,6 +329,7 @@ export default function Index({ year, members, stats, availableYears, filter, an
             {showEditModal && <PaymentEditModal
                 payment={selectedPayment}
                 year={year}
+                monthlyDefaults={monthlyDefaults}
                 onClose={() => setShowEditModal(false)}
                 canDelete={auth.user.role_id === 1 || auth.user.role_id === 2}
             />}
@@ -344,7 +345,7 @@ export default function Index({ year, members, stats, availableYears, filter, an
     );
 }
 
-function PaymentEditModal({ payment, year, onClose, canDelete }) {
+function PaymentEditModal({ payment, year, monthlyDefaults, onClose, canDelete }) {
     // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split('T')[0];
 
@@ -365,7 +366,7 @@ function PaymentEditModal({ payment, year, onClose, canDelete }) {
     };
 
     const [formData, setFormData] = useState({
-        paid_amount: payment?.amount || payment?.expected || '',
+        paid_amount: payment?.amount || payment?.expected || monthlyDefaults?.[payment?.month] || '',
         payment_status: payment?.status || 'paid',
         payment_method: payment?.method || 'cash',
         payment_date: convertDateToInputFormat(payment?.date),

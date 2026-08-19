@@ -91,6 +91,20 @@ class PaymentController extends Controller
         // If no data, default to current year and next year
         $availableYears = !empty($yearsInDb) ? $yearsInDb : [date('Y') + 1, date('Y')];
 
+        // Per-month default amounts derived from active rate presets. Used to
+        // pre-fill an empty cell for members who have no payment record yet
+        // (e.g. members added after the year was initialized).
+        $ratePresets = PaymentRatePreset::getActive();
+        $monthlyDefaults = [];
+        for ($month = 1; $month <= 12; $month++) {
+            foreach ($ratePresets as $preset) {
+                if ($month >= $preset->start_month && $month <= $preset->end_month) {
+                    $monthlyDefaults[$month] = (float) $preset->rate;
+                    break;
+                }
+            }
+        }
+
         return Inertia::render('Payments/Index', [
             'year' => (int)$year,
             'members' => $gridData,
@@ -98,6 +112,7 @@ class PaymentController extends Controller
             'availableYears' => $availableYears,
             'filter' => $filter,
             'annualConfig' => PaymentSetting::getAnnualConfig(),
+            'monthlyDefaults' => $monthlyDefaults,
         ]);
     }
 
