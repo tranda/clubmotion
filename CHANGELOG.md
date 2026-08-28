@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.57] - 2026-08-28
+
+### Changed
+- **Attendance — "Monthly view" button made prominent.** The "Monthly view" link on the Yearly attendance page now matches the same solid blue treatment (blue background, white bold text, shadow, calendar icon) as the "Yearly view" button, for consistent, clearly actionable navigation between the two views.
+
 ## [0.9.56] - 2026-08-28
 
 ### Changed
