@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.56] - 2026-08-28
+
+### Changed
+- **Attendance — "Yearly view" button made prominent.** The link next to the Attendance Tracking heading was a faint light-gray pill that was easy to miss. It now uses the same solid blue treatment as the "Add Session" button (blue background, white bold text, shadow, hover state) with a calendar icon, so it clearly reads as an action.
+
 ## [0.9.55] - 2026-08-19
 
 ### Fixed
