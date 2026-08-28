@@ -271,17 +271,15 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                     <div>
                         <div className="flex items-center gap-3">
                             <h1 className="text-3xl font-bold text-gray-900">Attendance Tracking</h1>
-                            {canManage && (
-                                <Link
-                                    href={`/attendance/yearly?year=${selectedYear}`}
-                                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
-                                >
-                                    <svg className="w-4 h-4" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    Yearly view
-                                </Link>
-                            )}
+                            <Link
+                                href={`/attendance/yearly?year=${selectedYear}`}
+                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
+                            >
+                                <svg className="w-4 h-4" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Yearly view
+                            </Link>
                         </div>
                         <p className="text-gray-600 mt-1">Track member attendance for training sessions</p>
                     </div>

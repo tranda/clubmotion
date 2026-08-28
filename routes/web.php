@@ -82,9 +82,9 @@ Route::middleware('auth')->group(function () {
 
     // Attendance - All users can view, Admin/Superuser can edit
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('/attendance/yearly', [AttendanceController::class, 'yearly'])->name('attendance.yearly');
 
     Route::middleware('role:admin,superuser')->group(function () {
-        Route::get('/attendance/yearly', [AttendanceController::class, 'yearly'])->name('attendance.yearly');
         Route::get('/attendance/import', [AttendanceController::class, 'showImport'])->name('attendance.import');
         Route::post('/attendance/import', [AttendanceController::class, 'import'])->name('attendance.import.store');
         Route::post('/attendance/sessions', [AttendanceController::class, 'createSession'])->name('attendance.sessions.create');

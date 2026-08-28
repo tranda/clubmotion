@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.58] - 2026-08-28
+
+### Changed
+- **Attendance — Yearly view now available to all users.** The yearly attendance view was previously restricted to admin/superuser. The "Yearly view" button now shows for everyone, and the `/attendance/yearly` route was moved out of the `role:admin,superuser` guard so all authenticated users can access it (same read-only all-members data the monthly view already exposes). Editing actions (import, sessions, marking) remain admin/superuser only.
+
 ## [0.9.57] - 2026-08-28
 
 ### Changed
