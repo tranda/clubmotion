@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.68] - 2026-09-13
+
+### Changed
+- **Member page — "Send Message" button isolated on the right.** It's now separated from the Edit/Reset/Delete group and aligned to the far right of the actions row (stacks normally on mobile).
+
 ## [0.9.67] - 2026-09-13
 
 ### Added
