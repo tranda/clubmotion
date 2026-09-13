@@ -45,7 +45,7 @@ export default function Login({ status }) {
                             First time signing in?
                         </p>
                         <p className="text-blue-700 text-sm mt-1">
-                            Enter your email and choose a password to create your account.
+                            If your club has registered you, enter your email and choose a password to activate your account.
                         </p>
                     </div>
                 </div>

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.59] - 2026-09-13
+
+### Changed
+- **Login — clearer first-time sign-in message.** The info box previously read "Enter your email and choose a password to create your account," which implied open self-registration. It now reads "If your club has registered you, enter your email and choose a password to activate your account," accurately reflecting that accounts are pre-created by the club and the first sign-in just sets the password.
+
 ## [0.9.58] - 2026-08-28
 
 ### Changed
