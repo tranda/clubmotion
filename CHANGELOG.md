@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.63] - 2026-09-13
+
+### Added
+- **Admin `/test-email` route.** Admins can visit `/test-email` to send a test message and confirm SMTP is configured. It sends to the admin's own email (or `?to=someone@example.com`), shows the current mail config, and displays the exact error if sending fails — handy after editing the server `.env`.
+
 ## [0.9.62] - 2026-09-13
 
 ### Added

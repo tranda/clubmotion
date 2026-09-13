@@ -264,6 +264,51 @@ Route::middleware('auth')->group(function () {
         Route::put('/coefs', [App\Http\Controllers\ToolsController::class, 'updateCoefs'])->name('coefs.update');
     });
 
+    // Test email sender - Admin only (verify SMTP config)
+    Route::get('/test-email', function () {
+        if (auth()->user()->role_id !== 1) {
+            abort(403, 'Only admin can send test emails');
+        }
+
+        $to = request('to', auth()->user()->email);
+
+        $config = [
+            'MAIL_MAILER' => config('mail.default'),
+            'MAIL_HOST' => config('mail.mailers.smtp.host'),
+            'MAIL_PORT' => config('mail.mailers.smtp.port'),
+            'MAIL_ENCRYPTION' => config('mail.mailers.smtp.scheme') ?? config('mail.mailers.smtp.encryption'),
+            'MAIL_FROM_ADDRESS' => config('mail.from.address'),
+            'MAIL_FROM_NAME' => config('mail.from.name'),
+        ];
+        $configHtml = '';
+        foreach ($config as $k => $v) {
+            $configHtml .= '<li><strong>' . $k . ':</strong> ' . htmlspecialchars((string) ($v ?? '(not set)')) . '</li>';
+        }
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($to)->send(
+                new \App\Mail\JoinRequestMessage(
+                    'Test email from ' . env('CLUB_NAME', config('app.name')),
+                    "This is a test email to confirm the mail configuration is working.\n\nIf you received this, sending works correctly."
+                )
+            );
+
+            return response(
+                '<h2 style="color:green">✓ Test email sent to ' . htmlspecialchars($to) . '</h2>'
+                . '<p>Check the inbox (and spam folder). Current config:</p><ul>' . $configHtml . '</ul>'
+                . '<p><a href="/join-requests">Back to Join Requests</a></p>'
+            );
+        } catch (\Throwable $e) {
+            return response(
+                '<h2 style="color:red">✗ Failed to send test email to ' . htmlspecialchars($to) . '</h2>'
+                . '<p><strong>Error:</strong></p><pre style="white-space:pre-wrap">' . htmlspecialchars($e->getMessage()) . '</pre>'
+                . '<p>Current config:</p><ul>' . $configHtml . '</ul>'
+                . '<p>Fix the MAIL_* values in the server .env, then visit <a href="/clear-cache">/clear-cache</a> and retry.</p>',
+                500
+            );
+        }
+    })->middleware('role:admin');
+
     // Migration runner - Admin only (remove after first use)
     Route::get('/migrate', function () {
         if (auth()->user()->role_id !== 1) {
