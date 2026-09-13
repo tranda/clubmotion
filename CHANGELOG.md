@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.69] - 2026-09-13
+
+### Added
+- **Members can update their own profile photo, with change history.** On the member page, a member (or an admin/superuser) can change the photo directly — it applies instantly. Every uploaded photo is now kept (unique filenames, old files no longer deleted) and recorded in a new `member_images` history table.
+- **Photo history / revert.** Admins & superusers see a "Photo history" panel on the member page with thumbnails, who uploaded each and when, a **Set current** (revert) action, and **Delete** for removing an inappropriate image permanently. The first time a member's existing photo is replaced, that prior photo is backfilled into history so it can be reverted to.
+
+### Deploy note
+- Run `/migrate` after deploy (creates the `member_images` table).
+
 ## [0.9.68] - 2026-09-13
 
 ### Changed

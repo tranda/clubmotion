@@ -1,11 +1,17 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
+import { resizeImageIfNeeded } from '../../utils/resizeImage';
 
-export default function Show({ member, recentPayments = [], currentYear }) {
+export default function Show({ member, recentPayments = [], currentYear, imageHistory = [] }) {
     const { auth } = usePage().props;
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
+    const isSelf = !!(auth.user && member.user_id && member.user_id === auth.user.id);
+    const canEditPhoto = canManage || isSelf;
+    const [photoUploading, setPhotoUploading] = useState(false);
+    const [photoError, setPhotoError] = useState(null);
+    const [showHistory, setShowHistory] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showResetPassword, setShowResetPassword] = useState(false);
     const [newPassword, setNewPassword] = useState('');
@@ -49,6 +55,51 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                 // Redirect handled by controller
             },
         });
+    };
+
+    const fmtDate = (v) => {
+        if (!v) return '';
+        try {
+            return new Date(v).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch {
+            return v;
+        }
+    };
+
+    const handlePhotoChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setPhotoError(null);
+
+        let finalFile = file;
+        try {
+            const result = await resizeImageIfNeeded(file);
+            finalFile = result.file;
+        } catch (err) {
+            setPhotoError('Could not process the selected image. Please try a different file.');
+            e.target.value = '';
+            return;
+        }
+
+        setPhotoUploading(true);
+        router.post(`/members/${member.id}/image`, { image: finalFile }, {
+            forceFormData: true,
+            preserveScroll: true,
+            onFinish: () => {
+                setPhotoUploading(false);
+                e.target.value = '';
+            },
+        });
+    };
+
+    const revertPhoto = (img) => {
+        if (!confirm('Set this photo as the current one?')) return;
+        router.post(`/members/${member.id}/image/${img.id}/revert`, {}, { preserveScroll: true });
+    };
+
+    const deletePhoto = (img) => {
+        if (!confirm('Permanently delete this photo? This cannot be undone.')) return;
+        router.delete(`/members/${member.id}/image/${img.id}`, { preserveScroll: true });
     };
 
     const openEmail = () => {
@@ -114,13 +165,86 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                 {/* Member Card */}
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
                     {/* Member Image */}
-                    {member.image && (
-                        <div className="p-4 sm:p-6 border-b border-gray-200 flex justify-center bg-gray-50">
-                            <img
-                                src={`/storage/${member.image}`}
-                                alt={member.name}
-                                className="h-32 w-32 sm:h-48 sm:w-48 rounded-full object-cover shadow-lg"
-                            />
+                    {(member.image || canEditPhoto) && (
+                        <div className="p-4 sm:p-6 border-b border-gray-200 flex flex-col items-center bg-gray-50">
+                            {member.image ? (
+                                <img
+                                    src={`/storage/${member.image}`}
+                                    alt={member.name}
+                                    className="h-32 w-32 sm:h-48 sm:w-48 rounded-full object-cover shadow-lg"
+                                />
+                            ) : (
+                                <div className="h-32 w-32 sm:h-48 sm:w-48 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 shadow-inner">
+                                    <svg className="w-16 h-16" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                </div>
+                            )}
+
+                            {canEditPhoto && (
+                                <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+                                    <label className="cursor-pointer inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
+                                        {photoUploading ? 'Uploading…' : (member.image ? 'Change photo' : 'Add photo')}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handlePhotoChange}
+                                            disabled={photoUploading}
+                                        />
+                                    </label>
+                                    {canManage && imageHistory.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowHistory(!showHistory)}
+                                            className="text-sm text-blue-600 hover:text-blue-800"
+                                        >
+                                            {showHistory ? 'Hide history' : `Photo history (${imageHistory.length})`}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                            {photoError && <p className="mt-2 text-sm text-red-600">{photoError}</p>}
+
+                            {canManage && showHistory && imageHistory.length > 0 && (
+                                <div className="mt-4 w-full">
+                                    <div className="flex flex-wrap gap-4 justify-center">
+                                        {imageHistory.map((img) => {
+                                            const isCurrent = member.image === img.path;
+                                            return (
+                                                <div key={img.id} className="w-28 text-center">
+                                                    <img
+                                                        src={`/storage/${img.path}`}
+                                                        alt=""
+                                                        className={`h-24 w-24 rounded-lg object-cover mx-auto border-2 ${isCurrent ? 'border-green-500' : 'border-gray-200'}`}
+                                                    />
+                                                    <p className="text-[11px] text-gray-400 mt-1">
+                                                        {fmtDate(img.created_at)}{img.uploader ? ` · ${img.uploader.name}` : ''}
+                                                    </p>
+                                                    {isCurrent ? (
+                                                        <span className="text-[11px] font-medium text-green-600">Current</span>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => revertPhoto(img)}
+                                                            className="text-[11px] text-blue-600 hover:text-blue-800"
+                                                        >
+                                                            Set current
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => deletePhoto(img)}
+                                                        className="block mx-auto text-[11px] text-gray-400 hover:text-red-600 mt-0.5"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

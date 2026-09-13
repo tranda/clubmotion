@@ -80,7 +80,13 @@ Route::middleware('auth')->group(function () {
         Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('members.destroy');
         Route::post('/members/{member}/reset-password', [MemberController::class, 'resetPassword'])->name('members.reset-password');
         Route::post('/members/{member}/email', [MemberController::class, 'sendEmail'])->name('members.email');
+        // Photo history management (revert / delete) - admin & superuser
+        Route::post('/members/{member}/image/{image}/revert', [MemberController::class, 'revertImage'])->name('members.image.revert');
+        Route::delete('/members/{member}/image/{image}', [MemberController::class, 'deleteImage'])->name('members.image.delete');
     });
+
+    // Update a member's photo - admins/superusers OR the member themselves (self-service).
+    Route::post('/members/{member}/image', [MemberController::class, 'updateImage'])->name('members.image.update');
 
     // Show member - accessible to all authenticated users (must come AFTER /members/create)
     Route::get('/members/{id}', [MemberController::class, 'show'])->name('members.show');

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Member;
+use App\Models\MemberImage;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -140,25 +141,19 @@ class MemberController extends Controller
             'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
         ]);
 
-        $data = $request->all();
+        $data = $request->except('image');
 
         // Auto-generate membership number (highest existing number + 1)
         $maxMembershipNumber = Member::max('membership_number');
         $data['membership_number'] = $maxMembershipNumber ? $maxMembershipNumber + 1 : 1;
 
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-
-            // Generate a custom filename: "member_name-timestamp.extension"
-            $filename = Str::slug($request->name) . '-' . $request->membership_number . '.' . $file->getClientOriginalExtension();
-
-            // Store the file
-            $imagePath = $file->storeAs('members', $filename, 'public');
-            $data['image'] = $imagePath;
-        }
-
         // Create member first
         $member = Member::create($data);
+
+        // Store the image (if any) and record it in the member's image history.
+        if ($request->hasFile('image')) {
+            $this->storeMemberImage($member, $request->file('image'), auth()->id());
+        }
 
         // Auto-calculate and assign category based on age (if birth date provided and category is age-based)
         if ($member->date_of_birth) {
@@ -244,10 +239,20 @@ class MemberController extends Controller
             }
         }
 
+        // Photo history (for revert/delete) — admin/superuser only.
+        $imageHistory = [];
+        if ($user->isAdmin() || $user->isSuperuser()) {
+            $imageHistory = MemberImage::where('member_id', $member->id)
+                ->with('uploader:id,name')
+                ->orderBy('id', 'desc')
+                ->get();
+        }
+
         return Inertia::render('Members/Show', [
             'member' => $member,
             'recentPayments' => $allPayments,
             'currentYear' => $currentYear,
+            'imageHistory' => $imageHistory,
         ]);
     }
 
@@ -300,23 +305,13 @@ class MemberController extends Controller
 
         $data = $request->except('image');
 
-        if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($member->image) {
-                Storage::disk('public')->delete($member->image);
-            }
-
-            $file = $request->file('image');
-
-            // Generate a custom filename: "member_name-timestamp.extension"
-            $filename = Str::slug($request->name) . '-' . $request->membership_number . '.' . $file->getClientOriginalExtension();
-
-            // Store the file
-            $imagePath = $file->storeAs('members', $filename, 'public');
-            $data['image'] = $imagePath;
-        }
-
         $member->update($data);
+
+        // Store the new image (if any) and record it in the member's image history.
+        // The previous file is kept so it can be reverted to later.
+        if ($request->hasFile('image')) {
+            $this->storeMemberImage($member, $request->file('image'), auth()->id());
+        }
 
         // Optional role update — admin only, member must have a linked user account.
         if ($request->has('role_id') && auth()->user()->isAdmin()) {
@@ -423,6 +418,114 @@ class MemberController extends Controller
         }
 
         return back()->with('success', 'Message sent to ' . $member->email . '.');
+    }
+
+    /**
+     * Store an uploaded image for a member, keeping the previous file and
+     * recording the change in the member's image history.
+     */
+    private function storeMemberImage(Member $member, $file, ?int $uploadedBy): string
+    {
+        // Backfill: if the member already has a photo that isn't tracked yet,
+        // record it first so admins can revert back to it after this upload.
+        if ($member->image && !MemberImage::where('member_id', $member->id)->where('path', $member->image)->exists()) {
+            MemberImage::create([
+                'member_id' => $member->id,
+                'path' => $member->image,
+                'uploaded_by' => null,
+            ]);
+        }
+
+        $ext = $file->getClientOriginalExtension() ?: 'jpg';
+        $filename = Str::slug($member->name) . '-' . $member->membership_number . '-' . Str::random(8) . '.' . $ext;
+        $path = $file->storeAs('members', $filename, 'public');
+
+        $member->image = $path;
+        $member->save();
+
+        MemberImage::create([
+            'member_id' => $member->id,
+            'path' => $path,
+            'uploaded_by' => $uploadedBy,
+        ]);
+
+        return $path;
+    }
+
+    /**
+     * Update a member's photo. Allowed for admins/superusers and for the
+     * member themselves (self-service). Applies instantly; history is kept.
+     */
+    public function updateImage(Request $request, Member $member)
+    {
+        $user = auth()->user();
+        $isOwner = $user->member && (int) $user->member->id === (int) $member->id;
+
+        if (!$user->isAdmin() && !$user->isSuperuser() && !$isOwner) {
+            abort(403, 'Unauthorized to change this photo.');
+        }
+
+        $imageWarning = $this->guardImageUpload($request);
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpg,png,jpeg|max:2048',
+        ]);
+
+        $this->storeMemberImage($member, $request->file('image'), $user->id);
+
+        $redirect = back()->with('success', 'Photo updated.');
+        if ($imageWarning) {
+            $redirect->with('error', $imageWarning);
+        }
+        return $redirect;
+    }
+
+    /**
+     * Revert a member's current photo to a previous one from history. Admin/superuser only.
+     */
+    public function revertImage(Member $member, MemberImage $image)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->isSuperuser()) {
+            abort(403);
+        }
+        if ((int) $image->member_id !== (int) $member->id) {
+            abort(404);
+        }
+
+        $member->image = $image->path;
+        $member->save();
+
+        return back()->with('success', 'Reverted to the selected photo.');
+    }
+
+    /**
+     * Permanently delete a photo from a member's history (e.g. an inappropriate
+     * upload). Admin/superuser only. If it was the current photo, falls back to
+     * the most recent remaining one.
+     */
+    public function deleteImage(Member $member, MemberImage $image)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->isSuperuser()) {
+            abort(403);
+        }
+        if ((int) $image->member_id !== (int) $member->id) {
+            abort(404);
+        }
+
+        $wasCurrent = $member->image === $image->path;
+
+        Storage::disk('public')->delete($image->path);
+        $image->delete();
+
+        if ($wasCurrent) {
+            $latest = MemberImage::where('member_id', $member->id)->latest('id')->first();
+            $member->image = $latest?->path;
+            $member->save();
+        }
+
+        return back()->with('success', 'Photo deleted.');
     }
 
     private function guardImageUpload(Request $request): ?string
