@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use App\Models\MembershipCategory;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ClubMessage;
 use Inertia\Inertia;
 
 class MemberController extends Controller
@@ -392,6 +394,35 @@ class MemberController extends Controller
         }
 
         return back()->with('success', "Password reset for {$member->name}. Share it with the member securely.");
+    }
+
+    /**
+     * Send a message (email) to a member.
+     */
+    public function sendEmail(Request $request, Member $member)
+    {
+        $validated = $request->validate([
+            'subject' => 'required|string|max:255',
+            'body' => 'required|string|max:5000',
+        ]);
+
+        if (!$member->email) {
+            return back()->with('error', 'Cannot send message: member has no email address on file.');
+        }
+
+        try {
+            Mail::to($member->email)->send(
+                new ClubMessage($validated['subject'], $validated['body'])
+            );
+        } catch (\Throwable $e) {
+            Log::error('Failed to send member email', [
+                'member_id' => $member->id,
+                'error' => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Email could not be sent. Check the mail configuration on the server.');
+        }
+
+        return back()->with('success', 'Message sent to ' . $member->email . '.');
     }
 
     private function guardImageUpload(Request $request): ?string

@@ -12,6 +12,10 @@ export default function Show({ member, recentPayments = [], currentYear }) {
     const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
     const [resetErrors, setResetErrors] = useState({});
     const [resetting, setResetting] = useState(false);
+    const [showEmail, setShowEmail] = useState(false);
+    const [emailData, setEmailData] = useState({ subject: '', body: '' });
+    const [emailErrors, setEmailErrors] = useState({});
+    const [emailSending, setEmailSending] = useState(false);
 
     const monthNames = {
         1: 'JAN', 2: 'FEB', 3: 'MAR', 4: 'APR',
@@ -44,6 +48,27 @@ export default function Show({ member, recentPayments = [], currentYear }) {
             onSuccess: () => {
                 // Redirect handled by controller
             },
+        });
+    };
+
+    const openEmail = () => {
+        setEmailErrors({});
+        setEmailData({ subject: '', body: `Hi ${member.name},\n\n` });
+        setShowEmail(true);
+    };
+
+    const handleSendEmail = (e) => {
+        e.preventDefault();
+        setEmailErrors({});
+        setEmailSending(true);
+        router.post(`/members/${member.id}/email`, emailData, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setShowEmail(false);
+                setEmailData({ subject: '', body: '' });
+            },
+            onError: (errors) => setEmailErrors(errors),
+            onFinish: () => setEmailSending(false),
         });
     };
 
@@ -185,6 +210,18 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                             </Link>
 
                             <button
+                                onClick={openEmail}
+                                disabled={!member.email}
+                                title={member.email ? '' : 'No email address on file'}
+                                className="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                Send Message
+                            </button>
+
+                            <button
                                 onClick={() => setShowResetPassword(true)}
                                 className="inline-flex items-center justify-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
                             >
@@ -283,6 +320,57 @@ export default function Show({ member, recentPayments = [], currentYear }) {
                                     Cancel
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Send Message Modal */}
+                {showEmail && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg p-6 max-w-lg w-full">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">Send message to {member.name}</h3>
+                            <p className="text-gray-500 text-sm mb-4">To: {member.email}</p>
+                            <form onSubmit={handleSendEmail} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                                    <input
+                                        type="text"
+                                        value={emailData.subject}
+                                        onChange={(e) => setEmailData({ ...emailData, subject: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        required
+                                        autoFocus
+                                    />
+                                    {emailErrors.subject && <p className="mt-1 text-sm text-red-600">{emailErrors.subject}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                                    <textarea
+                                        rows={7}
+                                        value={emailData.body}
+                                        onChange={(e) => setEmailData({ ...emailData, body: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                        required
+                                    />
+                                    {emailErrors.body && <p className="mt-1 text-sm text-red-600">{emailErrors.body}</p>}
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        type="submit"
+                                        disabled={emailSending}
+                                        className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:bg-gray-400"
+                                    >
+                                        {emailSending ? 'Sending...' : 'Send message'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEmail(false)}
+                                        className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 )}

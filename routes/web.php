@@ -79,6 +79,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/members/{member}', [MemberController::class, 'update'])->name('members.update');
         Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('members.destroy');
         Route::post('/members/{member}/reset-password', [MemberController::class, 'resetPassword'])->name('members.reset-password');
+        Route::post('/members/{member}/email', [MemberController::class, 'sendEmail'])->name('members.email');
     });
 
     // Show member - accessible to all authenticated users (must come AFTER /members/create)

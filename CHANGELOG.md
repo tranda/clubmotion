@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.67] - 2026-09-13
+
+### Added
+- **Send a message to a member.** The member details page now has a "Send Message" button (admin/superuser) that opens a dialog to email the member a custom subject and message. Disabled when the member has no email on file. Uses the same SMTP setup as join-request emails.
+
 ## [0.9.66] - 2026-09-13
 
 ### Changed
