@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.65] - 2026-09-13
+
+### Added
+- **Join requests — Create account now sends an editable welcome email.** Clicking "Create account" opens a dialog pre-filled with a welcome message (including how to activate their login: sign in with their email and choose a password). "Create account & send email" creates the member and emails them; "Create without email" creates the account silently. If the welcome email fails, the account is still created and the failure is reported.
+
 ## [0.9.64] - 2026-09-13
 
 ### Changed

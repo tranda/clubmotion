@@ -38,7 +38,7 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
     const { flash } = usePage().props;
     const [emailFor, setEmailFor] = useState(null); // request object we're emailing
     const [emailData, setEmailData] = useState({ subject: '', body: '' });
-    const [emailStatus, setEmailStatus] = useState(null); // status to apply on send (e.g. 'rejected'), or null for a plain email
+    const [modalMode, setModalMode] = useState('email'); // 'email' | 'reject' | 'approve'
     const [busyId, setBusyId] = useState(null);
 
     const changeFilter = (value) => {
@@ -54,8 +54,9 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
         });
     };
 
-    const approve = (req) => {
-        if (!confirm(`Create a member account for ${req.name} (${req.email})?`)) return;
+    const approveWithoutEmail = () => {
+        const req = emailFor;
+        closeModal();
         setBusyId(req.id);
         router.post(`/join-requests/${req.id}/approve`, {}, {
             preserveScroll: true,
@@ -73,7 +74,7 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
     };
 
     const openEmail = (req) => {
-        setEmailStatus(null);
+        setModalMode('email');
         setEmailFor(req);
         setEmailData({
             subject: `Your request to join`,
@@ -82,7 +83,7 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
     };
 
     const openReject = (req) => {
-        setEmailStatus('rejected');
+        setModalMode('reject');
         setEmailFor(req);
         setEmailData({
             subject: `Regarding your request to join`,
@@ -94,16 +95,37 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
         });
     };
 
+    const openApprove = (req) => {
+        setModalMode('approve');
+        setEmailFor(req);
+        const loginUrl = `${window.location.origin}/login`;
+        setEmailData({
+            subject: `Welcome — your membership is approved`,
+            body: `Hi ${req.name},\n\n`
+                + `Great news — your membership has been approved!\n\n`
+                + `To access your account, go to ${loginUrl} and sign in with this email address `
+                + `(${req.email}). The first time you sign in, choose a password and your account will be activated.\n\n`
+                + `See you soon,\nThe team`,
+        });
+    };
+
     const closeModal = () => {
         setEmailFor(null);
-        setEmailStatus(null);
+        setModalMode('email');
     };
 
     const sendEmail = (e) => {
         e.preventDefault();
+        if (modalMode === 'approve') {
+            router.post(`/join-requests/${emailFor.id}/approve`, { ...emailData }, {
+                preserveScroll: true,
+                onSuccess: closeModal,
+            });
+            return;
+        }
         router.post(`/join-requests/${emailFor.id}/email`, {
             ...emailData,
-            set_status: emailStatus || '',
+            set_status: modalMode === 'reject' ? 'rejected' : '',
         }, {
             preserveScroll: true,
             onSuccess: closeModal,
@@ -222,7 +244,7 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
                                 <div className="mt-4 flex flex-wrap gap-2">
                                     {!req.member_id && req.status !== 'rejected' && (
                                         <button
-                                            onClick={() => approve(req)}
+                                            onClick={() => openApprove(req)}
                                             disabled={busyId === req.id}
                                             className="px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
                                         >
@@ -287,11 +309,20 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                            {emailStatus === 'rejected' ? `Reject & notify ${emailFor.name}` : `Email ${emailFor.name}`}
+                            {modalMode === 'reject'
+                                ? `Reject & notify ${emailFor.name}`
+                                : modalMode === 'approve'
+                                    ? `Approve & welcome ${emailFor.name}`
+                                    : `Email ${emailFor.name}`}
                         </h3>
-                        {emailStatus === 'rejected' && (
+                        {modalMode === 'reject' && (
                             <p className="text-sm text-gray-500 mb-1">
                                 This will mark the request as <span className="font-medium text-red-600">rejected</span> and email the applicant. Edit the message below.
+                            </p>
+                        )}
+                        {modalMode === 'approve' && (
+                            <p className="text-sm text-gray-500 mb-1">
+                                This will <span className="font-medium text-green-700">create a member account</span> and email a welcome message. Edit the message below.
                             </p>
                         )}
                         <p className="text-sm text-gray-500 mb-1">To: {emailFor.email}</p>
@@ -330,7 +361,7 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
                                 >
                                     Cancel
                                 </button>
-                                {emailStatus === 'rejected' && (
+                                {modalMode === 'reject' && (
                                     <button
                                         type="button"
                                         onClick={rejectWithoutEmail}
@@ -339,15 +370,30 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
                                         Reject without email
                                     </button>
                                 )}
+                                {modalMode === 'approve' && (
+                                    <button
+                                        type="button"
+                                        onClick={approveWithoutEmail}
+                                        className="px-4 py-2 text-sm font-medium rounded-lg text-green-700 hover:bg-green-50 mr-auto"
+                                    >
+                                        Create without email
+                                    </button>
+                                )}
                                 <button
                                     type="submit"
                                     className={`px-4 py-2 text-sm font-medium rounded-lg text-white ${
-                                        emailStatus === 'rejected'
+                                        modalMode === 'reject'
                                             ? 'bg-red-600 hover:bg-red-700'
-                                            : 'bg-blue-600 hover:bg-blue-700'
+                                            : modalMode === 'approve'
+                                                ? 'bg-green-600 hover:bg-green-700'
+                                                : 'bg-blue-600 hover:bg-blue-700'
                                     }`}
                                 >
-                                    {emailStatus === 'rejected' ? 'Reject & send email' : 'Send email'}
+                                    {modalMode === 'reject'
+                                        ? 'Reject & send email'
+                                        : modalMode === 'approve'
+                                            ? 'Create account & send email'
+                                            : 'Send email'}
                                 </button>
                             </div>
                         </form>

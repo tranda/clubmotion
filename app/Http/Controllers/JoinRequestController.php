@@ -119,6 +119,13 @@ class JoinRequestController extends Controller
      */
     public function approve(Request $request, JoinRequest $joinRequest)
     {
+        // Optional welcome email to send after creating the account.
+        $validated = $request->validate([
+            'subject' => 'nullable|string|max:255',
+            'body' => 'nullable|string|max:5000',
+        ]);
+        $wantsEmail = !empty($validated['subject']) && !empty($validated['body']);
+
         if ($joinRequest->member_id) {
             return back()->with('error', 'A member has already been created for this request.');
         }
@@ -158,9 +165,31 @@ class JoinRequestController extends Controller
         $joinRequest->status = JoinRequest::STATUS_APPROVED;
         $joinRequest->resolved_by = auth()->id();
         $joinRequest->resolved_at = now();
+
+        // Optionally send the welcome email. Member creation is the primary action,
+        // so a mail failure is reported but does not undo the approval.
+        $emailMsg = '';
+        if ($wantsEmail) {
+            try {
+                Mail::to($joinRequest->email)->send(
+                    new JoinRequestMessage($validated['subject'], $validated['body'])
+                );
+                $joinRequest->last_emailed_at = now();
+                $joinRequest->emails_sent = ($joinRequest->emails_sent ?? 0) + 1;
+                $joinRequest->last_email_subject = $validated['subject'];
+                $emailMsg = ' Welcome email sent.';
+            } catch (\Throwable $e) {
+                Log::error('Failed to send welcome email', [
+                    'join_request_id' => $joinRequest->id,
+                    'error' => $e->getMessage(),
+                ]);
+                $emailMsg = ' (Welcome email could not be sent — check mail configuration.)';
+            }
+        }
+
         $joinRequest->save();
 
-        return back()->with('success', "Member #{$member->membership_number} created. They can activate their login by signing in with this email.");
+        return back()->with('success', "Member #{$member->membership_number} created. They can activate their login by signing in with this email." . $emailMsg);
     }
 
     /**
