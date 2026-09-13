@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.61] - 2026-09-13
+
+### Changed
+- **Join form — clearer confirmation after submitting.** Previously the form simply cleared itself after a successful submission, which looked like nothing happened. It now shows a dedicated "Request received" confirmation screen (checkmark, thank-you message, "Back to sign in" button, and a "Submit another request" link) in place of the empty form.
+
 ## [0.9.60] - 2026-09-13
 
 ### Added

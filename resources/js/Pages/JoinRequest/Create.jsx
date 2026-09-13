@@ -1,7 +1,9 @@
 import { useForm, Link, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function JoinRequestCreate({ clubName }) {
     const { flash } = usePage().props;
+    const [submitted, setSubmitted] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
@@ -13,7 +15,10 @@ export default function JoinRequestCreate({ clubName }) {
         e.preventDefault();
         post('/join', {
             preserveScroll: true,
-            onSuccess: () => reset(),
+            onSuccess: () => {
+                reset();
+                setSubmitted(true);
+            },
         });
     };
 
@@ -24,16 +29,39 @@ export default function JoinRequestCreate({ clubName }) {
                 <div className="text-center mb-8">
                     <img src="/images/logo.png" alt={clubName || 'ClubMotion'} className="h-40 mx-auto mb-4" />
                     <h1 className="text-2xl font-bold text-gray-800">Join {clubName || 'our club'}</h1>
-                    <p className="text-gray-600 mt-1">Fill in the form and we'll be in touch shortly.</p>
+                    {!submitted && (
+                        <p className="text-gray-600 mt-1">Fill in the form and we'll be in touch shortly.</p>
+                    )}
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-xl p-8">
-                    {/* Success message */}
-                    {flash?.success && (
-                        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-800 rounded-lg text-sm">
-                            {flash.success}
+                {submitted ? (
+                    /* Confirmation screen */
+                    <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+                        <div className="mx-auto mb-4 flex items-center justify-center h-14 w-14 rounded-full bg-green-100">
+                            <svg className="w-7 h-7 text-green-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M5 13l4 4L19 7" />
+                            </svg>
                         </div>
-                    )}
+                        <h2 className="text-xl font-semibold text-gray-800 mb-2">Request received</h2>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                            {flash?.success || "Thank you! We've received your request and will be in touch shortly."}
+                        </p>
+                        <Link
+                            href="/login"
+                            className="mt-6 inline-block w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                        >
+                            Back to sign in
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={() => setSubmitted(false)}
+                            className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                            Submit another request
+                        </button>
+                    </div>
+                ) : (
+                <div className="bg-white rounded-2xl shadow-xl p-8">
                     {flash?.error && (
                         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
                             {flash.error}
@@ -124,6 +152,7 @@ export default function JoinRequestCreate({ clubName }) {
                         </Link>
                     </div>
                 </div>
+                )}
             </div>
         </div>
     );
