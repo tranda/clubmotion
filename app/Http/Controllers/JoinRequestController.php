@@ -204,6 +204,7 @@ class JoinRequestController extends Controller
             'set_status' => ['nullable', Rule::in([JoinRequest::STATUS_REJECTED, JoinRequest::STATUS_PROCESSING])],
         ]);
 
+        $emailOk = true;
         try {
             Mail::to($joinRequest->email)->send(
                 new JoinRequestMessage($validated['subject'], $validated['body'])
@@ -213,28 +214,43 @@ class JoinRequestController extends Controller
                 'join_request_id' => $joinRequest->id,
                 'error' => $e->getMessage(),
             ]);
+            $emailOk = false;
+        }
+
+        // A plain email (no status change) that fails is just an error — nothing to save.
+        if ($emailOk === false && empty($validated['set_status'])) {
             return back()->with('error', 'Email could not be sent. Check the mail configuration on the server.');
         }
 
-        // Record that an email was sent, for reference.
-        $joinRequest->last_emailed_at = now();
-        $joinRequest->emails_sent = ($joinRequest->emails_sent ?? 0) + 1;
-        $joinRequest->last_email_subject = $validated['subject'];
+        // Record the email only if it actually went out.
+        if ($emailOk) {
+            $joinRequest->last_emailed_at = now();
+            $joinRequest->emails_sent = ($joinRequest->emails_sent ?? 0) + 1;
+            $joinRequest->last_email_subject = $validated['subject'];
+        }
 
-        // Apply the optional status change in the same step.
+        // Apply the optional status change regardless of whether the email succeeded,
+        // so the request still gets resolved even if mail is misconfigured.
         $statusMsg = '';
         if (!empty($validated['set_status'])) {
             $joinRequest->status = $validated['set_status'];
             if ($validated['set_status'] === JoinRequest::STATUS_REJECTED) {
                 $joinRequest->resolved_by = auth()->id();
                 $joinRequest->resolved_at = now();
-                $statusMsg = ' Request rejected.';
+                $statusMsg = 'Request rejected.';
             }
         }
 
         $joinRequest->save();
 
-        return back()->with('success', 'Email sent to ' . $joinRequest->email . '.' . $statusMsg);
+        if (!empty($validated['set_status'])) {
+            $mailMsg = $emailOk
+                ? ' Email sent to ' . $joinRequest->email . '.'
+                : ' (Email could not be sent — check mail configuration.)';
+            return back()->with('success', trim($statusMsg . $mailMsg));
+        }
+
+        return back()->with('success', 'Email sent to ' . $joinRequest->email . '.');
     }
 
     /**

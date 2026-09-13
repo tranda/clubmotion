@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.66] - 2026-09-13
+
+### Changed
+- **Join requests — Reject always rejects, even if the notification email fails.** Previously "Reject & send email" aborted both steps when mail failed, so a misconfigured mailer could block rejection. Now the request is rejected regardless, and a failed email is simply reported ("Request rejected. (Email could not be sent…)"). This matches the approval behavior. The email is only recorded in the tracking counter if it actually sent.
+
 ## [0.9.65] - 2026-09-13
 
 ### Added
