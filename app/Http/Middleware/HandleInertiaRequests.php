@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\JoinRequest;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,18 +45,25 @@ class HandleInertiaRequests extends Middleware
             $version = $versionData['version'] ?? $version;
         }
 
+        $user = $request->user();
+        $canManage = $user && $user->role && in_array($user->role->name, ['admin', 'superuser'], true);
+
         return array_merge(parent::share($request), [
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'role' => $request->user()->role ? [
-                        'id' => $request->user()->role->id,
-                        'name' => $request->user()->role->name,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role ? [
+                        'id' => $user->role->id,
+                        'name' => $user->role->name,
                     ] : null,
                 ] : null,
             ],
+            // Count of open (pending/processing) join requests, for the admin nav badge.
+            'pendingJoinRequests' => fn () => $canManage
+                ? JoinRequest::whereIn('status', [JoinRequest::STATUS_PENDING, JoinRequest::STATUS_PROCESSING])->count()
+                : 0,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

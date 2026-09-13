@@ -11,6 +11,7 @@ export default function Login({ status }) {
 
     const [showPassword, setShowPassword] = useState(false);
     const [csrfError, setCsrfError] = useState(false);
+    const [showJoinInfo, setShowJoinInfo] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
@@ -163,8 +164,73 @@ export default function Login({ status }) {
                             {processing ? 'Signing in...' : 'Sign In'}
                         </button>
                     </form>
+
+                    {/* Divider */}
+                    <div className="flex items-center my-6">
+                        <div className="flex-grow border-t border-gray-200"></div>
+                        <span className="px-3 text-xs uppercase tracking-wide text-gray-400">Not a member yet?</span>
+                        <div className="flex-grow border-t border-gray-200"></div>
+                    </div>
+
+                    {/* Join in */}
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href="/join"
+                            className="flex-1 py-3 px-4 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-medium rounded-lg transition-colors text-center"
+                        >
+                            Join in
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={() => setShowJoinInfo(true)}
+                            aria-label="What is Join in?"
+                            className="p-3 rounded-lg border-2 border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-300 transition-colors"
+                        >
+                            <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            {/* Join info popup */}
+            {showJoinInfo && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+                    onClick={() => setShowJoinInfo(false)}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-start justify-between mb-3">
+                            <h3 className="text-lg font-semibold text-gray-800">Joining the club</h3>
+                            <button
+                                type="button"
+                                onClick={() => setShowJoinInfo(false)}
+                                aria-label="Close"
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                            If you'd like to join our club, fill in the form and we'll be in touch shortly.
+                            Once we've reviewed your request and set up your membership, you'll be able to sign in
+                            with your email and a password of your choice.
+                        </p>
+                        <Link
+                            href="/join"
+                            className="mt-5 block w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-center"
+                        >
+                            Fill in the form
+                        </Link>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

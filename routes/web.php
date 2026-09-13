@@ -20,6 +20,10 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
+// Public "Join in" request form (accessible without auth)
+Route::get('/join', [App\Http\Controllers\JoinRequestController::class, 'create'])->name('join.create');
+Route::post('/join', [App\Http\Controllers\JoinRequestController::class, 'store'])->name('join.store');
+
 // CSRF token refresh endpoint (accessible without auth to prevent issues)
 Route::get('/csrf-token', function () {
     return response()->json(['token' => csrf_token()]);
@@ -243,6 +247,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/categories/{category}', [App\Http\Controllers\NoteController::class, 'categoriesDestroy'])->name('categories.destroy');
 
         Route::get('/deleted', [App\Http\Controllers\NoteController::class, 'deletedEntries'])->name('deleted');
+    });
+
+    // Join requests - Admin & Superuser
+    Route::middleware('role:admin,superuser')->prefix('join-requests')->name('join-requests.')->group(function () {
+        Route::get('/', [App\Http\Controllers\JoinRequestController::class, 'index'])->name('index');
+        Route::patch('/{joinRequest}/status', [App\Http\Controllers\JoinRequestController::class, 'updateStatus'])->name('status');
+        Route::post('/{joinRequest}/approve', [App\Http\Controllers\JoinRequestController::class, 'approve'])->name('approve');
+        Route::post('/{joinRequest}/email', [App\Http\Controllers\JoinRequestController::class, 'sendEmail'])->name('email');
+        Route::delete('/{joinRequest}', [App\Http\Controllers\JoinRequestController::class, 'destroy'])->name('destroy');
     });
 
     // Tools - Admin & Superuser

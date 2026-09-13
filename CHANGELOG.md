@@ -2,6 +2,19 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.60] - 2026-09-13
+
+### Added
+- **"Join in" membership requests.** Prospective members can now request to join from the login page.
+  - **Login page** — a "Join in" button below "Sign In", with an info (ⓘ) icon that opens a popup explaining the process.
+  - **Public join form** (`/join`) — collects name and email (required), date of birth, and an optional message. Duplicate open requests from the same email are ignored.
+  - **New `join_requests` table** with statuses: pending, processing, approved, rejected.
+  - **Admin resolve page** (`/join-requests`, admin/superuser) — filter by status with counts, and per request: **Create account** (creates a Member with auto membership number and age-derived category, then the applicant activates their login on first sign-in), **Mark processing**, **Reject**, **Email** (send a custom message to the applicant), and **Delete**.
+  - **Nav badge** — a red count of open (pending + processing) requests appears on the "Join Requests" menu item for admins/superusers.
+
+### Deploy note
+- After deploying, an **admin must visit `/migrate` once** to create the `join_requests` table.
+
 ## [0.9.59] - 2026-09-13
 
 ### Changed
