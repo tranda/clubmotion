@@ -177,6 +177,13 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
                                     </p>
                                 )}
 
+                                {req.emails_sent > 0 && (
+                                    <p className="mt-1 text-xs text-gray-400">
+                                        ✉ Emailed {req.emails_sent} time{req.emails_sent > 1 ? 's' : ''}, last {formatDate(req.last_emailed_at)}
+                                        {req.last_email_subject ? ` — "${req.last_email_subject}"` : ''}
+                                    </p>
+                                )}
+
                                 {/* Actions */}
                                 <div className="mt-4 flex flex-wrap gap-2">
                                     {!req.member_id && (
@@ -237,7 +244,13 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold text-gray-800 mb-1">Email {emailFor.name}</h3>
-                        <p className="text-sm text-gray-500 mb-4">To: {emailFor.email}</p>
+                        <p className="text-sm text-gray-500 mb-1">To: {emailFor.email}</p>
+                        {emailFor.emails_sent > 0 && (
+                            <p className="text-xs text-gray-400 mb-4">
+                                Already emailed {emailFor.emails_sent} time{emailFor.emails_sent > 1 ? 's' : ''}, last {formatDate(emailFor.last_emailed_at)}.
+                            </p>
+                        )}
+                        {!emailFor.emails_sent && <div className="mb-4" />}
                         <form onSubmit={sendEmail} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>

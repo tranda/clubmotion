@@ -185,6 +185,12 @@ class JoinRequestController extends Controller
             return back()->with('error', 'Email could not be sent. Check the mail configuration on the server.');
         }
 
+        // Record that an email was sent, for reference.
+        $joinRequest->last_emailed_at = now();
+        $joinRequest->emails_sent = ($joinRequest->emails_sent ?? 0) + 1;
+        $joinRequest->last_email_subject = $validated['subject'];
+        $joinRequest->save();
+
         return back()->with('success', 'Email sent to ' . $joinRequest->email . '.');
     }
 

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.62] - 2026-09-13
+
+### Added
+- **Join requests — track sent emails.** Each request now records when an email was last sent, how many have been sent, and the last subject. Shown on the request card ("✉ Emailed N times, last …") and in the email dialog. Requires a new migration (visit `/migrate` after deploy).
+
 ## [0.9.61] - 2026-09-13
 
 ### Changed

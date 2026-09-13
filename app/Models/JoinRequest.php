@@ -25,11 +25,14 @@ class JoinRequest extends Model
     protected $fillable = [
         'name', 'email', 'date_of_birth', 'message', 'status',
         'admin_notes', 'member_id', 'resolved_by', 'resolved_at',
+        'last_emailed_at', 'emails_sent', 'last_email_subject',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date:Y-m-d',
         'resolved_at' => 'datetime',
+        'last_emailed_at' => 'datetime',
+        'emails_sent' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
