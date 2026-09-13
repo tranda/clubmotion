@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.70] - 2026-09-13
+
+### Changed
+- **Member photo history capped at 5.** Each upload now prunes older photos beyond the 5 most recent, deleting their files from disk to keep storage in check. The currently-active photo is never pruned (in case it's an older one you reverted to).
+
 ## [0.9.69] - 2026-09-13
 
 ### Added

@@ -449,7 +449,33 @@ class MemberController extends Controller
             'uploaded_by' => $uploadedBy,
         ]);
 
+        $this->pruneMemberImages($member);
+
         return $path;
+    }
+
+    /**
+     * Keep only the most recent images per member (history cap). Older files are
+     * removed from disk and history — except the currently-active photo, which is
+     * never deleted (it may be an older one that was reverted to).
+     */
+    private function pruneMemberImages(Member $member, int $keep = 5): void
+    {
+        $images = MemberImage::where('member_id', $member->id)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        if ($images->count() <= $keep) {
+            return;
+        }
+
+        foreach ($images->slice($keep) as $old) {
+            if ($old->path === $member->image) {
+                continue; // never delete the active photo
+            }
+            Storage::disk('public')->delete($old->path);
+            $old->delete();
+        }
     }
 
     /**
