@@ -171,6 +171,8 @@ class JoinRequestController extends Controller
         $validated = $request->validate([
             'subject' => 'required|string|max:255',
             'body' => 'required|string|max:5000',
+            // Optionally apply a status change together with the email (e.g. reject + notify).
+            'set_status' => ['nullable', Rule::in([JoinRequest::STATUS_REJECTED, JoinRequest::STATUS_PROCESSING])],
         ]);
 
         try {
@@ -189,9 +191,21 @@ class JoinRequestController extends Controller
         $joinRequest->last_emailed_at = now();
         $joinRequest->emails_sent = ($joinRequest->emails_sent ?? 0) + 1;
         $joinRequest->last_email_subject = $validated['subject'];
+
+        // Apply the optional status change in the same step.
+        $statusMsg = '';
+        if (!empty($validated['set_status'])) {
+            $joinRequest->status = $validated['set_status'];
+            if ($validated['set_status'] === JoinRequest::STATUS_REJECTED) {
+                $joinRequest->resolved_by = auth()->id();
+                $joinRequest->resolved_at = now();
+                $statusMsg = ' Request rejected.';
+            }
+        }
+
         $joinRequest->save();
 
-        return back()->with('success', 'Email sent to ' . $joinRequest->email . '.');
+        return back()->with('success', 'Email sent to ' . $joinRequest->email . '.' . $statusMsg);
     }
 
     /**

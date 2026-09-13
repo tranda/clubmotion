@@ -38,6 +38,7 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
     const { flash } = usePage().props;
     const [emailFor, setEmailFor] = useState(null); // request object we're emailing
     const [emailData, setEmailData] = useState({ subject: '', body: '' });
+    const [emailStatus, setEmailStatus] = useState(null); // status to apply on send (e.g. 'rejected'), or null for a plain email
     const [busyId, setBusyId] = useState(null);
 
     const changeFilter = (value) => {
@@ -72,6 +73,7 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
     };
 
     const openEmail = (req) => {
+        setEmailStatus(null);
         setEmailFor(req);
         setEmailData({
             subject: `Your request to join`,
@@ -79,11 +81,43 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
         });
     };
 
+    const openReject = (req) => {
+        setEmailStatus('rejected');
+        setEmailFor(req);
+        setEmailData({
+            subject: `Regarding your request to join`,
+            body: `Hi ${req.name},\n\n`
+                + `Thank you for your interest in joining us. After reviewing your request, `
+                + `we're unable to offer you a place at this time.\n\n`
+                + `We wish you all the best.\n\n`
+                + `Kind regards,\nThe team`,
+        });
+    };
+
+    const closeModal = () => {
+        setEmailFor(null);
+        setEmailStatus(null);
+    };
+
     const sendEmail = (e) => {
         e.preventDefault();
-        router.post(`/join-requests/${emailFor.id}/email`, emailData, {
+        router.post(`/join-requests/${emailFor.id}/email`, {
+            ...emailData,
+            set_status: emailStatus || '',
+        }, {
             preserveScroll: true,
-            onSuccess: () => setEmailFor(null),
+            onSuccess: closeModal,
+        });
+    };
+
+    // Reject without sending an email (fallback from the reject dialog).
+    const rejectWithoutEmail = () => {
+        const req = emailFor;
+        closeModal();
+        setBusyId(req.id);
+        router.patch(`/join-requests/${req.id}/status`, { status: 'rejected' }, {
+            preserveScroll: true,
+            onFinish: () => setBusyId(null),
         });
     };
 
@@ -186,7 +220,7 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
 
                                 {/* Actions */}
                                 <div className="mt-4 flex flex-wrap gap-2">
-                                    {!req.member_id && (
+                                    {!req.member_id && req.status !== 'rejected' && (
                                         <button
                                             onClick={() => approve(req)}
                                             disabled={busyId === req.id}
@@ -195,7 +229,7 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
                                             Create account
                                         </button>
                                     )}
-                                    {req.status !== 'processing' && req.status !== 'approved' && (
+                                    {req.status !== 'processing' && req.status !== 'approved' && req.status !== 'rejected' && (
                                         <button
                                             onClick={() => setStatus(req, 'processing')}
                                             disabled={busyId === req.id}
@@ -206,11 +240,20 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
                                     )}
                                     {req.status !== 'rejected' && !req.member_id && (
                                         <button
-                                            onClick={() => setStatus(req, 'rejected')}
+                                            onClick={() => openReject(req)}
                                             disabled={busyId === req.id}
                                             className="px-3 py-1.5 text-sm font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 disabled:opacity-50"
                                         >
                                             Reject
+                                        </button>
+                                    )}
+                                    {req.status === 'rejected' && (
+                                        <button
+                                            onClick={() => setStatus(req, 'pending')}
+                                            disabled={busyId === req.id}
+                                            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-yellow-50 text-yellow-700 hover:bg-yellow-100 disabled:opacity-50"
+                                        >
+                                            Reopen
                                         </button>
                                     )}
                                     <button
@@ -237,13 +280,20 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
             {emailFor && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-                    onClick={() => setEmailFor(null)}
+                    onClick={closeModal}
                 >
                     <div
                         className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-1">Email {emailFor.name}</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                            {emailStatus === 'rejected' ? `Reject & notify ${emailFor.name}` : `Email ${emailFor.name}`}
+                        </h3>
+                        {emailStatus === 'rejected' && (
+                            <p className="text-sm text-gray-500 mb-1">
+                                This will mark the request as <span className="font-medium text-red-600">rejected</span> and email the applicant. Edit the message below.
+                            </p>
+                        )}
                         <p className="text-sm text-gray-500 mb-1">To: {emailFor.email}</p>
                         {emailFor.emails_sent > 0 && (
                             <p className="text-xs text-gray-400 mb-4">
@@ -272,19 +322,32 @@ export default function JoinRequestsIndex({ requests, filter, counts }) {
                                     required
                                 />
                             </div>
-                            <div className="flex justify-end gap-2">
+                            <div className="flex flex-wrap justify-end gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => setEmailFor(null)}
+                                    onClick={closeModal}
                                     className="px-4 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100"
                                 >
                                     Cancel
                                 </button>
+                                {emailStatus === 'rejected' && (
+                                    <button
+                                        type="button"
+                                        onClick={rejectWithoutEmail}
+                                        className="px-4 py-2 text-sm font-medium rounded-lg text-red-700 hover:bg-red-50 mr-auto"
+                                    >
+                                        Reject without email
+                                    </button>
+                                )}
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg text-white ${
+                                        emailStatus === 'rejected'
+                                            ? 'bg-red-600 hover:bg-red-700'
+                                            : 'bg-blue-600 hover:bg-blue-700'
+                                    }`}
                                 >
-                                    Send email
+                                    {emailStatus === 'rejected' ? 'Reject & send email' : 'Send email'}
                                 </button>
                             </div>
                         </form>

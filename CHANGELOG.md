@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.64] - 2026-09-13
+
+### Changed
+- **Join requests — Reject now prompts with an editable email.** Clicking "Reject" opens a dialog pre-filled with a rejection message you can edit, then rejects and emails the applicant in one step ("Reject & send email"). A "Reject without email" option is available for a silent rejection.
+- **Join requests — cleaner actions on resolved requests.** A rejected request no longer shows "Create account" / "Mark processing" (which were misleadingly enabled). Instead it shows a "Reopen" action that returns it to pending, plus Email and Delete.
+
 ## [0.9.63] - 2026-09-13
 
 ### Added
