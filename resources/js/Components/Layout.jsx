@@ -31,16 +31,32 @@ export default function Layout({ children }) {
 
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         window.OneSignalDeferred.push(async (OneSignal) => {
-            try {
-                await OneSignal.login(String(auth.user.id));
-                await OneSignal.User.addTag('role', userRole);
-                await OneSignal.User.addTag('staff', canManage ? '1' : '0');
-                if (canManage) {
-                    await OneSignal.Slidedown.promptPush();
+            // Associate this user + tags. Only run once permission is granted:
+            // calling login() before a real push subscription exists makes
+            // OneSignal's /users call 400 and pause its queue.
+            const identify = async () => {
+                try {
+                    await OneSignal.login(String(auth.user.id));
+                    await OneSignal.User.addTag('role', userRole);
+                    await OneSignal.User.addTag('staff', canManage ? '1' : '0');
+                } catch (e) {
+                    // Non-fatal: push is a progressive enhancement.
+                    console.warn('OneSignal identify failed', e);
                 }
-            } catch (e) {
-                // Non-fatal: push is a progressive enhancement.
-                console.warn('OneSignal identify failed', e);
+            };
+
+            if (OneSignal.Notifications.permission) {
+                await identify();
+            }
+
+            // Identify as soon as the user grants permission.
+            OneSignal.Notifications.addEventListener('permissionChange', (granted) => {
+                if (granted) identify();
+            });
+
+            // Prompt staff who haven't opted in yet.
+            if (canManage && !OneSignal.Notifications.permission) {
+                await OneSignal.Slidedown.promptPush();
             }
         });
     }, [onesignalAppId, auth.user?.id, userRole, canManage]);

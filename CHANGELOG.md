@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.72] - 2026-09-15
+
+### Fixed
+- **OneSignal identify no longer runs before push permission is granted.** Calling `login()`/tags before a real subscription existed caused a 400 on OneSignal's `/users` endpoint and paused its operation queue. The SDK now identifies the user and applies `role`/`staff` tags only once notification permission is granted (immediately if already granted, otherwise on the `permissionChange` event), and prompts staff who haven't opted in.
+
 ## [0.9.71] - 2026-09-15
 
 ### Added
