@@ -12,6 +12,20 @@
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
         <link rel="shortcut icon" href="/favicon.png">
 
+        {{-- OneSignal Web Push SDK (only when configured) --}}
+        @if (config('services.onesignal.app_id'))
+            <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+            <script>
+                window.OneSignalDeferred = window.OneSignalDeferred || [];
+                OneSignalDeferred.push(async function (OneSignal) {
+                    await OneSignal.init({
+                        appId: @json(config('services.onesignal.app_id')),
+                        notifyButton: { enable: false },
+                    });
+                });
+            </script>
+        @endif
+
         <!-- Scripts -->
         @viteReactRefresh
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])

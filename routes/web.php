@@ -316,6 +316,50 @@ Route::middleware('auth')->group(function () {
         }
     })->middleware('role:admin');
 
+    // Test push sender - Admin only (verify OneSignal config). Sends to all
+    // staff subscribers (staff=1 tag). Template for future push triggers.
+    Route::get('/test-push', function () {
+        if (auth()->user()->role_id !== 1) {
+            abort(403, 'Only admin can send test push notifications');
+        }
+
+        $configured = \App\Services\OneSignalPush::isConfigured();
+        $appId = config('services.onesignal.app_id');
+        $configHtml = '<li><strong>ONESIGNAL_APP_ID:</strong> ' . htmlspecialchars($appId ? $appId : '(not set)') . '</li>'
+            . '<li><strong>ONESIGNAL_REST_API_KEY:</strong> ' . (config('services.onesignal.rest_api_key') ? 'set' : '(not set)') . '</li>';
+
+        if (! $configured) {
+            return response(
+                '<h2 style="color:red">✗ OneSignal is not configured</h2>'
+                . '<p>Set the values in the server .env, then visit <a href="/clear-cache">/clear-cache</a> and retry.</p>'
+                . '<ul>' . $configHtml . '</ul>',
+                500
+            );
+        }
+
+        $ok = (new \App\Services\OneSignalPush)->toTag(
+            'staff',
+            '1',
+            'Test push from ' . env('CLUB_NAME', config('app.name')),
+            'If you see this, web push is working.',
+            url('/join-requests')
+        );
+
+        if ($ok) {
+            return response(
+                '<h2 style="color:green">✓ Test push accepted by OneSignal</h2>'
+                . '<p>Any subscribed staff device should receive it shortly. Config:</p><ul>' . $configHtml . '</ul>'
+                . '<p><a href="/join-requests">Back to Join Requests</a></p>'
+            );
+        }
+
+        return response(
+            '<h2 style="color:red">✗ OneSignal rejected the request</h2>'
+            . '<p>Check the Laravel log for details. Config:</p><ul>' . $configHtml . '</ul>',
+            500
+        );
+    })->middleware('role:admin');
+
     // Migration runner - Admin only (remove after first use)
     Route::get('/migrate', function () {
         if (auth()->user()->role_id !== 1) {

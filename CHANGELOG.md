@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.71] - 2026-09-15
+
+### Added
+- **Web push notifications via OneSignal.** The app now loads the OneSignal Web Push SDK; logged-in users are identified to OneSignal by their id, and admins/superusers are tagged `staff=1` and prompted to opt in. When someone submits the public **Join** form, subscribed staff receive a "New join request" push that deep-links to `/join-requests`. Push failures never affect the form (logged and ignored).
+- **`/test-push` route (admin only)** to verify the OneSignal configuration, mirroring the existing `/test-email` route.
+
+### Deploy note
+- Set `ONESIGNAL_APP_ID` and `ONESIGNAL_REST_API_KEY` in the server `.env`, then visit `/clear-cache`. Create a OneSignal Web Push app pointed at the site's HTTPS origin first. iOS requires the site be added to the Home Screen (iOS 16.4+) to receive push.
+
 ## [0.9.70] - 2026-09-13
 
 ### Changed

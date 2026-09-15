@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 
 export default function Layout({ children }) {
-    const { auth, clubName, flash, pendingJoinRequests = 0 } = usePage().props;
+    const { auth, clubName, flash, pendingJoinRequests = 0, onesignalAppId } = usePage().props;
     const [menuOpen, setMenuOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -22,6 +22,28 @@ export default function Layout({ children }) {
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
     const isAdmin = userRole === 'admin';
+
+    // Identify the logged-in user to OneSignal so we can target push at them.
+    // Admins/superusers get a `staff` tag (used to notify on new join requests)
+    // and are prompted to opt in to notifications.
+    useEffect(() => {
+        if (!onesignalAppId || !auth.user) return;
+
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        window.OneSignalDeferred.push(async (OneSignal) => {
+            try {
+                await OneSignal.login(String(auth.user.id));
+                await OneSignal.User.addTag('role', userRole);
+                await OneSignal.User.addTag('staff', canManage ? '1' : '0');
+                if (canManage) {
+                    await OneSignal.Slidedown.promptPush();
+                }
+            } catch (e) {
+                // Non-fatal: push is a progressive enhancement.
+                console.warn('OneSignal identify failed', e);
+            }
+        });
+    }, [onesignalAppId, auth.user?.id, userRole, canManage]);
 
     return (
         <div className="min-h-screen bg-gray-50">

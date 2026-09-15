@@ -38,4 +38,11 @@ return [
         'key' => env('DBCREWS_API_KEY', env('DBCREWS_RESULTS_KEY')),
     ],
 
+    // OneSignal Web Push. App ID is public (used by the browser SDK); the REST
+    // API key is secret (server-side only). Both set in .env on the host.
+    'onesignal' => [
+        'app_id' => env('ONESIGNAL_APP_ID'),
+        'rest_api_key' => env('ONESIGNAL_REST_API_KEY'),
+    ],
+
 ];

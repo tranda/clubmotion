@@ -70,6 +70,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'appVersion' => $version,
             'clubName' => env('CLUB_NAME', 'ClubMotion'),
+            // OneSignal Web Push app id (public) — used by the browser SDK to
+            // identify the logged-in user. Null when push isn't configured.
+            'onesignalAppId' => config('services.onesignal.app_id'),
             'csrf_token' => csrf_token(), // Share fresh CSRF token on every request
         ]);
     }

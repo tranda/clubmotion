@@ -6,6 +6,7 @@ use App\Mail\JoinRequestMessage;
 use App\Models\JoinRequest;
 use App\Models\Member;
 use App\Models\MembershipCategory;
+use App\Services\OneSignalPush;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -48,6 +49,20 @@ class JoinRequestController extends Controller
         JoinRequest::create(array_merge($validated, [
             'status' => JoinRequest::STATUS_PENDING,
         ]));
+
+        // Push-notify staff (admins/superusers). Never let a push failure break
+        // the public form — swallow and log.
+        try {
+            (new OneSignalPush)->toTag(
+                'staff',
+                '1',
+                'New join request',
+                $validated['name'] . ' wants to join.',
+                url('/join-requests')
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Join request push failed', ['message' => $e->getMessage()]);
+        }
 
         return back()->with('success', 'Thank you! Your request has been received. We will be in touch shortly.');
     }
