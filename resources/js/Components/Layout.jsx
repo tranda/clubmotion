@@ -31,31 +31,28 @@ export default function Layout({ children }) {
 
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         window.OneSignalDeferred.push(async (OneSignal) => {
-            // Associate this user + tags. Only run once permission is granted:
-            // calling login() before a real push subscription exists makes
-            // OneSignal's /users call 400 and pause its queue.
+            // Associate this user + tags only once there's a REAL push
+            // subscription (opted in AND a token exists). Gating on notification
+            // permission alone isn't enough — permission can be granted while the
+            // token is still empty, which makes OneSignal's /users call post an
+            // empty token, 400, and pause its operation queue.
             const identify = async () => {
+                const ps = OneSignal.User.PushSubscription;
+                if (!ps.optedIn || !ps.token) return;
                 try {
                     await OneSignal.login(String(auth.user.id));
-                    await OneSignal.User.addTag('role', userRole);
-                    await OneSignal.User.addTag('staff', canManage ? '1' : '0');
+                    await OneSignal.User.addTags({ role: userRole, staff: canManage ? '1' : '0' });
                 } catch (e) {
                     // Non-fatal: push is a progressive enhancement.
                     console.warn('OneSignal identify failed', e);
                 }
             };
 
-            if (OneSignal.Notifications.permission) {
-                await identify();
-            }
-
-            // Identify as soon as the user grants permission.
-            OneSignal.Notifications.addEventListener('permissionChange', (granted) => {
-                if (granted) identify();
-            });
+            OneSignal.User.PushSubscription.addEventListener('change', identify);
+            await identify(); // covers the already-subscribed case
 
             // Prompt staff who haven't opted in yet.
-            if (canManage && !OneSignal.Notifications.permission) {
+            if (canManage && !OneSignal.User.PushSubscription.optedIn) {
                 await OneSignal.Slidedown.promptPush();
             }
         });

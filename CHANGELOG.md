@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.73] - 2026-09-15
+
+### Fixed
+- **Push identify now waits for a real subscription token, not just permission.** Notification permission can be granted while the push token is still empty, which made OneSignal post an empty token and 400. The SDK now calls `login()`/`addTags()` only when `PushSubscription.optedIn` is true and a `token` exists, and re-runs on the `PushSubscription` `change` event (covering the already-subscribed case on load).
+
 ## [0.9.72] - 2026-09-15
 
 ### Fixed
