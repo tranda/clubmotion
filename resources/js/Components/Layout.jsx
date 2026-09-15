@@ -40,7 +40,9 @@ export default function Layout({ children }) {
                 const ps = OneSignal.User.PushSubscription;
                 if (!ps.optedIn || !ps.token) return;
                 try {
-                    await OneSignal.login(String(auth.user.id));
+                    // Prefix so external_id is never a bare number (OneSignal
+                    // rejects those). Must match the backend targeting prefix.
+                    await OneSignal.login(`motion-user-${auth.user.id}`);
                     await OneSignal.User.addTags({ role: userRole, staff: canManage ? '1' : '0' });
                 } catch (e) {
                     // Non-fatal: push is a progressive enhancement.

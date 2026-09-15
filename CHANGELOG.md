@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.74] - 2026-09-16
+
+### Fixed
+- **Push external_id is now prefixed (`motion-user-<id>`).** OneSignal rejects a bare-numeric external id, which was causing the `/users` 400 on `login()`. The frontend `login()` and the backend `toExternalIds()` now both use the `motion-user-` prefix so per-user targeting matches. Join-request and `/test-push` sends target by the `staff` tag and are unaffected.
+
 ## [0.9.73] - 2026-09-15
 
 ### Fixed

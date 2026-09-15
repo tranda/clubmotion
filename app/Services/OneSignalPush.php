@@ -39,15 +39,22 @@ class OneSignalPush
         ], $title, $message, $url);
     }
 
+    // Prefix so external_id is never a bare number (OneSignal rejects those).
+    // Must match the frontend OneSignal.login() prefix in Layout.jsx.
+    public const EXTERNAL_ID_PREFIX = 'motion-user-';
+
     /**
-     * Send to specific users by their OneSignal external id (we use the
-     * Laravel user id). Handy for per-member notifications later.
+     * Send to specific users by their raw Laravel user id (this method applies
+     * the OneSignal external-id prefix). Handy for per-member notifications.
      *
-     * @param array<int|string> $externalIds
+     * @param array<int|string> $userIds
      */
-    public function toExternalIds(array $externalIds, string $title, string $message, ?string $url = null): bool
+    public function toExternalIds(array $userIds, string $title, string $message, ?string $url = null): bool
     {
-        $ids = array_values(array_map('strval', array_filter($externalIds, fn ($id) => $id !== null && $id !== '')));
+        $ids = array_values(array_map(
+            fn ($id) => self::EXTERNAL_ID_PREFIX . $id,
+            array_filter($userIds, fn ($id) => $id !== null && $id !== '')
+        ));
 
         if (empty($ids)) {
             return false;
