@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.75] - 2026-09-16
+
+### Added
+- **Messages to members are now also pushed.** When an admin sends a message from a member's page, the member also gets a web-push notification (in addition to the email) — if they have a login and have opted in. Best-effort: a push failure never affects the email.
+- **All logged-in users are now prompted to opt in to push** (previously staff only), so members can receive club messages.
+
+### Note
+- A "welcome push" on join-request approval was considered but not added: members have no login/device until their first sign-in, so there is nothing to push to at approval time. The welcome **email** already covers that moment.
+
 ## [0.9.74] - 2026-09-16
 
 ### Fixed

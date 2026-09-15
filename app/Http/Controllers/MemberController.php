@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ClubMessage;
+use App\Services\OneSignalPush;
 use Inertia\Inertia;
 
 class MemberController extends Controller
@@ -415,6 +416,24 @@ class MemberController extends Controller
                 'error' => $e->getMessage(),
             ]);
             return back()->with('error', 'Email could not be sent. Check the mail configuration on the server.');
+        }
+
+        // Also push the member's own device, if they have a login and have
+        // opted in. Best-effort: a push failure never affects the email result.
+        if ($member->user_id) {
+            try {
+                (new OneSignalPush)->toExternalIds(
+                    [$member->user_id],
+                    $validated['subject'],
+                    $validated['body'],
+                    url('/')
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Member message push failed', [
+                    'member_id' => $member->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return back()->with('success', 'Message sent to ' . $member->email . '.');

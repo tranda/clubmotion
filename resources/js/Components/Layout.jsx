@@ -53,8 +53,9 @@ export default function Layout({ children }) {
             OneSignal.User.PushSubscription.addEventListener('change', identify);
             await identify(); // covers the already-subscribed case
 
-            // Prompt staff who haven't opted in yet.
-            if (canManage && !OneSignal.User.PushSubscription.optedIn) {
+            // Prompt any logged-in user who hasn't opted in yet. Staff need it
+            // for join-request alerts; members need it to receive club messages.
+            if (!OneSignal.User.PushSubscription.optedIn) {
                 await OneSignal.Slidedown.promptPush();
             }
         });
