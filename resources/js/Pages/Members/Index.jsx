@@ -154,6 +154,7 @@ export default function Index({ members, filter, categoryStats }) {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration</th>
                                     {viewerIsAdmin && (
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                                     )}
@@ -192,6 +193,7 @@ export default function Index({ members, filter, categoryStats }) {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {member.category?.category_name || 'N/A'}
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.registration_date}</td>
                                         {viewerIsAdmin && (
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <RoleBadge name={member.user?.role?.name} />
@@ -250,6 +252,9 @@ export default function Index({ members, filter, categoryStats }) {
                                             </span>
                                             {viewerIsAdmin && <RoleBadge name={member.user?.role?.name} />}
                                         </div>
+                                        {member.registration_date && (
+                                            <p className="mt-1 text-xs text-gray-500">Registered: {member.registration_date}</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>

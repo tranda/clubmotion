@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.78] - 2026-10-04
+
+### Added
+- **Registration column in the Members list**, right after Category. On mobile cards it appears as "Registered: <date>" under the category badge.
+
 ## [0.9.77] - 2026-10-04
 
 ### Changed
