@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.83] - 2026-10-04
+
+### Changed
+- **Locked (before registration) payment cells are now lighter and semi-transparent** instead of solid grey, so they recede visually in the Payments grid.
+
 ## [0.9.82] - 2026-10-04
 
 ### Added
