@@ -360,6 +360,53 @@ Route::middleware('auth')->group(function () {
         );
     })->middleware('role:admin');
 
+    // Registration date sync - Admin only. Sets each member's registration_date
+    // to the 1st of their earliest paid month. Preview by default; ?apply=1 writes.
+    Route::get('/sync-registration-dates', function (\Illuminate\Http\Request $request) {
+        $apply = $request->boolean('apply');
+
+        $earliest = \Illuminate\Support\Facades\DB::table('membership_payments')
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')->orWhere('paid_amount', '>', 0);
+            })
+            ->select('member_id', \Illuminate\Support\Facades\DB::raw('MIN(payment_year * 100 + payment_month) as ym'))
+            ->groupBy('member_id')
+            ->pluck('ym', 'member_id');
+
+        $rows = '';
+        $changed = 0;
+        foreach (\App\Models\Member::orderBy('name')->get() as $member) {
+            $current = $member->registration_date ? $member->registration_date->format('Y-m-d') : null;
+            $ym = $earliest[$member->id] ?? null;
+            $target = $ym ? sprintf('%04d-%02d-01', intdiv((int) $ym, 100), (int) $ym % 100) : null;
+            $differs = $target && $target !== $current;
+
+            if ($differs) {
+                $changed++;
+                if ($apply) {
+                    \Illuminate\Support\Facades\DB::table('members')
+                        ->where('id', $member->id)
+                        ->update(['registration_date' => $target]);
+                }
+            }
+
+            $rows .= '<tr' . ($differs ? ' style="background:#fff7d6"' : '') . '>'
+                . '<td>' . e($member->name) . '</td>'
+                . '<td>' . ($current ?? '—') . '</td>'
+                . '<td>' . ($target ?? 'no paid month') . '</td>'
+                . '<td>' . ($differs ? ($apply ? 'updated' : 'will update') : '') . '</td></tr>';
+        }
+
+        $header = $apply
+            ? "<h2>Updated {$changed} member(s)</h2>"
+            : "<h2>Preview: {$changed} member(s) will change</h2><p><a href=\"/sync-registration-dates?apply=1\">Apply changes</a></p>";
+
+        return response($header
+            . '<table border="1" cellpadding="4" style="border-collapse:collapse;font-family:sans-serif;font-size:14px">'
+            . '<tr><th>Member</th><th>Current registration</th><th>Earliest paid month</th><th></th></tr>'
+            . $rows . '</table>');
+    })->middleware('role:admin');
+
     // Migration runner - Admin only (remove after first use)
     Route::get('/migrate', function () {
         if (auth()->user()->role_id !== 1) {

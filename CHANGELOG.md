@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.79] - 2026-10-04
+
+### Added
+- **Admin `/sync-registration-dates` page.** Previews each member's current Registration Date against the 1st of their earliest paid month (status `paid` or a paid amount > 0), highlighting the ones that differ; "Apply changes" (`?apply=1`) writes them. Members with no paid month are left unchanged. Can be re-run at any time.
+
 ## [0.9.78] - 2026-10-04
 
 ### Added
