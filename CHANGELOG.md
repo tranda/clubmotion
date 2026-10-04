@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.77] - 2026-10-04
+
+### Changed
+- **Registration Date now matches each member's earliest paid month.** A one-off data migration sets `registration_date` to the 1st of the member's earliest month with status `paid`. Members with no paid month keep their current date (from `created_at` or a manual edit).
+
+### Note
+- Requires running `/migrate` after deploy.
+
 ## [0.9.76] - 2026-10-04
 
 ### Added
