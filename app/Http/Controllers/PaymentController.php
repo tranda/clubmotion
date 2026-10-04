@@ -49,6 +49,11 @@ class PaymentController extends Controller
         }
         // 'all' or any other value shows all members
 
+        // Hide members who registered after the displayed year (not members yet).
+        $membersQuery->where(function ($q) use ($year) {
+            $q->whereNull('registration_date')->orWhere('registration_date', '<=', "{$year}-12-31");
+        });
+
         $members = $membersQuery->orderBy('membership_number')->get();
 
         // Calculate stats

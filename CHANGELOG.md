@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.86] - 2026-10-04
+
+### Changed
+- **Payments grid hides members registered after the displayed year.** When viewing a year, members whose Registration Date is in a later year are not listed, since they weren't members yet. Members without a Registration Date are still shown.
+
 ## [0.9.85] - 2026-10-04
 
 ### Changed
