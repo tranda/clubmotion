@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.76] - 2026-10-04
+
+### Added
+- **Registration Date on members.** New `registration_date` field shown on the member details page and editable on Create/Edit. Existing members are initialised from the date their record was created (`created_at`); correct any that are wrong via Edit. New members default to today.
+
+### Note
+- Requires running `/migrate` after deploy.
+
 ## [0.9.75] - 2026-09-16
 
 ### Added
