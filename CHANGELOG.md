@@ -2,6 +2,18 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.87] - 2026-10-04
+
+### Added
+- **Deactivation Date on members.** Set automatically to today when a member is switched to Inactive (unless a date is entered), cleared when they're reactivated. Shown on the member page and editable on Edit while the member is inactive.
+- **Admin `/sync-deactivation-dates` page.** For inactive members with no Deactivation Date, previews the last day of their latest paid month; "Apply changes" writes it. Inactive members with no paid month are left empty.
+
+### Changed
+- **Payments grid hides members who left before the displayed year.** Members whose Deactivation Date is before 1 January of that year are not listed (relevant with the "All" filter).
+
+### Note
+- Requires running `/migrate` after deploy — editing a member fails until the new column exists.
+
 ## [0.9.86] - 2026-10-04
 
 ### Changed

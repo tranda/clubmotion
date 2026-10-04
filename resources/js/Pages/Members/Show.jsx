@@ -322,6 +322,13 @@ export default function Show({ member, recentPayments = [], currentYear, imageHi
                                     )}
                                 </dd>
                             </div>
+
+                            {!member.is_active && (
+                                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt className="text-sm font-medium text-gray-500">Deactivation Date</dt>
+                                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{member.deactivation_date || 'N/A'}</dd>
+                                </div>
+                            )}
                         </dl>
                     </div>
 

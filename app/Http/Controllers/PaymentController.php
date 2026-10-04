@@ -54,6 +54,11 @@ class PaymentController extends Controller
             $q->whereNull('registration_date')->orWhere('registration_date', '<=', "{$year}-12-31");
         });
 
+        // Hide members who left before the displayed year started.
+        $membersQuery->where(function ($q) use ($year) {
+            $q->whereNull('deactivation_date')->orWhere('deactivation_date', '>=', "{$year}-01-01");
+        });
+
         $members = $membersQuery->orderBy('membership_number')->get();
 
         // Calculate stats

@@ -139,6 +139,7 @@ class MemberController extends Controller
             'category_id' => 'nullable|exists:membership_categories,id',
             'medical_validity' => 'nullable|date',
             'registration_date' => 'nullable|date',
+            'deactivation_date' => 'nullable|date',
             'is_active' => 'boolean',
             'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
         ]);
@@ -302,6 +303,7 @@ class MemberController extends Controller
             'category_id' => 'nullable|exists:membership_categories,id',
             'medical_validity' => 'nullable|date',
             'registration_date' => 'nullable|date',
+            'deactivation_date' => 'nullable|date',
             'is_active' => 'required|boolean',
             'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
         ]);

@@ -410,6 +410,56 @@ Route::middleware('auth')->group(function () {
             . $rows . '</table>');
     })->middleware('role:admin');
 
+    // Deactivation date sync - Admin only. For inactive members without a
+    // deactivation_date, set it to the last day of their latest paid month.
+    // Members with no paid month are left empty. Preview by default; ?apply=1 writes.
+    Route::get('/sync-deactivation-dates', function (\Illuminate\Http\Request $request) {
+        $apply = $request->boolean('apply');
+
+        $latest = \Illuminate\Support\Facades\DB::table('membership_payments')
+            ->where(function ($q) {
+                $q->where('payment_status', 'paid')->orWhere('paid_amount', '>', 0);
+            })
+            ->select('member_id', \Illuminate\Support\Facades\DB::raw('MAX(payment_year * 100 + payment_month) as ym'))
+            ->groupBy('member_id')
+            ->pluck('ym', 'member_id');
+
+        $rows = '';
+        $changed = 0;
+        foreach (\App\Models\Member::where('is_active', false)->orderBy('name')->get() as $member) {
+            $current = $member->deactivation_date ? $member->deactivation_date->format('Y-m-d') : null;
+            $ym = $latest[$member->id] ?? null;
+            $target = $ym
+                ? date('Y-m-t', strtotime(sprintf('%04d-%02d-01', intdiv((int) $ym, 100), (int) $ym % 100)))
+                : null;
+            $willSet = $target && !$current;
+
+            if ($willSet) {
+                $changed++;
+                if ($apply) {
+                    \Illuminate\Support\Facades\DB::table('members')
+                        ->where('id', $member->id)
+                        ->update(['deactivation_date' => $target]);
+                }
+            }
+
+            $rows .= '<tr' . ($willSet ? ' style="background:#fff7d6"' : '') . '>'
+                . '<td>' . e($member->name) . '</td>'
+                . '<td>' . ($current ?? '—') . '</td>'
+                . '<td>' . ($target ?? 'no paid month') . '</td>'
+                . '<td>' . ($willSet ? ($apply ? 'updated' : 'will set') : '') . '</td></tr>';
+        }
+
+        $header = $apply
+            ? "<h2>Updated {$changed} inactive member(s)</h2>"
+            : "<h2>Preview: {$changed} inactive member(s) will get a deactivation date</h2><p><a href=\"/sync-deactivation-dates?apply=1\">Apply changes</a></p>";
+
+        return response($header
+            . '<table border="1" cellpadding="4" style="border-collapse:collapse;font-family:sans-serif;font-size:14px">'
+            . '<tr><th>Inactive member</th><th>Current deactivation</th><th>End of last paid month</th><th></th></tr>'
+            . $rows . '</table>');
+    })->middleware('role:admin');
+
     // Migration runner - Admin only (remove after first use)
     Route::get('/migrate', function () {
         if (auth()->user()->role_id !== 1) {

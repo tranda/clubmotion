@@ -19,6 +19,7 @@ export default function Edit({ member, categories, roles = [], linkedUser = null
         medical_validity: member.medical_validity || '',
         registration_date: member.registration_date || '',
         is_active: member.is_active || false,
+        deactivation_date: member.deactivation_date || '',
         image: null,
         role_id: linkedUser?.role_id ?? '',
         _method: 'PUT',
@@ -308,6 +309,24 @@ export default function Edit({ member, categories, roles = [], linkedUser = null
                                 <option value="0">Inactive</option>
                             </select>
                         </div>
+
+                        {/* Deactivation Date - only for inactive members */}
+                        {!data.is_active && (
+                            <div>
+                                <label htmlFor="deactivation_date" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Deactivation Date
+                                </label>
+                                <input
+                                    type="date"
+                                    id="deactivation_date"
+                                    value={data.deactivation_date}
+                                    onChange={(e) => setData('deactivation_date', e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">Leave empty to use today's date.</p>
+                                {errors.deactivation_date && <p className="mt-1 text-sm text-red-600">{errors.deactivation_date}</p>}
+                            </div>
+                        )}
 
                         {/* Submit Button */}
                         <div className="flex gap-3 pt-4">

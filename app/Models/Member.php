@@ -11,7 +11,7 @@ class Member extends Model
 
     protected $fillable = [
         'name', 'membership_number', 'date_of_birth', 'address', 'phone', 'email',
-        'category_id', 'medical_validity', 'registration_date', 'profile_image_url', 'password_hash', 'is_active', 'image', 'user_id', 'exemption_status'
+        'category_id', 'medical_validity', 'registration_date', 'deactivation_date', 'profile_image_url', 'password_hash', 'is_active', 'image', 'user_id', 'exemption_status'
     ];
 
     protected $casts = [
@@ -19,6 +19,7 @@ class Member extends Model
             'date_of_birth' => 'date:Y-m-d', // Cast to Carbon and specify the output format
             'medical_validity' => 'date:Y-m-d', // Cast to Carbon and format as date only
             'registration_date' => 'date:Y-m-d',
+            'deactivation_date' => 'date:Y-m-d',
             'is_active' => 'boolean',         // Example of casting other types
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
@@ -31,6 +32,18 @@ class Member extends Model
         static::creating(function ($member) {
             if (empty($member->registration_date)) {
                 $member->registration_date = now()->toDateString();
+            }
+        });
+
+        // Keep deactivation_date in step with is_active: default to today when a
+        // member becomes inactive, clear it when they are active again.
+        static::saving(function ($member) {
+            if ($member->is_active) {
+                if (!empty($member->deactivation_date)) {
+                    $member->deactivation_date = null;
+                }
+            } elseif (empty($member->deactivation_date) && $member->isDirty('is_active')) {
+                $member->deactivation_date = now()->toDateString();
             }
         });
     }
