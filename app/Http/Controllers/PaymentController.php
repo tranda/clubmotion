@@ -15,6 +15,18 @@ class PaymentController extends Controller
     /**
      * Display payment grid for admin/superuser or redirect users to their payments
      */
+    /**
+     * Reject edits to a payment month before the member's registration month.
+     */
+    private function guardRegistration($member, $year, $month)
+    {
+        if ($member && $member->isBeforeRegistration($year, $month)) {
+            throw new \Illuminate\Http\Exceptions\HttpResponseException(
+                back()->with('error', "{$member->name} registered on {$member->registration_date->format('d.m.Y')}; payments for months before that cannot be edited.")
+            );
+        }
+    }
+
     public function index(Request $request)
     {
         $year = $request->input('year', date('Y'));
@@ -77,6 +89,7 @@ class PaymentController extends Controller
                 'membership_number' => $member->membership_number,
                 'exemption_status' => $member->exemption_status,
                 'category' => $member->category->name ?? '',
+                'registration_date' => $member->registration_date?->format('Y-m-d'),
                 'months' => $months,
             ];
         });
@@ -254,6 +267,8 @@ class PaymentController extends Controller
             'exemption_reason' => 'nullable|in:pocasni,saradnik,other',
         ]);
 
+        $this->guardRegistration(Member::find($request->member_id), $request->payment_year, $request->payment_month);
+
         MembershipPayment::updateOrCreate(
             [
                 'member_id' => $request->member_id,
@@ -288,6 +303,8 @@ class PaymentController extends Controller
             'exemption_reason' => 'nullable|in:pocasni,saradnik,other',
         ]);
 
+        $this->guardRegistration($payment->member, $payment->payment_year, $payment->payment_month);
+
         $payment->update([
             'paid_amount' => $request->paid_amount,
             'payment_status' => $request->payment_status,
@@ -306,6 +323,8 @@ class PaymentController extends Controller
      */
     public function destroy(MembershipPayment $payment)
     {
+        $this->guardRegistration($payment->member, $payment->payment_year, $payment->payment_month);
+
         $payment->delete();
 
         return back()->with('success', 'Payment deleted successfully');
@@ -323,6 +342,10 @@ class PaymentController extends Controller
             'method' => 'required|in:cash,card,bank_transfer',
             'date' => 'nullable|date',
         ]);
+
+        foreach (MembershipPayment::with('member')->whereIn('id', $request->payment_ids)->get() as $payment) {
+            $this->guardRegistration($payment->member, $payment->payment_year, $payment->payment_month);
+        }
 
         $updated = MembershipPayment::whereIn('id', $request->payment_ids)
             ->update([
@@ -717,6 +740,8 @@ class PaymentController extends Controller
         $member = Member::findOrFail($request->member_id);
         $startYear = $request->start_year;
         $startMonth = $request->start_month;
+
+        $this->guardRegistration($member, $startYear, $startMonth);
 
         $config = PaymentSetting::getAnnualConfig();
         $totalAmount = $config['annual_amount'];

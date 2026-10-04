@@ -59,7 +59,17 @@ export default function Index({ year, members, stats, availableYears, filter, an
         router.get(`/payments?year=${year}&filter=${value}`);
     };
 
+    // Months before the member's registration month are locked.
+    const isLocked = (member, month) => {
+        if (!member.registration_date) return false;
+        const [regYear, regMonth] = member.registration_date.split('-').map(Number);
+        return year * 100 + month < regYear * 100 + regMonth;
+    };
+
+    const lockedTitle = (member) => `Before registration (${member.registration_date})`;
+
     const handleCellClick = (member, month, payment) => {
+        if (isLocked(member, month)) return;
         setSelectedPayment({
             ...payment,
             member_id: member.id,
@@ -243,11 +253,13 @@ export default function Index({ year, members, stats, availableYears, filter, an
                                         </td>
                                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((month) => {
                                             const payment = member.months[month];
+                                            const locked = isLocked(member, month);
                                             return (
                                                 <td
                                                     key={month}
                                                     onClick={() => handleCellClick(member, month, payment)}
-                                                    className={`px-2 py-2 text-center text-xs font-semibold border cursor-pointer hover:opacity-75 ${getStatusColor(payment)}`}
+                                                    title={locked ? lockedTitle(member) : undefined}
+                                                    className={`px-2 py-2 text-center text-xs font-semibold border ${locked ? 'bg-slate-300 border-slate-300 text-slate-400 cursor-not-allowed' : `cursor-pointer hover:opacity-75 ${getStatusColor(payment)}`}`}
                                                 >
                                                     {getCellContent(payment, member)}
                                                 </td>
@@ -284,11 +296,14 @@ export default function Index({ year, members, stats, availableYears, filter, an
                             <div className="grid grid-cols-4 gap-1.5">
                                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((month) => {
                                     const payment = member.months[month];
+                                    const locked = isLocked(member, month);
                                     return (
                                         <button
                                             key={month}
                                             onClick={() => handleCellClick(member, month, payment)}
-                                            className={`px-2 py-2 text-xs font-medium rounded border text-center ${getStatusColor(payment)}`}
+                                            disabled={locked}
+                                            title={locked ? lockedTitle(member) : undefined}
+                                            className={`px-2 py-2 text-xs font-medium rounded border text-center ${locked ? 'bg-slate-300 border-slate-300 text-slate-400 cursor-not-allowed' : getStatusColor(payment)}`}
                                         >
                                             <div className="text-[10px] text-gray-500">{monthNames[month - 1]}</div>
                                             <div>{getCellContent(payment, member) || '-'}</div>
@@ -321,6 +336,10 @@ export default function Index({ year, members, stats, availableYears, filter, an
                     <div className="flex items-center gap-2">
                         <div className="w-4 h-4 bg-gray-200 border border-gray-400"></div>
                         <span>Exempt</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-slate-300 border border-slate-300"></div>
+                        <span>Before registration</span>
                     </div>
                 </div>
             </div>

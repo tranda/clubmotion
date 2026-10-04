@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.82] - 2026-10-04
+
+### Added
+- **Payments before a member's registration month are locked.** In the Payments grid, months before the member's Registration Date are shown greyed out ("Before registration" in the legend) and can't be opened. The server also rejects saving, updating, deleting, bulk-marking or starting an annual payment in such a month, with a message in the page banner. To record an earlier payment, first move the member's Registration Date back.
+
+### Note
+- CSV payment import is not restricted.
+
 ## [0.9.81] - 2026-10-04
 
 ### Changed

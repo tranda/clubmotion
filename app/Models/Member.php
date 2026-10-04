@@ -35,6 +35,21 @@ class Member extends Model
         });
     }
 
+    /**
+     * True if the given payment month falls before the member's registration
+     * month. Such months are locked for payment editing.
+     */
+    public function isBeforeRegistration($year, $month)
+    {
+        if (!$this->registration_date) {
+            return false;
+        }
+
+        $registered = (int) $this->registration_date->format('Y') * 100 + (int) $this->registration_date->format('n');
+
+        return ((int) $year * 100 + (int) $month) < $registered;
+    }
+
     public function category()
     {
         return $this->belongsTo(MembershipCategory::class, 'category_id', 'id');
