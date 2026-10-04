@@ -360,8 +360,9 @@ Route::middleware('auth')->group(function () {
         );
     })->middleware('role:admin');
 
-    // Registration date sync - Admin only. Sets each member's registration_date
-    // to the 1st of their earliest paid month. Preview by default; ?apply=1 writes.
+    // Registration date sync - Admin only. If a member's earliest paid month is
+    // before their registration_date, move registration_date to the 1st of that
+    // month. Never moves a date later. Preview by default; ?apply=1 writes.
     Route::get('/sync-registration-dates', function (\Illuminate\Http\Request $request) {
         $apply = $request->boolean('apply');
 
@@ -379,7 +380,8 @@ Route::middleware('auth')->group(function () {
             $current = $member->registration_date ? $member->registration_date->format('Y-m-d') : null;
             $ym = $earliest[$member->id] ?? null;
             $target = $ym ? sprintf('%04d-%02d-01', intdiv((int) $ym, 100), (int) $ym % 100) : null;
-            $differs = $target && $target !== $current;
+            // Only move the date earlier: payments before registration mean they joined by then.
+            $differs = $target && (!$current || $target < $current);
 
             if ($differs) {
                 $changed++;

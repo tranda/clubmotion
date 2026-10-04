@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.80] - 2026-10-04
+
+### Changed
+- **Registration Date sync only moves dates earlier.** `/sync-registration-dates` (and the pending v0.9.77 data migration) now update a member only when their earliest paid month is *before* their current Registration Date, setting it to the 1st of that month. Dates are never moved later, so manual corrections that are already earlier are kept.
+
 ## [0.9.79] - 2026-10-04
 
 ### Added
