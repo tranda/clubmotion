@@ -18,6 +18,13 @@ return [
     'name' => env('APP_NAME', 'Club Management'),
 
     /*
+    | Payments CSV import. Disabled by default (kept in code, not removed).
+    | Set PAYMENTS_CSV_IMPORT=true in .env and visit /clear-cache to re-enable.
+    */
+
+    'payments_csv_import' => env('PAYMENTS_CSV_IMPORT', false),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

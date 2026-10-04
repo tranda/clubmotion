@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.85] - 2026-10-04
+
+### Changed
+- **Payments CSV import disabled (code kept).** The Import button is hidden on the Payments page and `/payments/import` redirects back with "CSV import is disabled." Controlled by `PAYMENTS_CSV_IMPORT` in `.env` (default off); set it to `true` and visit `/clear-cache` to re-enable. The Download (template export) button is unchanged.
+
 ## [0.9.84] - 2026-10-04
 
 ### Changed

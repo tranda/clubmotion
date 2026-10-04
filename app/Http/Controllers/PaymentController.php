@@ -126,6 +126,7 @@ class PaymentController extends Controller
             'filter' => $filter,
             'annualConfig' => PaymentSetting::getAnnualConfig(),
             'monthlyDefaults' => $monthlyDefaults,
+            'csvImportEnabled' => (bool) config('app.payments_csv_import'),
         ]);
     }
 
@@ -363,6 +364,10 @@ class PaymentController extends Controller
      */
     public function showImport()
     {
+        if (!config('app.payments_csv_import')) {
+            return redirect('/payments')->with('error', 'CSV import is disabled.');
+        }
+
         // Get available years from actual payment data
         $yearsInDb = MembershipPayment::select('payment_year')
             ->distinct()
@@ -380,6 +385,10 @@ class PaymentController extends Controller
      */
     public function import(Request $request)
     {
+        if (!config('app.payments_csv_import')) {
+            return redirect('/payments')->with('error', 'CSV import is disabled.');
+        }
+
         $request->validate([
             'csv_file' => 'required|file|mimes:csv,txt|max:10240',
         ]);

@@ -3,7 +3,7 @@ import ConfirmModal from '../../Components/ConfirmModal';
 import { Link, router, usePage } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-export default function Index({ year, members, stats, availableYears, filter, annualConfig, monthlyDefaults }) {
+export default function Index({ year, members, stats, availableYears, filter, annualConfig, monthlyDefaults, csvImportEnabled }) {
     const { auth } = usePage().props;
     const [selectedPayment, setSelectedPayment] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -164,12 +164,14 @@ export default function Index({ year, members, stats, availableYears, filter, an
                             📥 Download
                         </Link>
 
-                        <Link
-                            href="/payments/import"
-                            className="hidden sm:inline-flex px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                        >
-                            📤 Import
-                        </Link>
+                        {csvImportEnabled && (
+                            <Link
+                                href="/payments/import"
+                                className="hidden sm:inline-flex px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            >
+                                📤 Import
+                            </Link>
+                        )}
 
                         <Link
                             href={`/payments/initialize?year=${year + 1}`}
