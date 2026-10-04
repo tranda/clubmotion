@@ -380,8 +380,9 @@ Route::middleware('auth')->group(function () {
             $current = $member->registration_date ? $member->registration_date->format('Y-m-d') : null;
             $ym = $earliest[$member->id] ?? null;
             $target = $ym ? sprintf('%04d-%02d-01', intdiv((int) $ym, 100), (int) $ym % 100) : null;
-            // Only move the date earlier: payments before registration mean they joined by then.
-            $differs = $target && (!$current || $target < $current);
+            // Only move the date earlier, and only if the paid month is before the
+            // registration month (same month = leave the existing day as is).
+            $differs = $target && (!$current || $target < substr($current, 0, 7) . '-01');
 
             if ($differs) {
                 $changed++;

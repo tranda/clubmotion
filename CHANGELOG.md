@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.81] - 2026-10-04
+
+### Changed
+- **Registration Date sync ignores same-month differences.** A member is only updated when their earliest paid month is in an earlier *month* than their Registration Date; if both fall in the same month, the existing date (including its day) is kept.
+
 ## [0.9.80] - 2026-10-04
 
 ### Changed

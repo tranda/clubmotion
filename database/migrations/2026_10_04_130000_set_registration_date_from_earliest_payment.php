@@ -26,11 +26,13 @@ return new class extends Migration
             $month = (int) $row->ym % 100;
 
             $target = sprintf('%04d-%02d-01', $year, $month);
+            // Only when registration is in a later month (same month = unchanged).
+            $nextMonth = date('Y-m-d', strtotime($target . ' +1 month'));
 
             DB::table('members')
                 ->where('id', $row->member_id)
-                ->where(function ($q) use ($target) {
-                    $q->whereNull('registration_date')->orWhere('registration_date', '>', $target);
+                ->where(function ($q) use ($nextMonth) {
+                    $q->whereNull('registration_date')->orWhere('registration_date', '>=', $nextMonth);
                 })
                 ->update(['registration_date' => $target]);
         }
