@@ -259,7 +259,7 @@ export default function Index({ year, members, stats, availableYears, filter, an
                                                     key={month}
                                                     onClick={() => handleCellClick(member, month, payment)}
                                                     title={locked ? lockedTitle(member) : undefined}
-                                                    className={`px-2 py-2 text-center text-xs font-semibold border ${locked ? 'bg-slate-100 border-slate-200 text-slate-400 opacity-50 cursor-not-allowed' : `cursor-pointer hover:opacity-75 ${getStatusColor(payment)}`}`}
+                                                    className={`px-2 py-2 text-center text-xs font-semibold border ${locked ? 'bg-slate-200 border-slate-300 text-slate-500 opacity-70 cursor-not-allowed' : `cursor-pointer hover:opacity-75 ${getStatusColor(payment)}`}`}
                                                 >
                                                     {getCellContent(payment, member)}
                                                 </td>
@@ -303,7 +303,7 @@ export default function Index({ year, members, stats, availableYears, filter, an
                                             onClick={() => handleCellClick(member, month, payment)}
                                             disabled={locked}
                                             title={locked ? lockedTitle(member) : undefined}
-                                            className={`px-2 py-2 text-xs font-medium rounded border text-center ${locked ? 'bg-slate-100 border-slate-200 text-slate-400 opacity-50 cursor-not-allowed' : getStatusColor(payment)}`}
+                                            className={`px-2 py-2 text-xs font-medium rounded border text-center ${locked ? 'bg-slate-200 border-slate-300 text-slate-500 opacity-70 cursor-not-allowed' : getStatusColor(payment)}`}
                                         >
                                             <div className="text-[10px] text-gray-500">{monthNames[month - 1]}</div>
                                             <div>{getCellContent(payment, member) || '-'}</div>
@@ -338,7 +338,7 @@ export default function Index({ year, members, stats, availableYears, filter, an
                         <span>Exempt</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-slate-100 border border-slate-200 opacity-50"></div>
+                        <div className="w-4 h-4 bg-slate-200 border border-slate-300 opacity-70"></div>
                         <span>Before registration</span>
                     </div>
                 </div>

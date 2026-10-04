@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.84] - 2026-10-04
+
+### Changed
+- **Locked payment cells slightly stronger** (between the original solid grey and the v0.9.83 faint style) so they remain clearly visible.
+
 ## [0.9.83] - 2026-10-04
 
 ### Changed
