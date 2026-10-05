@@ -177,6 +177,28 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
     };
 
     const [confirmDeleteSessionId, setConfirmDeleteSessionId] = useState(null);
+
+    // Export: default period is the month currently shown
+    const pad = (n) => String(n).padStart(2, '0');
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportParams, setExportParams] = useState({
+        from: `${year}-${pad(month)}-01`,
+        to: `${year}-${pad(month)}-${pad(new Date(year, month, 0).getDate())}`,
+        format: 'xlsx',
+    });
+
+    const handleExport = (e) => {
+        e.preventDefault();
+        const params = new URLSearchParams({
+            from: exportParams.from,
+            to: exportParams.to,
+            format: exportParams.format,
+            filter: selectedFilter || 'active',
+        });
+        if (selectedSessionType) params.append('session_type_id', selectedSessionType);
+        window.location.href = `/attendance/export?${params.toString()}`;
+        setShowExportModal(false);
+    };
     const handleDeleteSession = (sessionId) => setConfirmDeleteSessionId(sessionId);
     const confirmDeleteSession = () => {
         if (!confirmDeleteSessionId) return;
@@ -464,12 +486,20 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-sm font-medium text-gray-700">Session Types:</h3>
                         {canManage && (
-                            <Link
-                                href="/attendance/import"
-                                className="text-sm bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                            >
-                                📥 Import CSV
-                            </Link>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowExportModal(true)}
+                                    className="text-sm bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                                >
+                                    📤 Export
+                                </button>
+                                <Link
+                                    href="/attendance/import"
+                                    className="text-sm bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                                >
+                                    📥 Import CSV
+                                </Link>
+                            </div>
                         )}
                     </div>
                     <div className="flex flex-wrap gap-3">
@@ -956,6 +986,77 @@ export default function AttendanceIndex({ attendanceGrid: initialGrid, sessions,
                 )}
 
                 {/* New Session Modal */}
+                {showExportModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg max-w-md w-full p-6">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Export Attendance</h2>
+                            <form onSubmit={handleExport}>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
+                                            <input
+                                                type="date"
+                                                required
+                                                value={exportParams.from}
+                                                onChange={(e) => setExportParams({ ...exportParams, from: e.target.value })}
+                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
+                                            <input
+                                                type="date"
+                                                required
+                                                min={exportParams.from}
+                                                value={exportParams.to}
+                                                onChange={(e) => setExportParams({ ...exportParams, to: e.target.value })}
+                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
+                                        <div className="flex gap-4">
+                                            {['xlsx', 'csv', 'pdf'].map((f) => (
+                                                <label key={f} className="flex items-center gap-2 text-sm">
+                                                    <input
+                                                        type="radio"
+                                                        name="export_format"
+                                                        value={f}
+                                                        checked={exportParams.format === f}
+                                                        onChange={() => setExportParams({ ...exportParams, format: f })}
+                                                    />
+                                                    {f.toUpperCase()}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-500">
+                                        Uses the current filters: {selectedFilter === 'all' ? 'all members' : 'active members'}
+                                        {selectedSessionType ? `, ${sessionTypes.find(t => t.id === Number(selectedSessionType))?.name || 'selected session type'}` : ', all session types'}.
+                                    </p>
+                                </div>
+                                <div className="flex gap-3 mt-6">
+                                    <button
+                                        type="submit"
+                                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                                    >
+                                        Download
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowExportModal(false)}
+                                        className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
                 {showNewSessionModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-lg max-w-md w-full p-6">

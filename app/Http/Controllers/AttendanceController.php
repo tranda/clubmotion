@@ -11,6 +11,11 @@ use App\Models\MembershipCategory;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class AttendanceController extends Controller
 {
@@ -126,6 +131,197 @@ class AttendanceController extends Controller
             'stats' => $stats,
             'userMonthlyData' => $userMonthlyData,
             'yearlyData' => $yearlyData,
+        ]);
+    }
+
+    /**
+     * Export attendance for a date range as CSV, XLSX or PDF
+     */
+    public function export(Request $request)
+    {
+        $request->validate([
+            'from' => 'required|date',
+            'to' => 'required|date|after_or_equal:from',
+            'format' => 'required|in:csv,xlsx,pdf',
+            'session_type_id' => 'nullable|exists:session_types,id',
+            'filter' => 'nullable|in:active,all',
+        ]);
+
+        $data = $this->assembleExport(
+            $request->input('from'),
+            $request->input('to'),
+            $request->input('session_type_id'),
+            $request->input('filter', 'active')
+        );
+
+        $filename = sprintf('attendance_%s_%s.%s', $data['from'], $data['to'], $request->input('format'));
+
+        switch ($request->input('format')) {
+            case 'csv':
+                return $this->exportCsv($data, $filename);
+            case 'xlsx':
+                return $this->exportXlsx($data, $filename);
+            default:
+                return Pdf::loadView('reports.attendance', $data)
+                    ->setPaper('a4', 'landscape')
+                    ->download($filename);
+        }
+    }
+
+    /**
+     * Build the member x session matrix for an export period
+     */
+    private function assembleExport($from, $to, $sessionTypeId, $filter)
+    {
+        $from = Carbon::parse($from)->toDateString();
+        $to = Carbon::parse($to)->toDateString();
+
+        $sessionsQuery = AttendanceSession::with('sessionType')
+            ->whereBetween('date', [$from, $to]);
+        if ($sessionTypeId) {
+            $sessionsQuery->where('session_type_id', $sessionTypeId);
+        }
+        $sessions = $sessionsQuery->orderBy('date')->orderBy('id')->get();
+
+        // Members of the club during the period: registered by its end and not
+        // deactivated before its start.
+        $membersQuery = Member::with('category')
+            ->where(function ($q) use ($to) {
+                $q->whereNull('registration_date')->orWhere('registration_date', '<=', $to);
+            })
+            ->where(function ($q) use ($from) {
+                $q->whereNull('deactivation_date')->orWhere('deactivation_date', '>=', $from);
+            });
+        if ($filter === 'active') {
+            $membersQuery->where('is_active', true);
+        }
+        $members = $membersQuery->orderBy('membership_number')->get();
+
+        $present = AttendanceRecord::whereIn('session_id', $sessions->pluck('id'))
+            ->where('present', true)
+            ->get(['member_id', 'session_id'])
+            ->map(fn ($r) => $r->member_id . '-' . $r->session_id)
+            ->flip();
+
+        $sessionCount = $sessions->count();
+        $sessionTotals = array_fill_keys($sessions->pluck('id')->all(), 0);
+
+        $rows = [];
+        foreach ($members as $member) {
+            $marks = [];
+            $total = 0;
+            foreach ($sessions as $session) {
+                $isPresent = isset($present[$member->id . '-' . $session->id]);
+                $marks[] = $isPresent;
+                if ($isPresent) {
+                    $total++;
+                    $sessionTotals[$session->id]++;
+                }
+            }
+
+            $rows[] = [
+                'number' => $member->membership_number,
+                'name' => $member->name,
+                'category' => $member->category->category_name ?? '',
+                'marks' => $marks,
+                'total' => $total,
+                'percent' => $sessionCount ? round($total / $sessionCount * 100) : 0,
+            ];
+        }
+
+        $sessionType = $sessionTypeId ? SessionType::find($sessionTypeId) : null;
+
+        return [
+            'from' => $from,
+            'to' => $to,
+            'sessionTypeName' => $sessionType->name ?? null,
+            'filter' => $filter,
+            'sessions' => $sessions->map(fn ($s) => [
+                'date' => $s->date->format('d.m.Y'),
+                'type' => $s->sessionType->name ?? '',
+            ])->all(),
+            'sessionTotals' => array_values($sessionTotals),
+            'rows' => $rows,
+        ];
+    }
+
+    private function exportHeader(array $data)
+    {
+        $header = ['#', 'Name', 'Category'];
+        foreach ($data['sessions'] as $session) {
+            $header[] = trim($session['date'] . ' ' . $session['type']);
+        }
+        return array_merge($header, ['Total', '%']);
+    }
+
+    private function exportCsv(array $data, $filename)
+    {
+        return response()->streamDownload(function () use ($data) {
+            $out = fopen('php://output', 'w');
+            // UTF-8 BOM so Excel shows č/ć/š/ž/đ correctly; ';' is Excel's
+            // list separator in Serbian locale.
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, $this->exportHeader($data), ';');
+            foreach ($data['rows'] as $row) {
+                fputcsv($out, array_merge(
+                    [$row['number'], $row['name'], $row['category']],
+                    array_map(fn ($p) => $p ? '1' : '', $row['marks']),
+                    [$row['total'], $row['percent']]
+                ), ';');
+            }
+            fputcsv($out, array_merge(['', 'Total', ''], $data['sessionTotals'], ['', '']), ';');
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    private function exportXlsx(array $data, $filename)
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Attendance');
+
+        $sheet->setCellValue('A1', "Attendance {$data['from']} – {$data['to']}"
+            . ($data['sessionTypeName'] ? " ({$data['sessionTypeName']})" : ''));
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
+
+        $header = $this->exportHeader($data);
+        $sheet->fromArray($header, null, 'A3');
+        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($header));
+        $sheet->getStyle("A3:{$lastCol}3")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2563EB']],
+            'alignment' => ['textRotation' => 90, 'horizontal' => Alignment::HORIZONTAL_CENTER],
+        ]);
+        // Keep #, Name, Category, Total and % headers horizontal.
+        foreach (['A3', 'B3', 'C3', $lastCol . '3'] as $cell) {
+            $sheet->getStyle($cell)->getAlignment()->setTextRotation(0);
+        }
+        $totalCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($header) - 1);
+        $sheet->getStyle($totalCol . '3')->getAlignment()->setTextRotation(0);
+
+        $r = 4;
+        foreach ($data['rows'] as $row) {
+            $sheet->fromArray(array_merge(
+                [$row['number'], $row['name'], $row['category']],
+                array_map(fn ($p) => $p ? '✓' : '', $row['marks']),
+                [$row['total'], $row['percent'] / 100]
+            ), null, "A{$r}");
+            $r++;
+        }
+        $sheet->fromArray(array_merge(['', 'Total', ''], $data['sessionTotals']), null, "A{$r}");
+        $sheet->getStyle("A{$r}:{$lastCol}{$r}")->getFont()->setBold(true);
+
+        $sheet->getStyle("D4:{$lastCol}{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("{$lastCol}4:{$lastCol}{$r}")->getNumberFormat()->setFormatCode('0%');
+        $sheet->getColumnDimension('A')->setWidth(6);
+        $sheet->getColumnDimension('B')->setAutoSize(true);
+        $sheet->getColumnDimension('C')->setAutoSize(true);
+        $sheet->freezePane('D4');
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            (new Xlsx($spreadsheet))->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }
 

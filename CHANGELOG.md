@@ -2,6 +2,13 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.88] - 2026-10-05
+
+### Added
+- **Attendance export for a chosen period (CSV, XLSX, PDF).** New "Export" button on the Attendance page (admin/superuser) opens a dialog with From/To dates (default: the month shown) and format. Uses the page's current member filter (active/all) and session-type filter. Members are included only if they were members during the period (registered by its end, not deactivated before its start).
+  - **XLSX/CSV:** one row per member with a column per session (date + type), Total and %, plus a per-session totals row. CSV is UTF-8 with `;` separator for Excel.
+  - **PDF:** summary table (attended / sessions / %) plus a per-session grid when the period has 31 sessions or fewer.
+
 ## [0.9.87] - 2026-10-04
 
 ### Added
