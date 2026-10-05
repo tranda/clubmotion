@@ -305,10 +305,10 @@ class AttendanceController extends Controller
                 [$row['number'], $row['name'], $row['category']],
                 array_map(fn ($p) => $p ? '✓' : '', $row['marks']),
                 [$row['total'], $row['percent'] / 100]
-            ), null, "A{$r}");
+            ), null, "A{$r}", true);
             $r++;
         }
-        $sheet->fromArray(array_merge(['', 'Total', ''], $data['sessionTotals']), null, "A{$r}");
+        $sheet->fromArray(array_merge(['', 'Total', ''], $data['sessionTotals']), null, "A{$r}", true);
         $sheet->getStyle("A{$r}:{$lastCol}{$r}")->getFont()->setBold(true);
 
         $sheet->getStyle("D4:{$lastCol}{$r}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);

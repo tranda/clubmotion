@@ -7,9 +7,190 @@ use Illuminate\Support\Facades\Http;
 use App\Models\Achievement;
 use App\Models\Member;
 use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class AchievementsController extends Controller
 {
+    private const MEDAL_ORDER = ['GOLD' => 1, 'SILVER' => 2, 'BRONZE' => 3];
+
+    /**
+     * Export club achievements for a year range as CSV, XLSX or PDF
+     */
+    public function export(Request $request)
+    {
+        $request->validate([
+            'from' => 'required|integer|min:1900|max:2100',
+            'to' => 'required|integer|min:1900|max:2100|gte:from',
+            'format' => 'required|in:csv,xlsx,pdf',
+        ]);
+
+        $data = $this->assembleExport((int) $request->input('from'), (int) $request->input('to'));
+        $filename = sprintf('achievements_%d_%d.%s', $data['from'], $data['to'], $request->input('format'));
+
+        switch ($request->input('format')) {
+            case 'csv':
+                return $this->exportCsv($data, $filename);
+            case 'xlsx':
+                return $this->exportXlsx($data, $filename);
+            default:
+                return Pdf::loadView('reports.achievements', $data)
+                    ->setPaper('a4', 'portrait')
+                    ->download($filename);
+        }
+    }
+
+    /**
+     * Club achievements in the range: one row per unique result (year, event,
+     * class, medal) with all members who earned it, plus per-year and
+     * per-member medal counts.
+     */
+    private function assembleExport(int $from, int $to)
+    {
+        $achievements = Achievement::with('member:id,name,membership_number')
+            ->whereBetween('year', [$from, $to])
+            ->get();
+
+        $medalRank = fn ($medal) => self::MEDAL_ORDER[strtoupper($medal)] ?? 9;
+
+        $results = $achievements
+            ->groupBy(fn ($a) => $a->year . '|' . $a->event_name . '|' . $a->competition_class . '|' . $a->medal)
+            ->map(function ($group) {
+                $first = $group->first();
+                return [
+                    'year' => (int) $first->year,
+                    'event' => $first->event_name,
+                    'class' => $first->competition_class,
+                    'medal' => strtoupper($first->medal),
+                    'members' => $group->map(fn ($a) => $a->member->name ?? '?')->unique()->sort()->implode(', '),
+                ];
+            })
+            ->sort(function ($a, $b) use ($medalRank) {
+                return [$b['year'], $a['event'], $medalRank($a['medal']), $a['class']]
+                    <=> [$a['year'], $b['event'], $medalRank($b['medal']), $b['class']];
+            })
+            ->values()
+            ->all();
+
+        $blank = ['GOLD' => 0, 'SILVER' => 0, 'BRONZE' => 0, 'OTHER' => 0, 'TOTAL' => 0];
+        $medalKey = fn ($medal) => isset(self::MEDAL_ORDER[$medal]) ? $medal : 'OTHER';
+
+        // Per year: count unique results (a crew medal counts once)
+        $byYear = [];
+        foreach ($results as $r) {
+            $byYear[$r['year']] = $byYear[$r['year']] ?? $blank;
+            $byYear[$r['year']][$medalKey($r['medal'])]++;
+            $byYear[$r['year']]['TOTAL']++;
+        }
+        krsort($byYear);
+
+        // Per member: every medal the member earned
+        $byMember = [];
+        foreach ($achievements as $a) {
+            if (!$a->member) {
+                continue;
+            }
+            $id = $a->member->id;
+            $byMember[$id] = $byMember[$id] ?? ['name' => $a->member->name] + $blank;
+            $byMember[$id][$medalKey(strtoupper($a->medal))]++;
+            $byMember[$id]['TOTAL']++;
+        }
+        usort($byMember, fn ($a, $b) => [$b['GOLD'], $b['SILVER'], $b['BRONZE'], $b['TOTAL'], $a['name']]
+            <=> [$a['GOLD'], $a['SILVER'], $a['BRONZE'], $a['TOTAL'], $b['name']]);
+
+        return [
+            'from' => $from,
+            'to' => $to,
+            'results' => $results,
+            'byYear' => $byYear,
+            'byMember' => $byMember,
+            'hasOther' => collect($byYear)->sum('OTHER') > 0,
+        ];
+    }
+
+    private function exportCsv(array $data, $filename)
+    {
+        return response()->streamDownload(function () use ($data) {
+            $out = fopen('php://output', 'w');
+            // UTF-8 BOM + ';' separator so Excel (Serbian locale) opens it cleanly.
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['Year', 'Event', 'Class', 'Medal', 'Members'], ';');
+            foreach ($data['results'] as $r) {
+                fputcsv($out, [$r['year'], $r['event'], $r['class'], $r['medal'], $r['members']], ';');
+            }
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    private function exportXlsx(array $data, $filename)
+    {
+        $spreadsheet = new Spreadsheet();
+        $medalCols = $data['hasOther'] ? ['GOLD', 'SILVER', 'BRONZE', 'OTHER', 'TOTAL'] : ['GOLD', 'SILVER', 'BRONZE', 'TOTAL'];
+        $medalHeaders = array_map(fn ($m) => ucfirst(strtolower($m)), $medalCols);
+
+        // Sheet 1: results
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Achievements');
+        $sheet->fromArray(['Year', 'Event', 'Class', 'Medal', 'Members'], null, 'A1');
+        $r = 2;
+        foreach ($data['results'] as $row) {
+            $sheet->fromArray([$row['year'], $row['event'], $row['class'], $row['medal'], $row['members']], null, "A{$r}", true);
+            $fill = ['GOLD' => 'FEF3C7', 'SILVER' => 'F3F4F6', 'BRONZE' => 'FFEDD5'][$row['medal']] ?? null;
+            if ($fill) {
+                $sheet->getStyle("D{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($fill);
+            }
+            $r++;
+        }
+        $this->headerStyle($sheet, 'A1:E1');
+        foreach (['A', 'B', 'C', 'D'] as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        $sheet->getColumnDimension('E')->setWidth(60);
+        $sheet->getStyle("E2:E{$r}")->getAlignment()->setWrapText(true);
+        $sheet->freezePane('A2');
+
+        // Sheet 2: medals by year
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle('By year');
+        $sheet->fromArray(array_merge(['Year'], $medalHeaders), null, 'A1');
+        $r = 2;
+        foreach ($data['byYear'] as $year => $counts) {
+            $sheet->fromArray(array_merge([$year], array_map(fn ($m) => $counts[$m], $medalCols)), null, "A{$r}", true);
+            $r++;
+        }
+        $this->headerStyle($sheet, 'A1:' . chr(ord('A') + count($medalCols)) . '1');
+
+        // Sheet 3: medals by member
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle('By member');
+        $sheet->fromArray(array_merge(['Member'], $medalHeaders), null, 'A1');
+        $r = 2;
+        foreach ($data['byMember'] as $counts) {
+            $sheet->fromArray(array_merge([$counts['name']], array_map(fn ($m) => $counts[$m], $medalCols)), null, "A{$r}", true);
+            $r++;
+        }
+        $this->headerStyle($sheet, 'A1:' . chr(ord('A') + count($medalCols)) . '1');
+        $sheet->getColumnDimension('A')->setAutoSize(true);
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            (new Xlsx($spreadsheet))->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    private function headerStyle($sheet, string $range)
+    {
+        $sheet->getStyle($range)->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2563EB']],
+        ]);
+    }
+
     /**
      * Display combined achievements page (personal + club)
      */
@@ -52,7 +233,15 @@ class AchievementsController extends Controller
 
         $clubAchievementsByEvent = $clubAchievements->groupBy('event_name');
 
+        $achievementYears = Achievement::whereNotNull('year')
+            ->distinct()
+            ->orderByDesc('year')
+            ->pluck('year')
+            ->map(fn ($y) => (int) $y)
+            ->values();
+
         return Inertia::render('Achievements/Index', [
+            'achievementYears' => $achievementYears,
             'myAchievements' => $myAchievements,
             'myAchievementsByEvent' => $myAchievementsByEvent,
             'myAchievementKeys' => $myAchievementKeys,

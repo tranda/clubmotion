@@ -2,6 +2,18 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.89] - 2026-10-05
+
+### Added
+- **Achievements export for a year range (CSV, XLSX, PDF).** New "Export" button on the Achievements page (admin/superuser) opens a dialog with From/To year (default: latest year with achievements) and format. Achievements only store a year, so the period is a year range.
+  - **Results:** one row per unique result (year, event, class, medal) listing all members who earned it — a crew medal appears once.
+  - **XLSX:** sheets "Achievements", "By year" (medal counts per year, crew medals counted once) and "By member" (each member's medals, ranked by gold/silver/bronze).
+  - **CSV:** the results list (UTF-8, `;` separator).
+  - **PDF:** medal summary by year and by member, then results grouped by year.
+
+### Fixed
+- **Attendance XLSX export now shows 0 instead of an empty cell** for zero totals.
+
 ## [0.9.88] - 2026-10-05
 
 ### Added

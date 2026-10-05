@@ -119,6 +119,8 @@ Route::middleware('auth')->group(function () {
 
     // Admin & Superuser: Achievements import
     Route::middleware('role:admin,superuser')->group(function () {
+        Route::get('/achievements/export', [AchievementsController::class, 'export'])
+            ->name('achievements.export');
         Route::get('/achievements/import', [AchievementsController::class, 'showImport'])
             ->name('achievements.import');
         Route::post('/achievements/import', [AchievementsController::class, 'import'])

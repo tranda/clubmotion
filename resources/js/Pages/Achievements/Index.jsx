@@ -2,13 +2,29 @@ import { useState, useEffect } from 'react';
 import { router, usePage, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
-export default function AchievementsIndex({ myAchievementsByEvent, clubAchievementsByEvent, myAchievementKeys }) {
+export default function AchievementsIndex({ myAchievementsByEvent, clubAchievementsByEvent, myAchievementKeys, achievementYears = [] }) {
     const { auth } = usePage().props;
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
 
     // Toggle between "my" and "club" view
     const [view, setView] = useState('my'); // 'my' or 'club'
+
+    // Export dialog: year range, defaults to the latest year with achievements
+    const latestYear = achievementYears[0] || new Date().getFullYear();
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportParams, setExportParams] = useState({ from: latestYear, to: latestYear, format: 'xlsx' });
+
+    const handleExport = (e) => {
+        e.preventDefault();
+        const params = new URLSearchParams({
+            from: exportParams.from,
+            to: exportParams.to,
+            format: exportParams.format,
+        });
+        window.location.href = `/achievements/export?${params.toString()}`;
+        setShowExportModal(false);
+    };
 
     const getMedalColor = (medal) => {
         switch (medal) {
@@ -104,6 +120,12 @@ export default function AchievementsIndex({ myAchievementsByEvent, clubAchieveme
                     </div>
                     {canManage && (
                         <div className="flex gap-2">
+                            <button
+                                onClick={() => setShowExportModal(true)}
+                                className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-md"
+                            >
+                                📤 Export
+                            </button>
                             <Link
                                 href="/achievements/pull"
                                 className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md"
@@ -222,6 +244,86 @@ export default function AchievementsIndex({ myAchievementsByEvent, clubAchieveme
                     </div>
                 )}
             </div>
+
+                {showExportModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg max-w-md w-full p-6">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Export Achievements</h2>
+                            <form onSubmit={handleExport}>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">From year</label>
+                                            <select
+                                                value={exportParams.from}
+                                                onChange={(e) => {
+                                                    const from = Number(e.target.value);
+                                                    setExportParams({ ...exportParams, from, to: Math.max(from, exportParams.to) });
+                                                }}
+                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            >
+                                                {achievementYears.map((y) => (
+                                                    <option key={y} value={y}>{y}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">To year</label>
+                                            <select
+                                                value={exportParams.to}
+                                                onChange={(e) => {
+                                                    const to = Number(e.target.value);
+                                                    setExportParams({ ...exportParams, to, from: Math.min(to, exportParams.from) });
+                                                }}
+                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            >
+                                                {achievementYears.map((y) => (
+                                                    <option key={y} value={y}>{y}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
+                                        <div className="flex gap-4">
+                                            {['xlsx', 'csv', 'pdf'].map((f) => (
+                                                <label key={f} className="flex items-center gap-2 text-sm">
+                                                    <input
+                                                        type="radio"
+                                                        name="achievements_export_format"
+                                                        value={f}
+                                                        checked={exportParams.format === f}
+                                                        onChange={() => setExportParams({ ...exportParams, format: f })}
+                                                    />
+                                                    {f.toUpperCase()}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-500">
+                                        Exports all club achievements in the selected years.
+                                    </p>
+                                </div>
+                                <div className="flex gap-3 mt-6">
+                                    <button
+                                        type="submit"
+                                        disabled={achievementYears.length === 0}
+                                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+                                    >
+                                        Download
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowExportModal(false)}
+                                        className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
         </Layout>
     );
 }
