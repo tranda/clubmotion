@@ -2,6 +2,20 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.90] - 2026-10-07
+
+### Added
+- **Competition Fees** (admin/superuser). Payments page now has tabs **Membership Fees | Competition Fees**; Membership Fees is the existing screen, unchanged.
+  - **Competitions:** name, location, dates, default fee, currency (EUR/RSD), status (planned/active/closed), notes. List per year with Active/Closed/All filter and summary cards (Expected, Collected, Remaining per currency; competitions; participants). Closed competitions keep their history and still accept late payments. A competition can only be deleted if it has no payments.
+  - **Participants:** add club members (active by default, "show inactive" option, search, Select All) with the default fee or a custom fee; no duplicates. Per-participant fee override, Exempt (kept fee, excluded from totals) and Cancelled. Removing a participant with payments marks them Cancelled instead of deleting.
+  - **Payments:** unlimited instalments per participant (amount, date, method cash/bank transfer/other, note); edit and delete with confirmation. Paid / Remaining / status (Paid, Partial, Unpaid, Exempt, Overpaid with excess) are calculated, never stored.
+  - **Ledger:** cash and bank-transfer payments are posted to the cash book automatically (category `kotizacije`; RSD → cash/bank, EUR → cash EUR/EUR), two-way like membership fees: editing or deleting the ledger entry updates or deletes the payment. "Other" payments are not posted.
+  - **Download:** XLSX (Status + Payments sheets) or CSV for a competition.
+  - Remaining is the sum of what each active participant still owes, so one member's overpayment never hides another's debt.
+
+### Note
+- New tables `competitions`, `competition_participants`, `competition_payments` — requires running `/migrate` after deploy.
+
 ## [0.9.89] - 2026-10-05
 
 ### Added

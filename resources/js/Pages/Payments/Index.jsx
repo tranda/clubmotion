@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ConfirmModal from '../../Components/ConfirmModal';
 import { Link, router, usePage } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
+import PaymentsTabs from '../../Components/CompetitionFees/PaymentsTabs';
 
 export default function Index({ year, members, stats, availableYears, filter, annualConfig, monthlyDefaults, csvImportEnabled }) {
     const { auth } = usePage().props;
@@ -181,6 +182,8 @@ export default function Index({ year, members, stats, availableYears, filter, an
                         </Link>
                     </div>
                 </div>
+
+                <PaymentsTabs active="membership" />
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-6">

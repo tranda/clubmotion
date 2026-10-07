@@ -151,6 +151,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/payments', [App\Http\Controllers\PaymentController::class, 'index'])
             ->name('payments.index');
 
+        // Competition fees (separate from membership payments)
+        Route::prefix('payments/competition-fees')->controller(App\Http\Controllers\CompetitionFeeController::class)->group(function () {
+            Route::get('/', 'index')->name('competition-fees.index');
+            Route::post('/', 'store')->name('competition-fees.store');
+            Route::get('/{competition}', 'show')->name('competition-fees.show');
+            Route::put('/{competition}', 'update')->name('competition-fees.update');
+            Route::delete('/{competition}', 'destroy')->name('competition-fees.destroy');
+            Route::get('/{competition}/export', 'export')->name('competition-fees.export');
+            Route::post('/{competition}/participants', 'addParticipants')->name('competition-fees.participants.store');
+            Route::put('/participants/{participant}', 'updateParticipant')->name('competition-fees.participants.update');
+            Route::delete('/participants/{participant}', 'destroyParticipant')->name('competition-fees.participants.destroy');
+            Route::post('/participants/{participant}/payments', 'storePayment')->name('competition-fees.payments.store');
+            Route::put('/payments/{payment}', 'updatePayment')->name('competition-fees.payments.update');
+            Route::delete('/payments/{payment}', 'destroyPayment')->name('competition-fees.payments.destroy');
+        });
+
         // Initialize year
         Route::get('/payments/initialize', [App\Http\Controllers\PaymentController::class, 'showInitialize'])
             ->name('payments.initialize');
