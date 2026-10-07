@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.93] - 2026-10-07
+
+### Changed
+- **Competition Fees list now defaults to "All years"**; pick a specific year from the filter to narrow it down.
+
 ## [0.9.92] - 2026-10-07
 
 ### Added

@@ -25,8 +25,8 @@ class CompetitionFeeController extends Controller
      */
     public function index(Request $request)
     {
-        // Year of the competition, or 'all' for every year.
-        $year = $request->input('year', date('Y'));
+        // Year of the competition, or 'all' for every year (default).
+        $year = $request->input('year', 'all');
         $year = $year === 'all' ? 'all' : (int) $year;
         $status = $request->input('status', 'active'); // active (incl. planned) | closed | all
 
