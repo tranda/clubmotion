@@ -161,7 +161,11 @@ class LedgerReportController extends Controller
             ->select('member_id', 'ledger_category_id', DB::raw('SUM(amount) as sum_amount'))
             ->groupBy('member_id', 'ledger_category_id')
             ->get();
-        $membershipCatId = optional(LedgerCategory::where('normalized_name', 'membership')->first())->id;
+        // Membership fees are posted under 'članarina'; also accept an older
+        // English 'Membership' category if one exists.
+        $membershipCatIds = LedgerCategory::whereIn('normalized_name', [LedgerCategory::normalize('članarina'), 'membership'])
+            ->pluck('id')
+            ->all();
         $registrationCatId = optional(LedgerCategory::where('normalized_name', 'registration')->first())->id;
         $memberMap = [];
         foreach ($memberRows as $row) {
@@ -170,9 +174,9 @@ class LedgerReportController extends Controller
                 $memberMap[$mid] = ['membership' => 0.0, 'registration' => 0.0, 'other' => 0.0];
             }
             $amount = (float) $row->sum_amount;
-            if ($row->ledger_category_id === $membershipCatId) {
+            if (in_array((int) $row->ledger_category_id, $membershipCatIds, true)) {
                 $memberMap[$mid]['membership'] += $amount;
-            } elseif ($row->ledger_category_id === $registrationCatId) {
+            } elseif ($registrationCatId !== null && (int) $row->ledger_category_id === $registrationCatId) {
                 $memberMap[$mid]['registration'] += $amount;
             } else {
                 $memberMap[$mid]['other'] += $amount;

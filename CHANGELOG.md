@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.91] - 2026-10-07
+
+### Fixed
+- **Ledger annual report: membership income per member.** The report looked for a category literally named "membership", but membership fees are posted under "članarina", so they were counted as "Other". It now matches "članarina" (and an English "Membership" category if one exists). Category ids are also compared as integers, since PHP 8.0 can return them as strings from the aggregate query.
+
 ## [0.9.90] - 2026-10-07
 
 ### Added
