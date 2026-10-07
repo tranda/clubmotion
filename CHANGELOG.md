@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.94] - 2026-10-07
+
+### Removed
+- **Competition payments are no longer posted to the Ledger.** The automatic cash-book entries (and the two-way sync) added in v0.9.90 are removed. A cleanup migration deletes the ledger entries that were created for competition payments, drops the `competition_payments.ledger_entry_id` column, and removes the `kotizacije` category if nothing else uses it. Competition payments themselves are kept. Membership-fee ledger posting is unchanged.
+
+### Note
+- Requires running `/migrate` after deploy.
+
 ## [0.9.93] - 2026-10-07
 
 ### Changed

@@ -66,7 +66,7 @@ export default function CompetitionDetails({ competition, totals, participants, 
     const deletePayment = (payment) =>
         setConfirm({
             title: 'Delete payment?',
-            message: `${formatDate(payment.paid_at)} · ${formatMoney(payment.amount, cur)}. The matching Ledger entry is deleted too. This cannot be undone.`,
+            message: `${formatDate(payment.paid_at)} · ${formatMoney(payment.amount, cur)}. This cannot be undone.`,
             label: 'Delete',
             action: () => router.delete(`/payments/competition-fees/payments/${payment.id}`, { preserveScroll: true }),
         });

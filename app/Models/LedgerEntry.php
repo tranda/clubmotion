@@ -72,8 +72,6 @@ class LedgerEntry extends Model
     {
         if (!$this->wasChanged(['amount', 'entry_date', 'bucket'])) return;
 
-        $this->syncToLinkedCompetitionPayment();
-
         $payment = MembershipPayment::where('ledger_entry_id', $this->id)->first();
         if (!$payment) return;
 
@@ -104,38 +102,7 @@ class LedgerEntry extends Model
      */
     public function deleteLinkedPayment(): void
     {
-        $this->deleteLinkedCompetitionPayment();
-
         $payment = MembershipPayment::where('ledger_entry_id', $this->id)->first();
-        if (!$payment) return;
-
-        $payment->ledger_entry_id = null;
-        $payment->saveQuietly();
-        $payment->delete();
-    }
-
-    /**
-     * Same two-way sync for competition payments: editing the entry updates
-     * the payment's amount, date and method; deleting it deletes the payment.
-     */
-    private function syncToLinkedCompetitionPayment(): void
-    {
-        $payment = CompetitionPayment::where('ledger_entry_id', $this->id)->first();
-        if (!$payment) return;
-
-        $payment->fill([
-            'amount' => $this->amount,
-            'paid_at' => $this->entry_date instanceof \DateTimeInterface
-                ? $this->entry_date->format('Y-m-d')
-                : $this->entry_date,
-            'payment_method' => in_array($this->bucket, ['cash', 'cash_eur'], true) ? 'cash' : 'bank_transfer',
-        ]);
-        $payment->saveQuietly();
-    }
-
-    private function deleteLinkedCompetitionPayment(): void
-    {
-        $payment = CompetitionPayment::where('ledger_entry_id', $this->id)->first();
         if (!$payment) return;
 
         $payment->ledger_entry_id = null;
