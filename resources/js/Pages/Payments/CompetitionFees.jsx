@@ -7,6 +7,7 @@ import { formatMoney, CompetitionStatusBadge, SummaryCard } from '../../Componen
 
 export default function CompetitionFees({ year, status, availableYears, competitions, summary, counts, currencies }) {
     const [showForm, setShowForm] = useState(false);
+    const yearLabel = year === 'all' ? 'All years' : year;
 
     const applyFilters = (next) => {
         router.get('/payments/competition-fees', { year, status, ...next }, { preserveState: true });
@@ -26,13 +27,13 @@ export default function CompetitionFees({ year, status, availableYears, competit
         <Layout>
             <div className="py-4">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
-                    <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Payments - {year}</h1>
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Payments - {yearLabel}</h1>
                 </div>
 
                 <PaymentsTabs active="competition" />
 
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-                    <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Competition Fees - {year}</h2>
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Competition Fees - {yearLabel}</h2>
                     <div className="flex flex-wrap gap-2">
                         <select
                             value={status}
@@ -48,6 +49,7 @@ export default function CompetitionFees({ year, status, availableYears, competit
                             onChange={(e) => applyFilters({ year: e.target.value })}
                             className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                         >
+                            <option value="all">All years</option>
                             {availableYears.map((y) => <option key={y} value={y}>{y}</option>)}
                         </select>
                         <button
@@ -70,7 +72,7 @@ export default function CompetitionFees({ year, status, availableYears, competit
 
                 {competitions.length === 0 ? (
                     <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-                        No competitions for {year}{status !== 'all' ? ` (${status})` : ''}.
+                        No competitions for {yearLabel}{status !== 'all' ? ` (${status})` : ''}.
                     </div>
                 ) : (
                     <>

@@ -25,17 +25,23 @@ class CompetitionFeeController extends Controller
      */
     public function index(Request $request)
     {
-        $year = (int) $request->input('year', date('Y'));
+        // Year of the competition, or 'all' for every year.
+        $year = $request->input('year', date('Y'));
+        $year = $year === 'all' ? 'all' : (int) $year;
         $status = $request->input('status', 'active'); // active (incl. planned) | closed | all
 
         $query = Competition::with(['participants' => function ($q) {
             $q->withPaymentTotals();
-        }])->where(function ($q) use ($year) {
-            $q->whereYear('start_date', $year)
-                ->orWhere(function ($q) use ($year) {
-                    $q->whereNull('start_date')->whereYear('created_at', $year);
-                });
-        });
+        }]);
+
+        if ($year !== 'all') {
+            $query->where(function ($q) use ($year) {
+                $q->whereYear('start_date', $year)
+                    ->orWhere(function ($q) use ($year) {
+                        $q->whereNull('start_date')->whereYear('created_at', $year);
+                    });
+            });
+        }
 
         if ($status === 'active') {
             $query->whereIn('status', ['planned', 'active']);
@@ -62,7 +68,7 @@ class CompetitionFeeController extends Controller
             ->pluck('y')
             ->map(fn ($y) => (int) $y)
             ->push((int) date('Y'))
-            ->push($year)
+            ->when($year !== 'all', fn ($c) => $c->push($year))
             ->unique()
             ->sortDesc()
             ->values();

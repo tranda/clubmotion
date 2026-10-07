@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.92] - 2026-10-07
+
+### Added
+- **"All years" option in the Competition Fees year filter**, so competitions in other years (e.g. next year's) can be listed together. The default is still the current year.
+
 ## [0.9.91] - 2026-10-07
 
 ### Fixed
