@@ -154,6 +154,7 @@ class CompetitionFeeController extends Controller
                         'paid_at' => $pay->paid_at->format('Y-m-d'),
                         'payment_method' => $pay->payment_method,
                         'note' => $pay->note,
+                        'in_ledger' => (bool) $pay->ledger_entry_id,
                     ])->values(),
                 ];
             })->values(),

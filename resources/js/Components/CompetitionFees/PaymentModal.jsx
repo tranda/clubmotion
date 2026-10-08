@@ -43,6 +43,11 @@ export default function PaymentModal({ competition, participant, payment = null,
                     <select value={data.payment_method} onChange={(e) => setData('payment_method', e.target.value)} className={inputClass}>
                         {paymentMethods.map((m) => <option key={m} value={m}>{METHOD_LABELS[m]}</option>)}
                     </select>
+                    <p className="mt-1 text-xs text-gray-500">
+                        {data.payment_method === 'other'
+                            ? 'Not posted to the Ledger.'
+                            : `Posted to the Ledger (${data.payment_method === 'cash' ? 'cash' : 'bank'}, ${competition.currency}).`}
+                    </p>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>

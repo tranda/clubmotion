@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.95] - 2026-10-08
+
+### Changed
+- **Competition payments are posted to the Ledger again** (reverts v0.9.94). Cash and bank-transfer payments create a cash-book entry under `kotizacije` (RSD → cash/bank, EUR → cash EUR/EUR) with the same two-way sync as membership fees; "Other" payments are not posted. A migration re-adds `competition_payments.ledger_entry_id` and creates ledger entries for existing competition payments that don't have one.
+
+### Note
+- Requires running `/migrate` after deploy.
+
 ## [0.9.94] - 2026-10-07
 
 ### Removed
