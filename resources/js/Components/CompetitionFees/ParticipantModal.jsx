@@ -57,7 +57,7 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <input type="text" value={data.notes} onChange={(e) => setData('notes', e.target.value)} className={inputClass} />
+                    <textarea rows={3} value={data.notes} onChange={(e) => setData('notes', e.target.value)} className={inputClass} />
                 </div>
                 <div className="flex justify-between items-center">
                     <button type="button" onClick={onRemove} className="text-sm text-red-600 hover:text-red-800">

@@ -187,7 +187,7 @@ export default function CompetitionDetails({ competition, totals, participants, 
                                         <tr key={p.id} className={`hover:bg-gray-50 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(p.id)}>
                                                 {p.member.name}
-                                                {p.notes && <div className="text-xs text-gray-500 font-normal">{p.notes}</div>}
+                                                {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatMoney(p.fee_amount, cur)}</td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap text-green-700">{formatMoney(p.paid_amount, cur)}</td>

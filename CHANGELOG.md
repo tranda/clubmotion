@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.96] - 2026-10-09
+
+### Changed
+- **Competition participant notes are multiline.** The Notes field in the participant modal is now a textarea, and line breaks in notes are preserved in the participants list.
+
 ## [0.9.95] - 2026-10-08
 
 ### Changed
