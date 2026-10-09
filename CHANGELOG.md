@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.97] - 2026-10-09
+
+### Fixed
+- **Competition fee form fields have visible borders.** Inputs, selects and textareas in the competition fee modals now have a light gray border and padding.
+
 ## [0.9.96] - 2026-10-09
 
 ### Changed
