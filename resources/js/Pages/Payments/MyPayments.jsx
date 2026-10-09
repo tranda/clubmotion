@@ -1,7 +1,8 @@
 import { Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
+import { StatusBadge, METHOD_LABELS, formatDate, formatMoney } from '../../Components/CompetitionFees/format';
 
-export default function MyPayments({ member, year, payments, availableYears }) {
+export default function MyPayments({ member, year, payments, availableYears, competitionFees = [] }) {
     const monthNames = {
         1: 'January', 2: 'February', 3: 'March', 4: 'April',
         5: 'May', 6: 'June', 7: 'July', 8: 'August',
@@ -149,6 +150,58 @@ export default function MyPayments({ member, year, payments, availableYears }) {
                         </div>
                     )}
                 </div>
+
+                {/* Competition Fees (all years) */}
+                {competitionFees.length > 0 && (
+                    <div className="mt-8">
+                        <h2 className="text-xl font-bold text-gray-800 mb-4">Competition Fees</h2>
+                        <div className="space-y-4">
+                            {competitionFees.map((cf) => {
+                                const cur = cf.competition.currency;
+                                return (
+                                    <div key={cf.id} className="bg-white rounded-lg shadow p-4 sm:p-6">
+                                        <div className="flex justify-between items-start gap-3 mb-3">
+                                            <div>
+                                                <div className="font-semibold text-gray-900">{cf.competition.name}</div>
+                                                <div className="text-sm text-gray-500">
+                                                    {formatDate(cf.competition.start_date)}
+                                                    {cf.competition.location && ` • ${cf.competition.location}`}
+                                                </div>
+                                            </div>
+                                            <StatusBadge status={cf.payment_status} />
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2 text-sm">
+                                            <div>
+                                                <div className="text-gray-500">Fee</div>
+                                                <div className="font-medium text-gray-900">{formatMoney(cf.fee_amount, cur)}</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-gray-500">Paid</div>
+                                                <div className="font-medium text-green-700">{formatMoney(cf.paid_amount, cur)}</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-gray-500">{cf.overpaid_amount > 0 ? 'Overpaid' : 'Remaining'}</div>
+                                                <div className={`font-medium ${cf.overpaid_amount > 0 ? 'text-blue-700' : cf.remaining_amount > 0 ? 'text-red-700' : 'text-gray-900'}`}>
+                                                    {formatMoney(cf.overpaid_amount > 0 ? cf.overpaid_amount : cf.remaining_amount, cur)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {cf.payments.length > 0 && (
+                                            <ul className="mt-3 pt-3 border-t border-gray-100 space-y-1 text-sm text-gray-600">
+                                                {cf.payments.map((pay) => (
+                                                    <li key={pay.id} className="flex justify-between">
+                                                        <span>{formatDate(pay.paid_at)} • {METHOD_LABELS[pay.payment_method] || pay.payment_method}</span>
+                                                        <span className="font-medium text-gray-900">{formatMoney(pay.amount, cur)}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
         </Layout>
     );

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.99] - 2026-10-09
+
+### Added
+- **Competition fees on My Payments.** Members now see their competition fees (all years, newest first, cancelled participations hidden) with fee, paid, remaining/overpaid, status and the list of payments. Internal participant and payment notes are not shown.
+
 ## [0.9.98] - 2026-10-09
 
 ### Added

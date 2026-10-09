@@ -184,8 +184,38 @@ class PaymentController extends Controller
             ->pluck('payment_year')
             ->toArray();
 
+        // Competition fees across all years (not tied to the year selector).
+        // Internal participant/payment notes are left out on purpose.
+        $competitionFees = \App\Models\CompetitionParticipant::where('member_id', $user->member->id)
+            ->where('status', '!=', 'cancelled')
+            ->with(['competition', 'payments'])
+            ->get()
+            ->sortByDesc(fn ($p) => optional($p->competition)->start_date ?? $p->created_at)
+            ->values()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'competition' => [
+                    'name' => $p->competition->name ?? '?',
+                    'location' => $p->competition->location ?? null,
+                    'start_date' => optional($p->competition->start_date ?? null)->format('Y-m-d'),
+                    'currency' => $p->competition->currency ?? 'EUR',
+                ],
+                'fee_amount' => (float) $p->fee_amount,
+                'paid_amount' => $p->paid_amount,
+                'remaining_amount' => $p->remaining_amount,
+                'overpaid_amount' => $p->overpaid_amount,
+                'payment_status' => $p->payment_status,
+                'payments' => $p->payments->map(fn ($pay) => [
+                    'id' => $pay->id,
+                    'amount' => (float) $pay->amount,
+                    'paid_at' => optional($pay->paid_at)->format('Y-m-d'),
+                    'payment_method' => $pay->payment_method,
+                ])->values(),
+            ]);
+
         return Inertia::render('Payments/MyPayments', [
             'member' => $user->member,
+            'competitionFees' => $competitionFees,
             'year' => (int)$year,
             'payments' => $payments,
             'availableYears' => !empty($yearsInDb) ? $yearsInDb : [date('Y')],
