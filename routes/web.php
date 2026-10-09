@@ -43,6 +43,11 @@ Route::middleware('auth')->group(function () {
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // "View as member" (admin only). Stop is reachable by the impersonated user.
+    Route::post('/members/{member}/impersonate', [App\Http\Controllers\ImpersonationController::class, 'start'])
+        ->middleware('role:admin')->name('impersonate.start');
+    Route::post('/impersonate/stop', [App\Http\Controllers\ImpersonationController::class, 'stop'])->name('impersonate.stop');
+
     // Home - accessible to all authenticated users
     Route::get('/', function () {
         // Show real active members count to everyone

@@ -60,6 +60,10 @@ class HandleInertiaRequests extends Middleware
                     ] : null,
                 ] : null,
             ],
+            // Set while an admin is viewing the app as a member (read-only).
+            'impersonating' => $user && $request->session()->has(\App\Http\Controllers\ImpersonationController::SESSION_KEY)
+                ? ['name' => $user->member->name ?? $user->name]
+                : null,
             // Count of open (pending/processing) join requests, for the admin nav badge.
             'pendingJoinRequests' => fn () => $canManage
                 ? JoinRequest::whereIn('status', [JoinRequest::STATUS_PENDING, JoinRequest::STATUS_PROCESSING])->count()

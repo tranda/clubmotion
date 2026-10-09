@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.98] - 2026-10-09
+
+### Added
+- **View as member (admin only).** A "View as member" button on a member's page logs the admin in as that member's user to see the app exactly as they do. A banner shows who is being viewed, with "Return to admin". While viewing, all changes are blocked (read-only), push notifications are not registered for the member, and admin accounts cannot be viewed. Start/stop is written to the Laravel log.
+
+### Note
+- Run `/clear-cache` after deploy if the new routes are not picked up.
+
 ## [0.9.97] - 2026-10-09
 
 ### Fixed

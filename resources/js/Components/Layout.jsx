@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 
 export default function Layout({ children }) {
-    const { auth, clubName, flash, pendingJoinRequests = 0, onesignalAppId } = usePage().props;
+    const { auth, clubName, flash, pendingJoinRequests = 0, onesignalAppId, impersonating } = usePage().props;
     const [menuOpen, setMenuOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -27,7 +27,8 @@ export default function Layout({ children }) {
     // Admins/superusers get a `staff` tag (used to notify on new join requests)
     // and are prompted to opt in to notifications.
     useEffect(() => {
-        if (!onesignalAppId || !auth.user) return;
+        // Never register this browser for push as a member the admin is viewing as.
+        if (!onesignalAppId || !auth.user || impersonating) return;
 
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         window.OneSignalDeferred.push(async (OneSignal) => {
@@ -59,7 +60,7 @@ export default function Layout({ children }) {
                 await OneSignal.Slidedown.promptPush();
             }
         });
-    }, [onesignalAppId, auth.user?.id, userRole, canManage]);
+    }, [onesignalAppId, auth.user?.id, userRole, canManage, impersonating]);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -422,6 +423,20 @@ export default function Layout({ children }) {
 
             {/* Main Content */}
             <main className="pt-20 px-4 pb-4 mx-auto">
+                {impersonating && (
+                    <div className="mb-4 p-3 bg-amber-100 border border-amber-300 rounded-lg flex flex-col sm:flex-row sm:items-center gap-2">
+                        <p className="text-amber-900 text-sm flex-1">
+                            Viewing as <strong>{impersonating.name}</strong>. Changes are disabled.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => router.post('/impersonate/stop')}
+                            className="px-3 py-1.5 bg-amber-600 text-white text-sm rounded-md hover:bg-amber-700"
+                        >
+                            Return to admin
+                        </button>
+                    </div>
+                )}
                 {flash?.success && (
                     <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <p className="text-green-800 text-sm">{flash.success}</p>

@@ -8,6 +8,7 @@ export default function Show({ member, recentPayments = [], currentYear, imageHi
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
     const isSelf = !!(auth.user && member.user_id && member.user_id === auth.user.id);
+    const canViewAs = userRole === 'admin' && !!member.user_id && !isSelf;
     const canEditPhoto = canManage || isSelf;
     const [photoUploading, setPhotoUploading] = useState(false);
     const [photoError, setPhotoError] = useState(null);
@@ -354,6 +355,19 @@ export default function Show({ member, recentPayments = [], currentYear, imageHi
                                 </svg>
                                 Reset Password
                             </button>
+
+                            {canViewAs && (
+                                <button
+                                    onClick={() => router.post(`/members/${member.id}/impersonate`)}
+                                    className="inline-flex items-center justify-center px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                                >
+                                    <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    View as member
+                                </button>
+                            )}
 
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
