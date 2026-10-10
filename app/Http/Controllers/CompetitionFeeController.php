@@ -146,6 +146,7 @@ class CompetitionFeeController extends Controller
         return Inertia::render('Payments/CompetitionDetails', [
             'competition' => $this->competitionArray($competition),
             'totals' => Competition::totalsFor($participants),
+            'roomPlan' => $competition->roomPlan($participants),
             'participants' => $participants->map(function ($p) {
                 return $p->toSummaryArray() + [
                     'payments' => $p->payments->map(fn ($pay) => [
@@ -196,6 +197,23 @@ class CompetitionFeeController extends Controller
         return back()->with('success', "Added {$added} participant(s)");
     }
 
+    public function updateRooms(Request $request, Competition $competition)
+    {
+        $rules = [];
+        foreach (Competition::ROOM_SIZES as $size) {
+            $rules["rooms.{$size}"] = 'nullable|integer|min:0|max:999';
+        }
+        $request->validate($rules);
+
+        $counts = [];
+        foreach (Competition::ROOM_SIZES as $size) {
+            $counts[$size] = (int) $request->input("rooms.{$size}", 0);
+        }
+        $competition->update(['room_counts' => $counts]);
+
+        return back()->with('success', 'Rooms updated');
+    }
+
     public function updateParticipant(Request $request, CompetitionParticipant $participant)
     {
         $data = $request->validate([
@@ -205,6 +223,7 @@ class CompetitionFeeController extends Controller
             'extra_athletes' => 'nullable|integer|min:0|max:99',
             'extra_supporters' => 'nullable|integer|min:0|max:99',
             'extra_children' => 'nullable|integer|min:0|max:99',
+            'preferred_room' => ['nullable', 'integer', Rule::in(Competition::ROOM_SIZES)],
             'notes' => 'nullable|string|max:1000',
         ]);
         foreach (['extra_athletes', 'extra_supporters', 'extra_children'] as $field) {
@@ -388,6 +407,7 @@ class CompetitionFeeController extends Controller
             'currency' => $competition->currency,
             'status' => $competition->status,
             'notes' => $competition->notes,
+            'room_counts' => $competition->roomCounts(),
         ];
     }
 

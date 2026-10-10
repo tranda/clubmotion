@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.106] - 2026-10-10
+
+### Added
+- **Competition Fees: accommodation planner.** "Edit rooms" on a competition sets how many 1–5 bed rooms are available. Each participant can have a preferred room size (participant window), shown in the list. Below "People going", a rooms line shows rooms needed / available per size (needed = people preferring that size, including their additional people, divided by beds, rounded up), highlights shortages in red, and counts people without a preference.
+
+### Note
+- Requires running `/migrate` after deploy (adds `competitions.room_counts` and `competition_participants.preferred_room`). Saving rooms or participants fails until it runs.
+
 ## [0.9.105] - 2026-10-10
 
 ### Changed

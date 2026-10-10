@@ -9,6 +9,7 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
         role: participant.role || 'athlete',
         fee_amount: participant.fee_amount,
         status: participant.status,
+        preferred_room: participant.preferred_room ?? '',
         extra_athletes: participant.extra_athletes ?? 0,
         extra_supporters: participant.extra_supporters ?? 0,
         extra_children: participant.extra_children ?? 0,
@@ -69,12 +70,24 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                         </select>
                     </div>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Registered as</label>
-                    <select value={data.role} onChange={(e) => setData('role', e.target.value)} className={inputClass}>
-                        <option value="athlete">Athlete</option>
-                        <option value="supporter">Supporter</option>
-                    </select>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Registered as</label>
+                        <select value={data.role} onChange={(e) => setData('role', e.target.value)} className={inputClass}>
+                            <option value="athlete">Athlete</option>
+                            <option value="supporter">Supporter</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Preferred room</label>
+                        <select value={data.preferred_room} onChange={(e) => setData('preferred_room', e.target.value === '' ? '' : Number(e.target.value))} className={inputClass}>
+                            <option value="">No preference</option>
+                            {[1, 2, 3, 4, 5].map((b) => (
+                                <option key={b} value={b}>{b}-bed room</option>
+                            ))}
+                        </select>
+                        {errors.preferred_room && <p className="mt-1 text-sm text-red-600">{errors.preferred_room}</p>}
+                    </div>
                 </div>
                 <div>
                     <div className="block text-sm font-medium text-gray-700 mb-1">Additional</div>

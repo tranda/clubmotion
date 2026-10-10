@@ -6,7 +6,8 @@ import CompetitionFormModal from '../../Components/CompetitionFees/CompetitionFo
 import AddParticipantsModal from '../../Components/CompetitionFees/AddParticipantsModal';
 import PaymentModal from '../../Components/CompetitionFees/PaymentModal';
 import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal';
-import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel } from '../../Components/CompetitionFees/format';
+import RoomsModal from '../../Components/CompetitionFees/RoomsModal';
+import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
     { key: 'all', label: 'All' },
@@ -17,13 +18,14 @@ const FILTERS = [
     { key: 'cancelled', label: 'Cancelled' },
 ];
 
-export default function CompetitionDetails({ competition, totals, participants, availableMembers, currencies, paymentMethods }) {
+export default function CompetitionDetails({ competition, totals, roomPlan, participants, availableMembers, currencies, paymentMethods }) {
     const cur = competition.currency;
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
 
     const [showEdit, setShowEdit] = useState(false);
     const [showAdd, setShowAdd] = useState(false);
+    const [showRooms, setShowRooms] = useState(false);
     const [detailsId, setDetailsId] = useState(null);
     // { participantId, payment|null } for the add/edit payment modal
     const [paymentTarget, setPaymentTarget] = useState(null);
@@ -139,6 +141,19 @@ export default function CompetitionDetails({ competition, totals, participants, 
                         {' '}({totals.people.athletes} athletes · {totals.people.supporters} supporters · {totals.people.children} children)
                     </div>
                 )}
+                {roomPlan && (
+                    <div className="mb-4 text-sm text-gray-700 flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span>Rooms needed / available:</span>
+                        {roomPlan.sizes.filter((r) => r.available > 0 || r.needed > 0).map((r) => (
+                            <span key={r.beds} className={r.needed > r.available ? 'text-red-600 font-medium' : ''}>
+                                {r.beds}-bed <strong>{r.needed}</strong>/{r.available}
+                            </span>
+                        ))}
+                        {roomPlan.sizes.every((r) => r.available === 0 && r.needed === 0) && <span className="text-gray-400">no rooms set</span>}
+                        {roomPlan.no_preference > 0 && <span className="text-gray-500">· {roomPlan.no_preference} without preference</span>}
+                        <button type="button" onClick={() => setShowRooms(true)} className="text-blue-600 hover:text-blue-800">Edit rooms</button>
+                    </div>
+                )}
                 {totals.overpaid > 0 && (
                     <div className="mb-4 text-sm text-blue-700">
                         Overpaid in total: {formatMoney(totals.overpaid, cur)} ({totals.overpaid_count} participant{totals.overpaid_count === 1 ? '' : 's'})
@@ -194,7 +209,7 @@ export default function CompetitionDetails({ competition, totals, participants, 
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(p.id)}>
                                                 {p.member.name}
                                                 <RoleBadge role={p.role} />
-                                                {extrasLabel(p) && <div className="text-xs text-gray-600 font-normal">{extrasLabel(p)}</div>}
+                                                {(extrasLabel(p) || roomLabel(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>}
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatMoney(p.fee_amount, cur)}</td>
@@ -227,7 +242,7 @@ export default function CompetitionDetails({ competition, totals, participants, 
                                     <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(p.id)}>
                                         <div className="font-medium text-gray-900">
                                             {p.member.name}<RoleBadge role={p.role} />
-                                            {extrasLabel(p) && <div className="text-xs text-gray-600 font-normal">{extrasLabel(p)}</div>}
+                                            {(extrasLabel(p) || roomLabel(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>}
                                         </div>
                                         <StatusBadge status={p.payment_status} />
                                     </div>
@@ -254,10 +269,11 @@ export default function CompetitionDetails({ competition, totals, participants, 
             </div>
 
             {showEdit && <CompetitionFormModal competition={competition} currencies={currencies} onClose={() => setShowEdit(false)} />}
+            {showRooms && <RoomsModal key={JSON.stringify(competition.room_counts)} competition={competition} onClose={() => setShowRooms(false)} />}
             {showAdd && <AddParticipantsModal competition={competition} members={availableMembers} onClose={() => setShowAdd(false)} />}
             {detailsParticipant && (
                 <ParticipantModal
-                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${extrasLabel(detailsParticipant)}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
+                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${extrasLabel(detailsParticipant)}-${detailsParticipant.preferred_room}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
                     competition={competition}
                     participant={detailsParticipant}
                     onAddPayment={() => setPaymentTarget({ participantId: detailsParticipant.id, payment: null })}

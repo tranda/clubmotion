@@ -53,6 +53,9 @@ export const extrasLabel = (p) =>
         .map(([n, one, many]) => `+${n} ${n === 1 ? one : many}`)
         .join(', ');
 
+// "2-bed room" for a participant's preferred room, or ''.
+export const roomLabel = (p) => (p.preferred_room ? `${p.preferred_room}-bed room` : '');
+
 // Only supporters get a badge; athletes are the default.
 export function RoleBadge({ role }) {
     if (role !== 'supporter') return null;
