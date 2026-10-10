@@ -24,47 +24,53 @@ export default function Index({ members, filter, categoryStats }) {
     const [viewMode, setViewMode] = useState('list');
     const [genderFilter, setGenderFilter] = useState('');
     const [sortBy, setSortByState] = useState(() => {
-        try { return localStorage.getItem('membersSort') || 'id'; } catch { return 'id'; }
+        try { return localStorage.getItem('membersSort') === 'name' ? 'name' : 'id'; } catch { return 'id'; }
     });
     const setSortBy = (value) => {
         setSortByState(value);
         try { localStorage.setItem('membersSort', value); } catch { /* ignore */ }
     };
 
-    // id = membership number; category = by age band (like the stats), then name.
+    // id = membership number.
     const sortedMembers = useMemo(() => {
         const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
         const list = members.filter((m) => !genderFilter || (genderFilter === 'none' ? !m.gender : m.gender === genderFilter));
         if (sortBy === 'name') return list.sort(byName);
-        if (sortBy === 'category') {
-            const age = (m) => m.category?.min_age ?? 999;
-            return list.sort((a, b) =>
-                (a.category ? 0 : 1) - (b.category ? 0 : 1)
-                || age(a) - age(b)
-                || (a.category?.category_name || '').localeCompare(b.category?.category_name || '')
-                || byName(a, b));
-        }
         return list.sort((a, b) => (a.membership_number ?? Infinity) - (b.membership_number ?? Infinity));
     }, [members, sortBy, genderFilter]);
 
-    const [groupBy, setGroupByState] = useState(() => {
-        try { return localStorage.getItem('membersGroupBy') || ''; } catch { return ''; }
-    });
+    const readStored = (key) => {
+        try { return localStorage.getItem(key) || ''; } catch { return ''; }
+    };
+    const [groupBy, setGroupByState] = useState(() => readStored('membersGroupBy'));
+    const [groupBy2, setGroupBy2State] = useState(() => readStored('membersGroupBy2'));
+    const store = (key, value) => {
+        try { localStorage.setItem(key, value); } catch { /* ignore */ }
+    };
     const setGroupBy = (value) => {
         setGroupByState(value);
-        try { localStorage.setItem('membersGroupBy', value); } catch { /* ignore */ }
+        store('membersGroupBy', value);
+        // The second level must differ from the first (and needs a first).
+        if (!value || value === groupBy2) {
+            setGroupBy2State('');
+            store('membersGroupBy2', '');
+        }
+    };
+    const setGroupBy2 = (value) => {
+        setGroupBy2State(value);
+        store('membersGroupBy2', value);
     };
 
-    // Groups keep the chosen sort inside each group.
-    const groups = useMemo(() => {
-        if (groupBy === 'gender') {
+    // Split members into groups (kept in the chosen sort order inside each group).
+    const groupItems = (list, by) => {
+        if (by === 'gender') {
             return [['M', 'Male'], ['F', 'Female'], ['', 'Gender not set']]
-                .map(([key, label]) => ({ key: `g-${key}`, label, items: sortedMembers.filter((m) => (m.gender || '') === key) }))
+                .map(([key, label]) => ({ key: `g-${key}`, label, items: list.filter((m) => (m.gender || '') === key) }))
                 .filter((g) => g.items.length > 0);
         }
-        if (groupBy === 'category') {
+        if (by === 'category') {
             const order = new Map();
-            sortedMembers.forEach((m) => {
+            list.forEach((m) => {
                 const key = m.category?.id ?? 'none';
                 if (!order.has(key)) order.set(key, { key: `c-${key}`, label: m.category?.category_name || 'No category', category: m.category, items: [] });
                 order.get(key).items.push(m);
@@ -72,8 +78,18 @@ export default function Index({ members, filter, categoryStats }) {
             const age = (g) => (g.category ? g.category.min_age ?? 999 : 1000);
             return [...order.values()].sort((a, b) => age(a) - age(b) || a.label.localeCompare(b.label));
         }
-        return [{ key: 'all', label: null, items: sortedMembers }];
-    }, [sortedMembers, groupBy]);
+        return [{ key: 'all', label: null, items: list }];
+    };
+
+    // Flat list of sections: level-1 headers, optional level-2 headers, members.
+    const groups = useMemo(() => {
+        const first = groupItems(sortedMembers, groupBy);
+        if (!groupBy || !groupBy2) return first.map((g) => ({ ...g, level: 1 }));
+        return first.flatMap((g) => [
+            { key: g.key, label: g.label, level: 1, count: g.items.length, items: [] },
+            ...groupItems(g.items, groupBy2).map((sub) => ({ ...sub, key: `${g.key}-${sub.key}`, level: 2 })),
+        ]);
+    }, [sortedMembers, groupBy, groupBy2]);
     const handleFilterChange = (e) => {
         const value = e.target.value;
         router.get('/members', { filter: value }, {
@@ -162,6 +178,18 @@ export default function Index({ members, filter, categoryStats }) {
                             <option value="gender">Group by gender</option>
                             <option value="category">Group by category</option>
                         </select>
+                        {groupBy && (
+                            <select
+                                aria-label="Then group by"
+                                value={groupBy2}
+                                onChange={(e) => setGroupBy2(e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">Then: none</option>
+                                {groupBy !== 'gender' && <option value="gender">Then by gender</option>}
+                                {groupBy !== 'category' && <option value="category">Then by category</option>}
+                            </select>
+                        )}
                         <label htmlFor="sort" className="text-sm text-gray-600 ml-2">Sort:</label>
                         <select
                             id="sort"
@@ -171,7 +199,6 @@ export default function Index({ members, filter, categoryStats }) {
                         >
                             <option value="id">ID</option>
                             <option value="name">Name</option>
-                            <option value="category">Category</option>
                         </select>
                     </div>
                 </div>
@@ -257,9 +284,9 @@ export default function Index({ members, filter, categoryStats }) {
                                 {groups.map((g) => (
                                     <Fragment key={g.key}>
                                         {g.label && (
-                                            <tr className="bg-gray-100">
-                                                <td colSpan={viewerIsAdmin ? 12 : 11} className="px-6 py-2 text-sm font-semibold text-gray-700">
-                                                    {g.label} <span className="font-normal text-gray-500">({g.items.length})</span>
+                                            <tr className={g.level === 2 ? 'bg-gray-50' : 'bg-gray-100'}>
+                                                <td colSpan={viewerIsAdmin ? 12 : 11} className={`py-2 text-sm text-gray-700 ${g.level === 2 ? 'pl-10 pr-6 font-medium' : 'px-6 font-semibold'}`}>
+                                                    {g.label} <span className="font-normal text-gray-500">({g.count ?? g.items.length})</span>
                                                 </td>
                                             </tr>
                                         )}
@@ -317,8 +344,8 @@ export default function Index({ members, filter, categoryStats }) {
                         {groups.map((g) => (
                             <Fragment key={g.key}>
                                 {g.label && (
-                                    <div className="px-4 py-2 bg-gray-100 text-sm font-semibold text-gray-700">
-                                        {g.label} <span className="font-normal text-gray-500">({g.items.length})</span>
+                                    <div className={`py-2 text-sm text-gray-700 ${g.level === 2 ? 'pl-8 pr-4 bg-gray-50 font-medium' : 'px-4 bg-gray-100 font-semibold'}`}>
+                                        {g.label} <span className="font-normal text-gray-500">({g.count ?? g.items.length})</span>
                                     </div>
                                 )}
                         {g.items.map((member, index) => (

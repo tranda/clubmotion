@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.124] - 2026-10-10
+
+### Changed
+- **Members list: two-level grouping.** After choosing Group by (gender or category), a second "Then by" dropdown groups each group by the other option, with indented sub-headers and counts. Both choices are remembered in the browser.
+- **Members list: Category removed from Sort** (still available under Group by).
+
 ## [0.9.123] - 2026-10-10
 
 ### Added
