@@ -51,7 +51,7 @@ export default function JoinRequestCreate({ clubName }) {
                             href="/"
                             className="mt-6 inline-block w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
                         >
-                            Back to sign in
+                            Go to Sign in
                         </Link>
                         <button
                             type="button"
@@ -148,7 +148,7 @@ export default function JoinRequestCreate({ clubName }) {
 
                     <div className="mt-6 text-center">
                         <Link href="/" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                            ← Back to sign in
+                            Go to Sign in
                         </Link>
                     </div>
                 </div>

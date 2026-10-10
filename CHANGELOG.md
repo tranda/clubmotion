@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.101] - 2026-10-10
+
+### Changed
+- **Join page: "Back to sign in" renamed to "Go to Sign in".**
+
 ## [0.9.100] - 2026-10-10
 
 ### Changed
