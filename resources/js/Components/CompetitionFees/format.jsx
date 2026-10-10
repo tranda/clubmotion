@@ -42,6 +42,17 @@ export function StatusBadge({ status }) {
     );
 }
 
+// "+1 athlete, +2 supporters" for a participant's additional people, or ''.
+export const extrasLabel = (p) =>
+    [
+        [p.extra_athletes, 'athlete', 'athletes'],
+        [p.extra_supporters, 'supporter', 'supporters'],
+        [p.extra_children, 'child', 'children'],
+    ]
+        .filter(([n]) => n > 0)
+        .map(([n, one, many]) => `+${n} ${n === 1 ? one : many}`)
+        .join(', ');
+
 // Only supporters get a badge; athletes are the default.
 export function RoleBadge({ role }) {
     if (role !== 'supporter') return null;

@@ -198,12 +198,20 @@ class CompetitionFeeController extends Controller
 
     public function updateParticipant(Request $request, CompetitionParticipant $participant)
     {
-        $participant->update($request->validate([
+        $data = $request->validate([
             'role' => ['required', Rule::in(CompetitionParticipant::ROLES)],
             'fee_amount' => 'required|numeric|min:0',
             'status' => ['required', Rule::in(CompetitionParticipant::STATUSES)],
+            'extra_athletes' => 'nullable|integer|min:0|max:99',
+            'extra_supporters' => 'nullable|integer|min:0|max:99',
+            'extra_children' => 'nullable|integer|min:0|max:99',
             'notes' => 'nullable|string|max:1000',
-        ]));
+        ]);
+        foreach (['extra_athletes', 'extra_supporters', 'extra_children'] as $field) {
+            $data[$field] = (int) ($data[$field] ?? 0);
+        }
+
+        $participant->update($data);
 
         return back()->with('success', 'Participant updated');
     }

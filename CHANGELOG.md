@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.103] - 2026-10-10
+
+### Added
+- **Competition Fees: additional people per participant.** The participant window has an "Additional" row (Athletes / Supporters / Children, whole numbers 0–99) above Notes. Extras are shown under the participant's name in the list, and the competition page shows a "People going" headcount (participants by role plus their additional people; cancelled participants excluded). Fees are not affected.
+
+### Note
+- Requires running `/migrate` after deploy (adds `extra_athletes`, `extra_supporters`, `extra_children` to `competition_participants`). Saving a participant fails until it runs.
+
 ## [0.9.102] - 2026-10-10
 
 ### Added

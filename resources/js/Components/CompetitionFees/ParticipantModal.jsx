@@ -8,6 +8,9 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
         role: participant.role || 'athlete',
         fee_amount: participant.fee_amount,
         status: participant.status,
+        extra_athletes: participant.extra_athletes ?? 0,
+        extra_supporters: participant.extra_supporters ?? 0,
+        extra_children: participant.extra_children ?? 0,
         notes: participant.notes || '',
     });
 
@@ -62,6 +65,27 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                         <option value="athlete">Athlete</option>
                         <option value="supporter">Supporter</option>
                     </select>
+                </div>
+                <div>
+                    <div className="block text-sm font-medium text-gray-700 mb-1">Additional</div>
+                    <div className="grid grid-cols-3 gap-3">
+                        {[['extra_athletes', 'Athletes'], ['extra_supporters', 'Supporters'], ['extra_children', 'Children']].map(([field, label]) => (
+                            <div key={field}>
+                                <label className="block text-xs text-gray-500 mb-1">{label}</label>
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    min="0"
+                                    max="99"
+                                    step="1"
+                                    value={data[field]}
+                                    onChange={(e) => setData(field, e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                                    className={inputClass}
+                                />
+                                {errors[field] && <p className="mt-1 text-sm text-red-600">{errors[field]}</p>}
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>

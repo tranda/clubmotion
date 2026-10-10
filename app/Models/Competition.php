@@ -52,6 +52,8 @@ class Competition extends Model
             'expected' => 0.0, 'collected' => 0.0, 'remaining' => 0.0, 'overpaid' => 0.0,
             'participants' => 0, 'paid' => 0, 'partial' => 0, 'unpaid' => 0,
             'exempt' => 0, 'cancelled' => 0, 'overpaid_count' => 0,
+            // Headcount of people going (participants + their additional people).
+            'people' => ['athletes' => 0, 'supporters' => 0, 'children' => 0],
         ];
 
         foreach ($participants as $p) {
@@ -63,6 +65,10 @@ class Competition extends Model
             }
 
             $totals['participants']++;
+            $totals['people'][$p->role === 'supporter' ? 'supporters' : 'athletes']++;
+            $totals['people']['athletes'] += (int) $p->extra_athletes;
+            $totals['people']['supporters'] += (int) $p->extra_supporters;
+            $totals['people']['children'] += (int) $p->extra_children;
             $status = $p->payment_status;
             if ($status === 'overpaid') {
                 $totals['paid']++;

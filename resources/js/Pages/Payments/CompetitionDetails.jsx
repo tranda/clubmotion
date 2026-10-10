@@ -6,7 +6,7 @@ import CompetitionFormModal from '../../Components/CompetitionFees/CompetitionFo
 import AddParticipantsModal from '../../Components/CompetitionFees/AddParticipantsModal';
 import PaymentModal from '../../Components/CompetitionFees/PaymentModal';
 import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal';
-import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge } from '../../Components/CompetitionFees/format';
+import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
     { key: 'all', label: 'All' },
@@ -133,6 +133,12 @@ export default function CompetitionDetails({ competition, totals, participants, 
                     <SummaryCard label="Partial" value={totals.partial} className="text-yellow-600" />
                     <SummaryCard label="Unpaid" value={totals.unpaid} className="text-red-600" />
                 </div>
+                {totals.people && (
+                    <div className="mb-4 text-sm text-gray-700">
+                        People going: <strong>{totals.people.athletes + totals.people.supporters + totals.people.children}</strong>
+                        {' '}({totals.people.athletes} athletes · {totals.people.supporters} supporters · {totals.people.children} children)
+                    </div>
+                )}
                 {totals.overpaid > 0 && (
                     <div className="mb-4 text-sm text-blue-700">
                         Overpaid in total: {formatMoney(totals.overpaid, cur)} ({totals.overpaid_count} participant{totals.overpaid_count === 1 ? '' : 's'})
@@ -188,6 +194,7 @@ export default function CompetitionDetails({ competition, totals, participants, 
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(p.id)}>
                                                 {p.member.name}
                                                 <RoleBadge role={p.role} />
+                                                {extrasLabel(p) && <div className="text-xs text-gray-600 font-normal">{extrasLabel(p)}</div>}
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatMoney(p.fee_amount, cur)}</td>
@@ -218,7 +225,10 @@ export default function CompetitionDetails({ competition, totals, participants, 
                             {visible.map((p) => (
                                 <div key={p.id} className={`p-4 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                     <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(p.id)}>
-                                        <div className="font-medium text-gray-900">{p.member.name}<RoleBadge role={p.role} /></div>
+                                        <div className="font-medium text-gray-900">
+                                            {p.member.name}<RoleBadge role={p.role} />
+                                            {extrasLabel(p) && <div className="text-xs text-gray-600 font-normal">{extrasLabel(p)}</div>}
+                                        </div>
                                         <StatusBadge status={p.payment_status} />
                                     </div>
                                     <div className="mt-1 text-sm text-gray-600" onClick={() => setDetailsId(p.id)}>
@@ -247,7 +257,7 @@ export default function CompetitionDetails({ competition, totals, participants, 
             {showAdd && <AddParticipantsModal competition={competition} members={availableMembers} onClose={() => setShowAdd(false)} />}
             {detailsParticipant && (
                 <ParticipantModal
-                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
+                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${extrasLabel(detailsParticipant)}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
                     competition={competition}
                     participant={detailsParticipant}
                     onAddPayment={() => setPaymentTarget({ participantId: detailsParticipant.id, payment: null })}
