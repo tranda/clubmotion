@@ -314,6 +314,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin,superuser')->prefix('tools')->name('tools.')->group(function () {
         Route::get('/', [App\Http\Controllers\ToolsController::class, 'index'])->name('index');
         Route::put('/coefs', [App\Http\Controllers\ToolsController::class, 'updateCoefs'])->name('coefs.update');
+        Route::get('/categories', [App\Http\Controllers\MembershipCategoryController::class, 'index'])->name('member-categories.index');
+        Route::post('/categories', [App\Http\Controllers\MembershipCategoryController::class, 'store'])->name('member-categories.store');
+        Route::put('/categories/{category}', [App\Http\Controllers\MembershipCategoryController::class, 'update'])->name('member-categories.update');
+        Route::delete('/categories/{category}', [App\Http\Controllers\MembershipCategoryController::class, 'destroy'])->name('member-categories.destroy');
     });
 
     // Test email sender - Admin only (verify SMTP config)

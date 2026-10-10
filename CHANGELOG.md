@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.125] - 2026-10-10
+
+### Added
+- **Tools → Member categories.** List of membership categories with age range, description and member counts; add, edit and delete (delete only when no members are in the category).
+
+### Changed
+- **Age-based categories use the IDBF rule:** age = age reached during the current calendar year (current year − birth year), so a member's category stays the same for the whole year. Members in age-based categories are re-checked the next time the Members list is opened.
+
 ## [0.9.124] - 2026-10-10
 
 ### Changed

@@ -118,8 +118,9 @@ class Member extends Model
             return $this->category_id;
         }
 
-        // Calculate age
-        $age = \Carbon\Carbon::parse($this->date_of_birth)->age;
+        // IDBF rule: the age reached during the current calendar year, so the
+        // category stays the same for the whole year (not exact age today).
+        $age = (int) now()->year - (int) \Carbon\Carbon::parse($this->date_of_birth)->year;
 
         // Get all age-based categories ordered by range size (narrowest first)
         // This ensures specific categories like "Kadeti" (14-15) match before broader ones like "Premiere" (0-99)
