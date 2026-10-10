@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
-import { StatusBadge, METHOD_LABELS, formatDate, formatMoney } from '../../Components/CompetitionFees/format';
+import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel } from '../../Components/CompetitionFees/format';
 
 export default function MyPayments({ member, year, payments, availableYears, competitionFees = [] }) {
     const monthNames = {
@@ -10,6 +10,9 @@ export default function MyPayments({ member, year, payments, availableYears, com
     };
 
     const getStatusBadge = (status) => {
+        // Months without a recorded status (null) show a dash, not an empty badge.
+        if (!status) return <span className="text-gray-400">−</span>;
+
         const styles = {
             paid: 'bg-green-100 text-green-800',
             pending: 'bg-yellow-100 text-yellow-800',
@@ -166,6 +169,10 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                 <div className="text-sm text-gray-500">
                                                     {formatDate(cf.competition.start_date)}
                                                     {cf.competition.location && ` • ${cf.competition.location}`}
+                                                </div>
+                                                <div className="text-sm text-gray-700 mt-1">
+                                                    Registered as {cf.role === 'supporter' ? 'Supporter' : 'Athlete'}
+                                                    {extrasLabel(cf) && <span className="text-gray-500"> · {extrasLabel(cf)}</span>}
                                                 </div>
                                             </div>
                                             <StatusBadge status={cf.payment_status} />

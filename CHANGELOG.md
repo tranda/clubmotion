@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.104] - 2026-10-10
+
+### Added
+- **My Payments: competition role and additional people.** Each competition card shows "Registered as Athlete/Supporter" plus any additional athletes, supporters and children.
+
+### Fixed
+- **My Payments: empty status badge** for months that have a payment record without a status now shows "−".
+
 ## [0.9.103] - 2026-10-10
 
 ### Added
