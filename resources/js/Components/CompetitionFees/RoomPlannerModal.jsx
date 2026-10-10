@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Modal, RoleBadge, extrasLabel, inputClass, bedsFor as partySize, roomsSummary, stayRange, stayLabel, effectiveStay, hasOwnStay } from './format';
 
 const dateInput = 'border border-gray-300 rounded px-2 py-1 bg-white';
@@ -12,6 +12,18 @@ const opts = { preserveScroll: true, preserveState: true };
 // Room planner: room types available, numbered rooms and who sleeps where.
 export default function RoomPlannerModal({ competition, rooms, participants, roomPlan, onClose, canToggleVisibility = true }) {
     const [newBeds, setNewBeds] = useState(competition.room_types?.[0] || 2);
+    const { roomSnapshots = [] } = usePage().props;
+    const [snapshotName, setSnapshotName] = useState('');
+    const saveSnapshot = () =>
+        router.post(`${base}/${competition.id}/room-snapshots`, { name: snapshotName }, { ...opts, onSuccess: () => setSnapshotName('') });
+    const restoreSnapshot = (s) => {
+        if (!confirm(`Restore "${s.name}"? The current room plan will be replaced. Save it as a snapshot first if you want to keep it.`)) return;
+        router.post(`${base}/room-snapshots/${s.id}/restore`, {}, opts);
+    };
+    const deleteSnapshot = (s) => {
+        if (!confirm(`Delete snapshot "${s.name}"?`)) return;
+        router.delete(`${base}/room-snapshots/${s.id}`, opts);
+    };
     const types = competition.room_types || [];
 
     const people = participants.filter((p) => p.status !== 'cancelled');
@@ -102,6 +114,47 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                 </span>
             </label>
             )}
+
+            {/* Snapshots */}
+            <details className="mb-4 rounded-md border border-gray-200 px-3 py-2">
+                <summary className="cursor-pointer text-sm font-medium text-gray-700">
+                    Snapshots {roomSnapshots.length > 0 && <span className="text-gray-500">({roomSnapshots.length})</span>}
+                </summary>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <input
+                        type="text"
+                        value={snapshotName}
+                        onChange={(e) => setSnapshotName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveSnapshot(); } }}
+                        placeholder="Name, e.g. Variant A"
+                        maxLength={100}
+                        className={`${inputClass} w-auto flex-1 min-w-[12rem]`}
+                    />
+                    <button type="button" onClick={saveSnapshot} className="px-3 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700">
+                        Save current plan
+                    </button>
+                </div>
+                {roomSnapshots.length === 0 ? (
+                    <p className="mt-2 text-xs text-gray-500">No snapshots yet. Save the current plan to try other variations and come back to it.</p>
+                ) : (
+                    <ul className="mt-2 divide-y divide-gray-100">
+                        {roomSnapshots.map((s) => (
+                            <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-sm">
+                                <span>
+                                    <span className="font-medium text-gray-900">{s.name}</span>
+                                    <span className="text-xs text-gray-500">
+                                        {' '}· {s.rooms} rooms · {s.placed} placed · {s.created_at}{s.created_by ? ` · ${s.created_by}` : ''}
+                                    </span>
+                                </span>
+                                <span className="flex items-center gap-3">
+                                    <button type="button" onClick={() => restoreSnapshot(s)} className="text-indigo-600 hover:text-indigo-800">Restore</button>
+                                    <button type="button" onClick={() => deleteSnapshot(s)} className="text-gray-400 hover:text-red-600" aria-label={`Delete ${s.name}`}>✕</button>
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </details>
 
             {/* Default stay for everyone */}
             <div className="mb-4 flex flex-wrap items-end gap-3">

@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.120] - 2026-10-10
+
+### Added
+- **Room plan snapshots.** A "Snapshots" section in the room planner saves the current plan (rooms, assignments, stay dates, default dates, room types) under a name, lists saved snapshots (rooms, people placed, when and by whom) and restores or deletes them. Restoring replaces the current plan; participants added since the snapshot become unassigned on default dates, removed ones are skipped. Fees, payments and notes are never changed.
+
+### Note
+- Requires running `/migrate` after deploy (creates `competition_room_snapshots`). Run `/clear-cache` if snapshot actions return 404.
+
 ## [0.9.119] - 2026-10-10
 
 ### Added

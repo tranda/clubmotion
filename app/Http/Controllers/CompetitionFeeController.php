@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Competition;
 use App\Models\CompetitionParticipant;
 use App\Models\CompetitionRoom;
+use App\Models\CompetitionRoomSnapshot;
 use App\Models\CompetitionPayment;
 use App\Models\Member;
 use Illuminate\Http\Request;
@@ -149,6 +150,7 @@ class CompetitionFeeController extends Controller
             'totals' => Competition::totalsFor($participants),
             'roomPlan' => $competition->roomPlan($participants),
             'rooms' => $this->roomsArray($competition),
+            'roomSnapshots' => $this->snapshotsArray($competition),
             'participants' => $participants->map(function ($p) {
                 return $p->toSummaryArray() + [
                     'payments' => $p->payments->map(fn ($pay) => [
@@ -240,6 +242,7 @@ class CompetitionFeeController extends Controller
             'totals' => Competition::totalsFor($participants),
             'competition' => $this->competitionArray($competition),
             'rooms' => $this->roomsArray($competition),
+            'roomSnapshots' => $this->snapshotsArray($competition),
             'roomPlan' => $competition->roomPlan($participants),
             'participants' => $participants->map(fn ($p) => $p->toSummaryArray() + [
                 'payments' => $p->payments->map(fn ($pay) => [
@@ -360,6 +363,84 @@ class CompetitionFeeController extends Controller
         $room->participants()->where('status', '!=', 'cancelled')->update($values);
 
         return back();
+    }
+
+    // ─── Room plan snapshots ─────────────────────────────────────────────────
+
+    public function storeSnapshot(Request $request, Competition $competition)
+    {
+        $this->authorizeRoomEditor($competition);
+        $data = $request->validate(['name' => 'nullable|string|max:100']);
+
+        $rooms = $competition->rooms()->get();
+        $competition->roomSnapshots()->create([
+            'name' => trim($data['name'] ?? '') ?: 'Snapshot ' . now()->format('d.m.Y H:i'),
+            'data' => [
+                'room_counts' => $competition->room_counts,
+                'rooms_check_in' => $competition->rooms_check_in?->format('Y-m-d'),
+                'rooms_check_out' => $competition->rooms_check_out?->format('Y-m-d'),
+                'rooms' => $rooms->map(fn ($r) => ['number' => $r->number, 'name' => $r->name, 'beds' => $r->beds])->values()->all(),
+                'participants' => $competition->participants()->get()->map(fn ($p) => [
+                    'id' => $p->id,
+                    'room_number' => optional($rooms->firstWhere('id', $p->competition_room_id))->number,
+                    'check_in' => $p->check_in?->format('Y-m-d'),
+                    'check_out' => $p->check_out?->format('Y-m-d'),
+                ])->values()->all(),
+            ],
+            'created_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Snapshot saved');
+    }
+
+    /**
+     * Replace the current room plan with a snapshot. Participants added since
+     * the snapshot end up unassigned on the default dates; removed ones are skipped.
+     */
+    public function restoreSnapshot(CompetitionRoomSnapshot $snapshot)
+    {
+        $competition = $snapshot->competition;
+        $this->authorizeRoomEditor($competition);
+        $data = $snapshot->data ?? [];
+
+        DB::transaction(function () use ($competition, $data) {
+            $competition->update([
+                'room_counts' => $data['room_counts'] ?? $competition->room_counts,
+                'rooms_check_in' => $data['rooms_check_in'] ?? null,
+                'rooms_check_out' => $data['rooms_check_out'] ?? null,
+            ]);
+
+            // Deleting rooms unassigns everyone (FK nullOnDelete).
+            $competition->rooms()->delete();
+            $roomIds = [];
+            foreach ($data['rooms'] ?? [] as $room) {
+                $roomIds[$room['number']] = $competition->rooms()->create([
+                    'number' => $room['number'],
+                    'name' => $room['name'] ?? null,
+                    'beds' => $room['beds'],
+                ])->id;
+            }
+
+            $saved = collect($data['participants'] ?? [])->keyBy('id');
+            foreach ($competition->participants()->get() as $p) {
+                $snap = $saved->get($p->id);
+                $p->update([
+                    'competition_room_id' => $snap && $snap['room_number'] !== null ? ($roomIds[$snap['room_number']] ?? null) : null,
+                    'check_in' => $snap['check_in'] ?? null,
+                    'check_out' => $snap['check_out'] ?? null,
+                ]);
+            }
+        });
+
+        return back()->with('success', "Restored \"{$snapshot->name}\"");
+    }
+
+    public function destroySnapshot(CompetitionRoomSnapshot $snapshot)
+    {
+        $this->authorizeRoomEditor($snapshot->competition);
+        $snapshot->delete();
+
+        return back()->with('success', 'Snapshot deleted');
     }
 
     public function updateRoom(Request $request, CompetitionRoom $room)
@@ -647,6 +728,23 @@ class CompetitionFeeController extends Controller
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
         $sheet->getColumnDimension('G')->setWidth(60);
+    }
+
+    private function snapshotsArray(Competition $competition)
+    {
+        // Until /migrate has run, the page still works without snapshots.
+        if (!\Illuminate\Support\Facades\Schema::hasTable('competition_room_snapshots')) {
+            return [];
+        }
+
+        return $competition->roomSnapshots()->with('creator:id,name')->get()->map(fn ($s) => [
+            'id' => $s->id,
+            'name' => $s->name,
+            'created_at' => $s->created_at->format('Y-m-d H:i'),
+            'created_by' => $s->creator->name ?? null,
+            'rooms' => count($s->data['rooms'] ?? []),
+            'placed' => collect($s->data['participants'] ?? [])->whereNotNull('room_number')->count(),
+        ])->values();
     }
 
     private function roomsArray(Competition $competition)

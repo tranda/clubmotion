@@ -37,6 +37,11 @@ class Competition extends Model
         return $this->hasMany(CompetitionRoom::class)->orderBy('number');
     }
 
+    public function roomSnapshots()
+    {
+        return $this->hasMany(CompetitionRoomSnapshot::class)->latest();
+    }
+
     public function payments()
     {
         return $this->hasManyThrough(CompetitionPayment::class, CompetitionParticipant::class);
