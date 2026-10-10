@@ -28,6 +28,11 @@ class Competition extends Model
         return $this->hasMany(CompetitionParticipant::class);
     }
 
+    public function rooms()
+    {
+        return $this->hasMany(CompetitionRoom::class)->orderBy('number');
+    }
+
     public function payments()
     {
         return $this->hasManyThrough(CompetitionPayment::class, CompetitionParticipant::class);

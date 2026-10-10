@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Competition;
 use App\Models\CompetitionParticipant;
+use App\Models\CompetitionRoom;
 use App\Models\CompetitionPayment;
 use App\Models\Member;
 use Illuminate\Http\Request;
@@ -147,6 +148,7 @@ class CompetitionFeeController extends Controller
             'competition' => $this->competitionArray($competition),
             'totals' => Competition::totalsFor($participants),
             'roomPlan' => $competition->roomPlan($participants),
+            'rooms' => $competition->rooms()->get(['id', 'number', 'name', 'beds']),
             'participants' => $participants->map(function ($p) {
                 return $p->toSummaryArray() + [
                     'payments' => $p->payments->map(fn ($pay) => [
@@ -212,6 +214,74 @@ class CompetitionFeeController extends Controller
         $competition->update(['room_counts' => $counts]);
 
         return back()->with('success', 'Rooms updated');
+    }
+
+    // ─── Room planner ────────────────────────────────────────────────────────
+
+    public function storeRoom(Request $request, Competition $competition)
+    {
+        $data = $request->validate(['beds' => ['required', 'integer', Rule::in(Competition::ROOM_SIZES)]]);
+
+        $competition->rooms()->create([
+            'number' => (int) $competition->rooms()->max('number') + 1,
+            'beds' => $data['beds'],
+        ]);
+
+        return back();
+    }
+
+    /**
+     * Add rooms so each size has at least as many as the plan needs.
+     */
+    public function generateRooms(Competition $competition)
+    {
+        $participants = $competition->participants()->get();
+        $plan = $competition->roomPlan($participants);
+        $existing = $competition->rooms()->get()->countBy('beds');
+        $number = (int) $competition->rooms()->max('number');
+        $added = 0;
+
+        foreach ($plan['sizes'] as $size) {
+            $missing = $size['needed'] - ($existing[$size['beds']] ?? 0);
+            for ($i = 0; $i < $missing; $i++) {
+                $competition->rooms()->create(['number' => ++$number, 'beds' => $size['beds']]);
+                $added++;
+            }
+        }
+
+        return back()->with('success', $added ? "Added {$added} room(s) from the plan" : 'Rooms already match the plan');
+    }
+
+    public function updateRoom(Request $request, CompetitionRoom $room)
+    {
+        $room->update($request->validate([
+            'beds' => ['sometimes', 'required', 'integer', Rule::in(Competition::ROOM_SIZES)],
+            'name' => 'sometimes|nullable|string|max:50',
+        ]));
+
+        return back();
+    }
+
+    public function destroyRoom(CompetitionRoom $room)
+    {
+        // Occupants become unassigned (FK nullOnDelete).
+        $room->delete();
+
+        return back();
+    }
+
+    public function assignRoom(Request $request, CompetitionParticipant $participant)
+    {
+        $data = $request->validate(['room_id' => 'nullable|integer|exists:competition_rooms,id']);
+        $roomId = $data['room_id'] ?? null;
+
+        if ($roomId && (int) CompetitionRoom::where('id', $roomId)->value('competition_id') !== (int) $participant->competition_id) {
+            abort(422, 'Room belongs to another competition');
+        }
+
+        $participant->update(['competition_room_id' => $roomId]);
+
+        return back();
     }
 
     public function updateParticipant(Request $request, CompetitionParticipant $participant)

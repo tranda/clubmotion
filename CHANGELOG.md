@@ -2,6 +2,17 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.109] - 2026-10-10
+
+### Added
+- **Competition Fees: room planner.** "Room planner" on a competition opens a planner with the available room types, numbered room cards and a "Not in a room" list. Rooms can be added (choose bed count), created from the plan, renamed (e.g. hotel room "205"), resized and removed (occupants become unassigned). Participants (with their additional people) are added to or removed from rooms; each card shows beds used and flags over capacity. The participant list shows the assigned room.
+
+### Removed
+- The separate "Room types available" window (now part of the room planner).
+
+### Note
+- Requires running `/migrate` right after deploy (creates `competition_rooms`, adds `competition_participants.competition_room_id`). The competition page fails to open until it runs.
+
 ## [0.9.108] - 2026-10-10
 
 ### Changed

@@ -6,7 +6,7 @@ import CompetitionFormModal from '../../Components/CompetitionFees/CompetitionFo
 import AddParticipantsModal from '../../Components/CompetitionFees/AddParticipantsModal';
 import PaymentModal from '../../Components/CompetitionFees/PaymentModal';
 import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal';
-import RoomsModal from '../../Components/CompetitionFees/RoomsModal';
+import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
 import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
@@ -18,7 +18,7 @@ const FILTERS = [
     { key: 'cancelled', label: 'Cancelled' },
 ];
 
-export default function CompetitionDetails({ competition, totals, roomPlan, participants, availableMembers, currencies, paymentMethods }) {
+export default function CompetitionDetails({ competition, totals, roomPlan, rooms = [], participants, availableMembers, currencies, paymentMethods }) {
     const cur = competition.currency;
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
@@ -34,6 +34,10 @@ export default function CompetitionDetails({ competition, totals, roomPlan, part
     // Always read participants from the latest props so modals refresh after saves.
     const byId = (id) => participants.find((p) => p.id === id);
     const detailsParticipant = detailsId ? byId(detailsId) : null;
+    const roomNumber = (p) => {
+        const room = p.room_id && rooms.find((r) => r.id === p.room_id);
+        return room ? (room.name ? `Room ${room.name}` : `Room ${room.number}`) : '';
+    };
     const paymentParticipant = paymentTarget ? byId(paymentTarget.participantId) : null;
 
     const visible = useMemo(() => {
@@ -160,7 +164,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, part
                                 ({roomPlan.no_preference} without preference{roomPlan.unplaced > 0 ? ' not placed: no room types set' : ' included'})
                             </span>
                         )}
-                        <button type="button" onClick={() => setShowRooms(true)} className="text-blue-600 hover:text-blue-800">Edit rooms</button>
+                        <button type="button" onClick={() => setShowRooms(true)} className="text-blue-600 hover:text-blue-800">Room planner</button>
                     </div>
                 )}
                 {totals.overpaid > 0 && (
@@ -218,7 +222,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, part
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(p.id)}>
                                                 {p.member.name}
                                                 <RoleBadge role={p.role} />
-                                                {(extrasLabel(p) || roomLabel(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>}
+                                                {(extrasLabel(p) || roomLabel(p) || roomNumber(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), roomNumber(p)].filter(Boolean).join(' · ')}</div>}
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatMoney(p.fee_amount, cur)}</td>
@@ -251,7 +255,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, part
                                     <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(p.id)}>
                                         <div className="font-medium text-gray-900">
                                             {p.member.name}<RoleBadge role={p.role} />
-                                            {(extrasLabel(p) || roomLabel(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>}
+                                            {(extrasLabel(p) || roomLabel(p) || roomNumber(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), roomNumber(p)].filter(Boolean).join(' · ')}</div>}
                                         </div>
                                         <StatusBadge status={p.payment_status} />
                                     </div>
@@ -278,7 +282,9 @@ export default function CompetitionDetails({ competition, totals, roomPlan, part
             </div>
 
             {showEdit && <CompetitionFormModal competition={competition} currencies={currencies} onClose={() => setShowEdit(false)} />}
-            {showRooms && <RoomsModal key={(competition.room_types || []).join(',')} competition={competition} onClose={() => setShowRooms(false)} />}
+            {showRooms && (
+                <RoomPlannerModal competition={competition} rooms={rooms} participants={participants} roomPlan={roomPlan} onClose={() => setShowRooms(false)} />
+            )}
             {showAdd && <AddParticipantsModal competition={competition} members={availableMembers} onClose={() => setShowAdd(false)} />}
             {detailsParticipant && (
                 <ParticipantModal

@@ -83,11 +83,11 @@ export function SummaryCard({ label, value, className = 'text-gray-900' }) {
     );
 }
 
-export function Modal({ title, onClose, children, wide = false }) {
+export function Modal({ title, onClose, children, wide = false, extraWide = false }) {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
             <div
-                className={`bg-white rounded-lg w-full p-6 max-h-[90vh] overflow-y-auto ${wide ? 'max-w-2xl' : 'max-w-md'}`}
+                className={`bg-white rounded-lg w-full p-6 max-h-[90vh] overflow-y-auto ${extraWide ? 'max-w-5xl' : wide ? 'max-w-2xl' : 'max-w-md'}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 <h2 className="text-xl font-bold text-gray-900 mb-4">{title}</h2>

@@ -12,7 +12,7 @@ class CompetitionParticipant extends Model
 
     protected $fillable = [
         'competition_id', 'member_id', 'role', 'fee_amount', 'status',
-        'extra_athletes', 'extra_supporters', 'extra_children', 'preferred_room', 'notes',
+        'extra_athletes', 'extra_supporters', 'extra_children', 'preferred_room', 'competition_room_id', 'notes',
     ];
 
     protected $casts = [
@@ -21,6 +21,7 @@ class CompetitionParticipant extends Model
         'extra_supporters' => 'integer',
         'extra_children' => 'integer',
         'preferred_room' => 'integer',
+        'competition_room_id' => 'integer',
     ];
 
     public function competition()
@@ -31,6 +32,11 @@ class CompetitionParticipant extends Model
     public function member()
     {
         return $this->belongsTo(Member::class);
+    }
+
+    public function room()
+    {
+        return $this->belongsTo(CompetitionRoom::class, 'competition_room_id');
     }
 
     public function payments()
@@ -125,6 +131,7 @@ class CompetitionParticipant extends Model
             'extra_supporters' => (int) $this->extra_supporters,
             'extra_children' => (int) $this->extra_children,
             'preferred_room' => $this->preferred_room ? (int) $this->preferred_room : null,
+            'room_id' => $this->competition_room_id ? (int) $this->competition_room_id : null,
             'notes' => $this->notes,
             'paid_amount' => $this->paid_amount,
             'remaining_amount' => $this->remaining_amount,
