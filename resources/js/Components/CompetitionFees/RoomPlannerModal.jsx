@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import { Modal, RoleBadge, extrasLabel, inputClass, bedsFor as partySize, roomsSummary, stayRange, stayLabel, effectiveStay, hasOwnStay } from './format';
+import { Modal, RoleBadge, extrasLabel, inputClass, bedsFor as partySize, roomsSummary, bedColor, stayRange, stayLabel, effectiveStay, hasOwnStay } from './format';
 
 const dateInput = 'border border-gray-300 rounded px-2 py-1 bg-white';
 
@@ -221,7 +221,7 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                         const over = used > room.beds;
                         const range = stayRange(occupants, defaults);
                         return (
-                            <div key={room.id} className={`border rounded-lg p-3 ${over ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}>
+                            <div key={room.id} className={`border rounded-lg p-3 ${bedColor(room.beds)} ${over ? '!border-red-400 border-2' : ''}`}>
                                 <div className="flex items-center justify-between gap-2 mb-2">
                                     <input
                                         key={room.name || ''}

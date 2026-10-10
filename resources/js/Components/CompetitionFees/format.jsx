@@ -108,6 +108,16 @@ export const roomsSummary = (rooms, participants) => {
     };
 };
 
+// Pale card colors by number of beds (background + border).
+export const BED_COLORS = {
+    1: 'bg-slate-50 border-slate-200',
+    2: 'bg-sky-50 border-sky-200',
+    3: 'bg-emerald-50 border-emerald-200',
+    4: 'bg-amber-50 border-amber-200',
+    5: 'bg-violet-50 border-violet-200',
+};
+export const bedColor = (beds) => BED_COLORS[beds] || 'bg-white border-gray-200';
+
 // "2-bed room" for a participant's preferred room, or ''.
 export const roomLabel = (p) => (p.preferred_room ? `${p.preferred_room}-bed room` : '');
 

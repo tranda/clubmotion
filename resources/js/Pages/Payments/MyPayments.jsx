@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
-import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel, stayLabel } from '../../Components/CompetitionFees/format';
+import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel, stayLabel, bedColor } from '../../Components/CompetitionFees/format';
 
 export default function MyPayments({ member, year, payments, availableYears, competitionFees = [] }) {
     const monthNames = {
@@ -211,7 +211,7 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                 <div className="text-sm font-medium text-gray-700 mb-2">Room plan</div>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                     {cf.rooms.map((room) => (
-                                                        <div key={room.id} className={`rounded-md border p-2 ${room.is_mine ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200'}`}>
+                                                        <div key={room.id} className={`rounded-md border p-2 ${bedColor(room.beds)} ${room.is_mine ? '!border-indigo-500 border-2' : ''}`}>
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{room.title}</span>
                                                                 <span className="text-xs text-gray-500">{room.beds}-bed</span>

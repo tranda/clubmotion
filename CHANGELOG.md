@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.128] - 2026-10-10
+
+### Changed
+- **Room cards colored by bed count.** Room planner and member room plan cards have pale backgrounds per bed count (1 gray, 2 blue, 3 green, 4 amber, 5 violet). Over-capacity rooms get a thick red border; the member's own room a thick indigo border.
+
 ## [0.9.127] - 2026-10-10
 
 ### Added
