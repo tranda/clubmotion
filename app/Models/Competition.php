@@ -14,7 +14,7 @@ class Competition extends Model
     protected $fillable = [
         'name', 'location', 'start_date', 'end_date', 'default_fee',
         'currency', 'status', 'notes', 'room_counts', 'rooms_visible',
-        'rooms_check_in', 'rooms_check_out', 'created_by',
+        'rooms_check_in', 'rooms_check_out', 'accommodation', 'created_by',
     ];
 
     protected $casts = [
@@ -25,6 +25,7 @@ class Competition extends Model
         'rooms_visible' => 'boolean',
         'rooms_check_in' => 'date:Y-m-d',
         'rooms_check_out' => 'date:Y-m-d',
+        'accommodation' => 'array',
     ];
 
     public function participants()
@@ -95,6 +96,87 @@ class Competition extends Model
             'check_out' => $out,
             'nights' => $in && $out ? max(0, (int) round((strtotime($out) - strtotime($in)) / 86400)) : null,
             'mixed' => count(array_unique($ins)) > 1 || count(array_unique($outs)) > 1,
+        ];
+    }
+
+    /**
+     * Accommodation settings with defaults:
+     * prices (per person for the whole package, keyed by beds), supporter_discount,
+     * charge_empty_beds.
+     */
+    public function accommodationSettings()
+    {
+        $a = $this->accommodation ?? [];
+        $prices = [];
+        foreach (self::ROOM_SIZES as $size) {
+            $v = $a['prices'][$size] ?? $a['prices'][(string) $size] ?? null;
+            $prices[$size] = $v === null || $v === '' ? null : (float) $v;
+        }
+
+        return [
+            'prices' => $prices,
+            'supporter_discount' => (float) ($a['supporter_discount'] ?? 0),
+            'charge_empty_beds' => (bool) ($a['charge_empty_beds'] ?? true),
+        ];
+    }
+
+    /**
+     * Accommodation cost per participant and per room.
+     *
+     * Per-person price is for the package (default stay). A room costs
+     * price × beds when empty beds are charged (split among the people in it),
+     * else price per person. A participant pays for their party's beds
+     * (children are free and take no bed), minus the supporter discount per
+     * supporter, pro-rated by their nights ÷ package nights.
+     * Cancelled participants and people not in a room cost nothing.
+     */
+    public function accommodationCosts($participants, $rooms)
+    {
+        $settings = $this->accommodationSettings();
+        $defaults = $this->defaultRoomDates();
+        $packageNights = $defaults['check_in'] && $defaults['check_out']
+            ? max(0, (int) round((strtotime($defaults['check_out']) - strtotime($defaults['check_in'])) / 86400))
+            : null;
+        $beds = fn ($p) => 1 + (int) $p->extra_athletes + (int) $p->extra_supporters;
+        $active = collect($participants)->where('status', '!=', 'cancelled');
+
+        $perParticipant = [];
+        $perRoom = [];
+        foreach ($rooms as $room) {
+            $occupants = $active->where('competition_room_id', $room->id);
+            $price = $settings['prices'][$room->beds] ?? null;
+            $used = $occupants->sum($beds);
+            if ($price === null) {
+                $perRoom[$room->id] = ['price' => null, 'total' => null];
+                continue;
+            }
+            // Cost of one bed-taking person in this room.
+            $share = $settings['charge_empty_beds'] && $used > 0 && $used < $room->beds
+                ? $price * $room->beds / $used
+                : $price;
+
+            $roomTotal = 0.0;
+            foreach ($occupants as $p) {
+                $supporters = ($p->role === 'supporter' ? 1 : 0) + (int) $p->extra_supporters;
+                $amount = max(0, $share * $beds($p) - $settings['supporter_discount'] * $supporters);
+                $stay = $p->stay($defaults);
+                if ($packageNights && $stay['check_in'] && $stay['check_out']) {
+                    $nights = max(0, (int) round((strtotime($stay['check_out']) - strtotime($stay['check_in'])) / 86400));
+                    $amount = $amount * $nights / $packageNights;
+                }
+                $amount = round($amount, 2);
+                $perParticipant[$p->id] = $amount;
+                $roomTotal += $amount;
+            }
+            $perRoom[$room->id] = ['price' => $price, 'total' => round($roomTotal, 2)];
+        }
+
+        return [
+            'settings' => $settings,
+            'package_nights' => $packageNights,
+            'participants' => (object) $perParticipant,
+            'rooms' => (object) $perRoom,
+            'total' => round(array_sum($perParticipant), 2),
         ];
     }
 

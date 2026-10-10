@@ -151,6 +151,7 @@ class CompetitionFeeController extends Controller
             'roomPlan' => $competition->roomPlan($participants),
             'rooms' => $this->roomsArray($competition),
             'roomSnapshots' => $this->snapshotsArray($competition),
+            'accommodation' => $competition->accommodationCosts($participants, $competition->rooms()->get()),
             'participants' => $participants->map(function ($p) {
                 return $p->toSummaryArray() + [
                     'payments' => $p->payments->map(fn ($pay) => [
@@ -243,6 +244,7 @@ class CompetitionFeeController extends Controller
             'competition' => $this->competitionArray($competition),
             'rooms' => $this->roomsArray($competition),
             'roomSnapshots' => $this->snapshotsArray($competition),
+            'accommodation' => $competition->accommodationCosts($participants, $competition->rooms()->get()),
             'roomPlan' => $competition->roomPlan($participants),
             'participants' => $participants->map(fn ($p) => $p->toSummaryArray() + [
                 'payments' => $p->payments->map(fn ($pay) => [
@@ -363,6 +365,70 @@ class CompetitionFeeController extends Controller
         $room->participants()->where('status', '!=', 'cancelled')->update($values);
 
         return back();
+    }
+
+    // ─── Accommodation pricing ───────────────────────────────────────────────
+
+    public function updateAccommodation(Request $request, Competition $competition)
+    {
+        $this->authorizeRoomEditor($competition);
+
+        $rules = [
+            'supporter_discount' => 'nullable|numeric|min:0',
+            'charge_empty_beds' => 'boolean',
+        ];
+        foreach (Competition::ROOM_SIZES as $size) {
+            $rules["prices.{$size}"] = 'nullable|numeric|min:0';
+        }
+        $request->validate($rules);
+
+        $prices = [];
+        foreach (Competition::ROOM_SIZES as $size) {
+            $v = $request->input("prices.{$size}");
+            $prices[$size] = $v === null || $v === '' ? null : round((float) $v, 2);
+        }
+        $competition->update(['accommodation' => [
+            'prices' => $prices,
+            'supporter_discount' => round((float) $request->input('supporter_discount', 0), 2),
+            'charge_empty_beds' => $request->boolean('charge_empty_beds', true),
+        ]]);
+
+        return back()->with('success', 'Accommodation prices saved');
+    }
+
+    /**
+     * Put the calculated accommodation into participants' fees. The amount
+     * applied before is replaced, so applying again never double-counts:
+     * fee = fee − previously applied + new accommodation.
+     */
+    public function applyAccommodation(Request $request, Competition $competition)
+    {
+        $data = $request->validate([
+            'participant_ids' => 'required|array',
+            'participant_ids.*' => 'integer',
+        ]);
+
+        $participants = $competition->participants()->get();
+        $costs = $competition->accommodationCosts($participants, $competition->rooms()->get());
+        $amounts = (array) $costs['participants'];
+        $updated = 0;
+
+        DB::transaction(function () use ($participants, $data, $amounts, &$updated) {
+            foreach ($participants->whereIn('id', $data['participant_ids']) as $p) {
+                $new = (float) ($amounts[$p->id] ?? 0);
+                $old = (float) $p->accommodation_applied;
+                if (round($new - $old, 2) == 0) {
+                    continue;
+                }
+                $p->update([
+                    'fee_amount' => round(max(0, (float) $p->fee_amount - $old + $new), 2),
+                    'accommodation_applied' => $new,
+                ]);
+                $updated++;
+            }
+        });
+
+        return back()->with('success', "Fees updated for {$updated} participant(s)");
     }
 
     // ─── Room plan snapshots ─────────────────────────────────────────────────

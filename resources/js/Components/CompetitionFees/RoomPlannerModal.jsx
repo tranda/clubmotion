@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import { Modal, RoleBadge, extrasLabel, inputClass, bedsFor as partySize, roomsSummary, bedColor, stayRange, stayLabel, effectiveStay, hasOwnStay } from './format';
+import { Modal, RoleBadge, extrasLabel, inputClass, bedsFor as partySize, roomsSummary, bedColor, stayRange, stayLabel, effectiveStay, hasOwnStay, formatMoney } from './format';
+import AccommodationPrices from './AccommodationPrices';
 
 const dateInput = 'border border-gray-300 rounded px-2 py-1 bg-white';
 
@@ -12,7 +13,9 @@ const opts = { preserveScroll: true, preserveState: true };
 // Room planner: room types available, numbered rooms and who sleeps where.
 export default function RoomPlannerModal({ competition, rooms, participants, roomPlan, onClose, canToggleVisibility = true }) {
     const [newBeds, setNewBeds] = useState(competition.room_types?.[0] || 2);
-    const { roomSnapshots = [] } = usePage().props;
+    const { roomSnapshots = [], accommodation } = usePage().props;
+    const cur = competition.currency;
+    const costOf = (p) => accommodation?.participants?.[p.id];
     const [snapshotName, setSnapshotName] = useState('');
     const saveSnapshot = () =>
         router.post(`${base}/${competition.id}/room-snapshots`, { name: snapshotName }, { ...opts, onSuccess: () => setSnapshotName('') });
@@ -114,6 +117,8 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                 </span>
             </label>
             )}
+
+            <AccommodationPrices key={JSON.stringify(accommodation?.settings)} competition={competition} accommodation={accommodation} />
 
             {/* Snapshots */}
             <details className="mb-4 rounded-md border border-gray-200 px-3 py-2">
@@ -254,6 +259,9 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                                 </div>
                                 <div className={`text-xs mb-2 ${over ? 'text-red-600 font-medium' : used === room.beds ? 'text-green-700' : 'text-gray-500'}`}>
                                     {used}/{room.beds} beds{over && ' — over capacity'}
+                                    {accommodation?.rooms?.[room.id]?.total > 0 && (
+                                        <span className="ml-2 text-gray-700 font-medium">· {formatMoney(accommodation.rooms[room.id].total, cur)}</span>
+                                    )}
                                 </div>
                                 <div className="flex flex-wrap items-center gap-1 mb-2 text-xs text-gray-500">
                                     <input
@@ -280,6 +288,8 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                                     {occupants.map((p) => (
                                         <li key={p.id} className="flex items-start justify-between gap-2 text-sm">
                                             <span>{nameWithExtras(p)}</span>
+                                            <span className="flex items-start gap-2 shrink-0">
+                                            {costOf(p) != null && <span className="text-xs text-gray-700 tabular-nums whitespace-nowrap">{formatMoney(costOf(p), cur)}</span>}
                                             <button
                                                 type="button"
                                                 onClick={() => assign(p.id, null)}
@@ -288,6 +298,7 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                                             >
                                                 ✕
                                             </button>
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>

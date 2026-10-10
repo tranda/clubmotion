@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.129] - 2026-10-10
+
+### Added
+- **Accommodation pricing and auto-calculation.** Room planner "Prices": price per person for the whole stay per room type, supporter discount, and "Charge empty beds" (a room not full is split among its occupants). Each participant's accommodation is calculated from their room and party (children free, no bed), minus the discount per supporter, pro-rated by nights versus the default stay. Shown per person and per room in the planner, as a total on the competition page and per participant in the list.
+- **Update fees with accommodation.** Review dialog (old → new accommodation and fee per participant, selectable) that replaces the accommodation part of each fee; re-applying never double-counts.
+
+### Note
+- Requires running `/migrate` after deploy (adds `competitions.accommodation` and `competition_participants.accommodation_applied`). Saving prices fails until it runs.
+
 ## [0.9.128] - 2026-10-10
 
 ### Changed

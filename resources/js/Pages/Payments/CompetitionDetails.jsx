@@ -7,6 +7,7 @@ import AddParticipantsModal from '../../Components/CompetitionFees/AddParticipan
 import PaymentModal from '../../Components/CompetitionFees/PaymentModal';
 import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal';
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
+import ApplyAccommodationModal from '../../Components/CompetitionFees/ApplyAccommodationModal';
 import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor, roomsSummary, stayRange, stayLabel, effectiveStay, hasOwnStay } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
@@ -18,7 +19,7 @@ const FILTERS = [
     { key: 'cancelled', label: 'Cancelled' },
 ];
 
-export default function CompetitionDetails({ competition, totals, roomPlan, rooms = [], participants, availableMembers, currencies, paymentMethods }) {
+export default function CompetitionDetails({ competition, totals, roomPlan, rooms = [], accommodation, participants, availableMembers, currencies, paymentMethods }) {
     const cur = competition.currency;
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
@@ -26,6 +27,8 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
     const [showEdit, setShowEdit] = useState(false);
     const [showAdd, setShowAdd] = useState(false);
     const [showRooms, setShowRooms] = useState(false);
+    const [showApplyAcc, setShowApplyAcc] = useState(false);
+    const accOf = (p) => accommodation?.participants?.[p.id];
     const [groupByRoom, setGroupByRoomState] = useState(() => {
         // On by default; remembers if the viewer turns it off.
         try { return localStorage.getItem('competitionGroupByRoom') !== '0'; } catch { return true; }
@@ -203,7 +206,11 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                             <span>· total <strong>{rs.total}</strong></span>
                             <span className={rs.used > rs.beds ? 'text-red-600' : 'text-gray-500'}>({rs.used}/{rs.beds} beds used)</span>
                             {rs.unassigned > 0 && <span className="text-red-600">· {rs.unassigned} not in a room</span>}
+                            {accommodation?.total > 0 && <span>· accommodation <strong>{formatMoney(accommodation.total, cur)}</strong></span>}
                             <button type="button" onClick={() => setShowRooms(true)} className="text-blue-600 hover:text-blue-800">Room planner</button>
+                            {accommodation?.total > 0 && (
+                                <button type="button" onClick={() => setShowApplyAcc(true)} className="text-blue-600 hover:text-blue-800">Update fees…</button>
+                            )}
                         </div>
                     );
                 })() : roomPlan && (
@@ -300,7 +307,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                                 {p.member.name}
                                                 <RoleBadge role={p.role} />
                                                 {!grouped && roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
-{(extrasLabel(p) || roomLabel(p) || hasOwnStay(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates))].filter(Boolean).join(' · ')}</div>}
+{(extrasLabel(p) || roomLabel(p) || hasOwnStay(p) || accOf(p) != null) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates)), accOf(p) != null && `accommodation ${formatMoney(accOf(p), cur)}`].filter(Boolean).join(' · ')}</div>}
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatMoney(p.fee_amount, cur)}</td>
@@ -339,7 +346,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                         <div className="font-medium text-gray-900">
                                             {p.member.name}<RoleBadge role={p.role} />
                                             {!grouped && roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
-{(extrasLabel(p) || roomLabel(p) || hasOwnStay(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates))].filter(Boolean).join(' · ')}</div>}
+{(extrasLabel(p) || roomLabel(p) || hasOwnStay(p) || accOf(p) != null) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates)), accOf(p) != null && `accommodation ${formatMoney(accOf(p), cur)}`].filter(Boolean).join(' · ')}</div>}
                                         </div>
                                         <StatusBadge status={p.payment_status} />
                                     </div>
@@ -370,6 +377,9 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
             {showEdit && <CompetitionFormModal competition={competition} currencies={currencies} onClose={() => setShowEdit(false)} />}
             {showRooms && (
                 <RoomPlannerModal competition={competition} rooms={rooms} participants={participants} roomPlan={roomPlan} onClose={() => setShowRooms(false)} />
+            )}
+            {showApplyAcc && (
+                <ApplyAccommodationModal competition={competition} participants={participants} accommodation={accommodation} onClose={() => setShowApplyAcc(false)} />
             )}
             {showAdd && <AddParticipantsModal competition={competition} members={availableMembers} onClose={() => setShowAdd(false)} />}
             {detailsParticipant && (

@@ -159,6 +159,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/{competition}/room-dates', 'updateRoomDates')->name('competition-fees.room-dates');
         Route::put('/participants/{participant}/stay', 'updateStay')->name('competition-fees.participants.stay');
         Route::put('/planner-rooms/{room}/stay', 'updateRoomStay')->name('competition-fees.planner-rooms.stay');
+        Route::put('/{competition}/accommodation', 'updateAccommodation')->name('competition-fees.accommodation.update');
         Route::post('/{competition}/room-snapshots', 'storeSnapshot')->name('competition-fees.room-snapshots.store');
         Route::post('/room-snapshots/{snapshot}/restore', 'restoreSnapshot')->name('competition-fees.room-snapshots.restore');
         Route::delete('/room-snapshots/{snapshot}', 'destroySnapshot')->name('competition-fees.room-snapshots.destroy');
@@ -185,6 +186,7 @@ Route::middleware('auth')->group(function () {
             Route::put('/{competition}', 'update')->name('competition-fees.update');
             Route::delete('/{competition}', 'destroy')->name('competition-fees.destroy');
             Route::get('/{competition}/export', 'export')->name('competition-fees.export');
+            Route::post('/{competition}/apply-accommodation', 'applyAccommodation')->name('competition-fees.accommodation.apply');
             Route::post('/{competition}/participants', 'addParticipants')->name('competition-fees.participants.store');
             Route::put('/participants/{participant}', 'updateParticipant')->name('competition-fees.participants.update');
             Route::delete('/participants/{participant}', 'destroyParticipant')->name('competition-fees.participants.destroy');

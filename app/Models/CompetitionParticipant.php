@@ -11,13 +11,14 @@ class CompetitionParticipant extends Model
     public const ROLES = ['athlete', 'supporter'];
 
     protected $fillable = [
-        'competition_id', 'member_id', 'role', 'fee_amount', 'status',
+        'competition_id', 'member_id', 'role', 'fee_amount', 'accommodation_applied', 'status',
         'extra_athletes', 'extra_supporters', 'extra_children', 'preferred_room', 'competition_room_id', 'can_edit_rooms',
         'check_in', 'check_out', 'notes',
     ];
 
     protected $casts = [
         'fee_amount' => 'decimal:2',
+        'accommodation_applied' => 'decimal:2',
         'extra_athletes' => 'integer',
         'extra_supporters' => 'integer',
         'extra_children' => 'integer',
@@ -141,6 +142,7 @@ class CompetitionParticipant extends Model
             ],
             'role' => $this->role ?? 'athlete',
             'fee_amount' => (float) $this->fee_amount,
+            'accommodation_applied' => (float) $this->accommodation_applied,
             'status' => $this->status,
             'extra_athletes' => (int) $this->extra_athletes,
             'extra_supporters' => (int) $this->extra_supporters,

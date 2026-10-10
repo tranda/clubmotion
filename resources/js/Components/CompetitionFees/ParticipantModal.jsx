@@ -70,6 +70,9 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                         {competition.default_fee !== null && (
                             <p className="mt-1 text-xs text-gray-500">Default: {formatMoney(competition.default_fee, cur)}</p>
                         )}
+                        {participant.accommodation_applied > 0 && (
+                            <p className="text-xs text-gray-500">Includes accommodation {formatMoney(participant.accommodation_applied, cur)}</p>
+                        )}
                         {errors.fee_amount && <p className="mt-1 text-sm text-red-600">{errors.fee_amount}</p>}
                     </div>
                     <div>
