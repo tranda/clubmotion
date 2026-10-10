@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.123] - 2026-10-10
+
+### Added
+- **Fill gender from names.** A "Fill gender from names" link on the Members list (shown while some members have no gender) opens a review page that guesses gender from each first name (Serbian naming rules with exceptions; unisex names flagged as unsure). Staff correct guesses (Male / Female / Skip) and save; only empty genders are filled, existing values are never overwritten.
+
 ## [0.9.122] - 2026-10-10
 
 ### Added

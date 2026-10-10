@@ -208,6 +208,13 @@ export default function Index({ members, filter, categoryStats }) {
                         </button>
                     </div>
 
+                    {/* Fill missing genders */}
+                    {viewMode === 'list' && members.some((m) => !m.gender) && (
+                        <Link href="/members/gender-guess" className="text-sm text-blue-600 hover:text-blue-800 sm:ml-auto sm:mr-4">
+                            Fill gender from names ({members.filter((m) => !m.gender).length})
+                        </Link>
+                    )}
+
                     {/* Add Member Button */}
                     {viewMode === 'list' && (
                         <Link

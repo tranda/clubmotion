@@ -79,6 +79,8 @@ Route::middleware('auth')->group(function () {
     // Admin and Superuser only routes (create, edit, delete) - MUST come before {id} route
     Route::middleware('role:admin,superuser')->group(function () {
         Route::get('/members/create', [MemberController::class, 'create'])->name('members.create');
+        Route::get('/members/gender-guess', [App\Http\Controllers\MemberGenderController::class, 'preview'])->name('members.gender-guess');
+        Route::post('/members/gender-guess', [App\Http\Controllers\MemberGenderController::class, 'apply'])->name('members.gender-guess.apply');
         Route::post('/members', [MemberController::class, 'store'])->name('members.store');
         Route::get('/members/{member}/edit', [MemberController::class, 'edit'])->name('members.edit');
         Route::put('/members/{member}', [MemberController::class, 'update'])->name('members.update');
