@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.114] - 2026-10-10
+
+### Added
+- **Room plan visible to members (read-only).** The room planner has a "Show room plan to members" switch (off by default). When on, participants see a Room plan on their competition card in My Payments: every room with its badge, bed size and occupants (names and additional people only), with their own room highlighted. No fees, notes or statuses of others are shown.
+
+### Note
+- Requires running `/migrate` after deploy (adds `competitions.rooms_visible`). Only the switch fails until it runs.
+
 ## [0.9.113] - 2026-10-10
 
 ### Changed

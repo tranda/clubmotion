@@ -19,6 +19,7 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
         const next = types.includes(beds) ? types.filter((b) => b !== beds) : [...types, beds].sort();
         router.put(`${base}/${competition.id}/rooms`, { room_types: next }, opts);
     };
+    const setVisible = (visible) => router.put(`${base}/${competition.id}/rooms-visibility`, { visible }, opts);
     const addRoom = () => router.post(`${base}/${competition.id}/planner-rooms`, { beds: newBeds }, opts);
     const generate = () => router.post(`${base}/${competition.id}/planner-rooms/generate`, {}, opts);
     const changeBeds = (room, beds) => router.put(`${base}/planner-rooms/${room.id}`, { beds }, opts);
@@ -69,6 +70,15 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                     </p>
                 )}
             </div>
+
+            {/* Member visibility */}
+            <label className="mb-4 flex items-center gap-2 text-sm cursor-pointer rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2">
+                <input type="checkbox" checked={!!competition.rooms_visible} onChange={(e) => setVisible(e.target.checked)} />
+                <span>
+                    <span className="font-medium text-gray-900">Show room plan to members</span>
+                    <span className="text-gray-500"> · participants see all rooms and who is in them (read-only) on My Payments</span>
+                </span>
+            </label>
 
             {/* Actions */}
             <div className="flex flex-wrap items-center gap-2 mb-4">

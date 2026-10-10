@@ -166,6 +166,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/{competition}/export', 'export')->name('competition-fees.export');
             Route::put('/{competition}/rooms', 'updateRooms')->name('competition-fees.rooms.update');
             Route::post('/{competition}/planner-rooms', 'storeRoom')->name('competition-fees.planner-rooms.store');
+            Route::put('/{competition}/rooms-visibility', 'updateRoomsVisibility')->name('competition-fees.rooms.visibility');
             Route::post('/{competition}/planner-rooms/generate', 'generateRooms')->name('competition-fees.planner-rooms.generate');
             Route::put('/planner-rooms/{room}', 'updateRoom')->name('competition-fees.planner-rooms.update');
             Route::delete('/planner-rooms/{room}', 'destroyRoom')->name('competition-fees.planner-rooms.destroy');

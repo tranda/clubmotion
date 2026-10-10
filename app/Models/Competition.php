@@ -13,7 +13,7 @@ class Competition extends Model
 
     protected $fillable = [
         'name', 'location', 'start_date', 'end_date', 'default_fee',
-        'currency', 'status', 'notes', 'room_counts', 'created_by',
+        'currency', 'status', 'notes', 'room_counts', 'rooms_visible', 'created_by',
     ];
 
     protected $casts = [
@@ -21,6 +21,7 @@ class Competition extends Model
         'end_date' => 'date:Y-m-d',
         'default_fee' => 'decimal:2',
         'room_counts' => 'array',
+        'rooms_visible' => 'boolean',
     ];
 
     public function participants()

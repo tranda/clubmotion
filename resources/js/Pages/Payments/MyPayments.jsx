@@ -193,6 +193,34 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                 </div>
                                             </div>
                                         </div>
+                                        {cf.rooms && cf.rooms.length > 0 && (
+                                            <div className="mt-3 pt-3 border-t border-gray-100">
+                                                <div className="text-sm font-medium text-gray-700 mb-2">Room plan</div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    {cf.rooms.map((room) => (
+                                                        <div key={room.id} className={`rounded-md border p-2 ${room.is_mine ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200'}`}>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{room.title}</span>
+                                                                <span className="text-xs text-gray-500">{room.beds}-bed</span>
+                                                                {room.is_mine && <span className="text-xs font-medium text-indigo-700">Your room</span>}
+                                                            </div>
+                                                            {room.occupants.length === 0 ? (
+                                                                <div className="text-xs text-gray-400">Empty</div>
+                                                            ) : (
+                                                                <ul className="text-sm text-gray-800">
+                                                                    {room.occupants.map((o) => (
+                                                                        <li key={o.id}>
+                                                                            {o.name}
+                                                                            {extrasLabel(o) && <span className="text-xs text-gray-500"> {extrasLabel(o)}</span>}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                         {cf.payments.length > 0 && (
                                             <ul className="mt-3 pt-3 border-t border-gray-100 space-y-1 text-sm text-gray-600">
                                                 {cf.payments.map((pay) => (

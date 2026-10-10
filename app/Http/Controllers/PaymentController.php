@@ -215,6 +215,7 @@ class PaymentController extends Controller
                     'paid_at' => optional($pay->paid_at)->format('Y-m-d'),
                     'payment_method' => $pay->payment_method,
                 ])->values(),
+                'rooms' => $this->memberRoomPlan($p),
             ]);
 
         return Inertia::render('Payments/MyPayments', [
@@ -856,5 +857,37 @@ class PaymentController extends Controller
         return response()->json([
             'annual_amount' => $config['annual_amount'],
         ]);
+    }
+
+    /**
+     * Read-only room plan for a member, only when the competition has it
+     * switched visible. Names and additional people only; no fees or notes.
+     */
+    private function memberRoomPlan(\App\Models\CompetitionParticipant $participant)
+    {
+        $competition = $participant->competition;
+        if (!$competition || !$competition->rooms_visible) {
+            return null;
+        }
+
+        $rooms = $competition->rooms()->with(['participants' => function ($q) {
+            $q->where('status', '!=', 'cancelled')->with('member:id,name');
+        }])->get();
+
+        return $rooms->map(fn ($room) => [
+            'id' => $room->id,
+            'title' => $room->name ? "Room {$room->name}" : "Room {$room->number}",
+            'beds' => $room->beds,
+            'is_mine' => (int) $participant->competition_room_id === (int) $room->id,
+            'occupants' => $room->participants
+                ->sortBy(fn ($o) => mb_strtolower($o->member->name ?? ''))
+                ->map(fn ($o) => [
+                    'id' => $o->id,
+                    'name' => $o->member->name ?? '?',
+                    'extra_athletes' => (int) $o->extra_athletes,
+                    'extra_supporters' => (int) $o->extra_supporters,
+                    'extra_children' => (int) $o->extra_children,
+                ])->values(),
+        ])->values();
     }
 }

@@ -252,6 +252,14 @@ class CompetitionFeeController extends Controller
         return back()->with('success', $added ? "Added {$added} room(s) from the plan" : 'Rooms already match the plan');
     }
 
+    public function updateRoomsVisibility(Request $request, Competition $competition)
+    {
+        $data = $request->validate(['visible' => 'required|boolean']);
+        $competition->update(['rooms_visible' => $data['visible']]);
+
+        return back()->with('success', $data['visible'] ? 'Room plan is now visible to members' : 'Room plan is hidden from members');
+    }
+
     public function updateRoom(Request $request, CompetitionRoom $room)
     {
         $room->update($request->validate([
@@ -478,6 +486,7 @@ class CompetitionFeeController extends Controller
             'status' => $competition->status,
             'notes' => $competition->notes,
             'room_types' => $competition->roomTypes(),
+            'rooms_visible' => (bool) $competition->rooms_visible,
         ];
     }
 
