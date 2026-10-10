@@ -1,11 +1,11 @@
 import { useForm } from '@inertiajs/react';
 import { useLayoutEffect, useRef } from 'react';
-import { Modal, StatusBadge, METHOD_LABELS, formatDate, formatMoney, inputClass } from './format';
+import { Modal, StatusBadge, METHOD_LABELS, formatDate, formatMoney, inputClass, effectiveStay, stayLabel } from './format';
 
 // Participant details: amounts, fee/status editing and payment history.
 export default function ParticipantModal({ competition, participant, onAddPayment, onEditPayment, onDeletePayment, onRemove, onClose }) {
     const cur = competition.currency;
-    const { data, setData, put, processing, errors, isDirty } = useForm({
+    const { data, setData, put, transform, processing, errors, isDirty } = useForm({
         role: participant.role || 'athlete',
         fee_amount: participant.fee_amount,
         status: participant.status,
@@ -15,10 +15,20 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
         extra_children: participant.extra_children ?? 0,
         notes: participant.notes || '',
         can_edit_rooms: !!participant.can_edit_rooms,
+        // Shown as effective dates; saved as null when equal to the default.
+        check_in: effectiveStay(participant, competition.room_dates).check_in || '',
+        check_out: effectiveStay(participant, competition.room_dates).check_out || '',
     });
 
     const save = (e) => {
         e.preventDefault();
+        const defaults = competition.room_dates || {};
+        // Dates equal to the default are saved as null so they follow it.
+        transform((d) => ({
+            ...d,
+            check_in: d.check_in && d.check_in !== defaults.check_in ? d.check_in : null,
+            check_out: d.check_out && d.check_out !== defaults.check_out ? d.check_out : null,
+        }));
         put(`/payments/competition-fees/participants/${participant.id}`, { preserveScroll: true });
     };
 
@@ -113,6 +123,22 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                             </div>
                         ))}
                     </div>
+                </div>
+                <div>
+                    <div className="block text-sm font-medium text-gray-700 mb-1">Stay</div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs text-gray-500 mb-1">Check-in</label>
+                            <input type="date" value={data.check_in} onChange={(e) => setData('check_in', e.target.value)} className={inputClass} />
+                        </div>
+                        <div>
+                            <label className="block text-xs text-gray-500 mb-1">Check-out</label>
+                            <input type="date" value={data.check_out} onChange={(e) => setData('check_out', e.target.value)} className={inputClass} />
+                        </div>
+                    </div>
+                    {stayLabel(competition.room_dates || {}) && (
+                        <p className="mt-1 text-xs text-gray-500">Default: {stayLabel(competition.room_dates)} (set in Room planner)</p>
+                    )}
                 </div>
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
                     <input type="checkbox" checked={data.can_edit_rooms} onChange={(e) => setData('can_edit_rooms', e.target.checked)} />

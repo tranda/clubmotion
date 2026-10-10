@@ -13,7 +13,8 @@ class Competition extends Model
 
     protected $fillable = [
         'name', 'location', 'start_date', 'end_date', 'default_fee',
-        'currency', 'status', 'notes', 'room_counts', 'rooms_visible', 'created_by',
+        'currency', 'status', 'notes', 'room_counts', 'rooms_visible',
+        'rooms_check_in', 'rooms_check_out', 'created_by',
     ];
 
     protected $casts = [
@@ -22,6 +23,8 @@ class Competition extends Model
         'default_fee' => 'decimal:2',
         'room_counts' => 'array',
         'rooms_visible' => 'boolean',
+        'rooms_check_in' => 'date:Y-m-d',
+        'rooms_check_out' => 'date:Y-m-d',
     ];
 
     public function participants()
@@ -45,6 +48,49 @@ class Competition extends Model
     public function getYearAttribute()
     {
         return (int) ($this->start_date ?? $this->created_at)->format('Y');
+    }
+
+    /**
+     * Default room check-in/check-out (Y-m-d or null): the planner default,
+     * else the competition's start/end date.
+     */
+    public function defaultRoomDates()
+    {
+        $in = $this->rooms_check_in ?? $this->start_date;
+        $out = $this->rooms_check_out ?? $this->end_date;
+
+        return [
+            'check_in' => $in ? $in->format('Y-m-d') : null,
+            'check_out' => $out ? $out->format('Y-m-d') : null,
+        ];
+    }
+
+    /**
+     * Date range covering a set of participants' stays (a room's occupants):
+     * earliest check-in, latest check-out, nights, and whether they differ.
+     */
+    public static function stayRange($participants, array $defaults)
+    {
+        $ins = [];
+        $outs = [];
+        foreach ($participants as $p) {
+            $stay = $p->stay($defaults);
+            if ($stay['check_in']) $ins[] = $stay['check_in'];
+            if ($stay['check_out']) $outs[] = $stay['check_out'];
+        }
+        if (!$ins && !$outs) {
+            $ins = array_filter([$defaults['check_in']]);
+            $outs = array_filter([$defaults['check_out']]);
+        }
+        $in = $ins ? min($ins) : null;
+        $out = $outs ? max($outs) : null;
+
+        return [
+            'check_in' => $in,
+            'check_out' => $out,
+            'nights' => $in && $out ? max(0, (int) round((strtotime($out) - strtotime($in)) / 86400)) : null,
+            'mixed' => count(array_unique($ins)) > 1 || count(array_unique($outs)) > 1,
+        ];
     }
 
     /**

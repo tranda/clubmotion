@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
-import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel } from '../../Components/CompetitionFees/format';
+import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel, stayLabel } from '../../Components/CompetitionFees/format';
 
 export default function MyPayments({ member, year, payments, availableYears, competitionFees = [] }) {
     const monthNames = {
@@ -174,6 +174,9 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                     Registered as {cf.role === 'supporter' ? 'Supporter' : 'Athlete'}
                                                     {extrasLabel(cf) && <span className="text-gray-500"> · {extrasLabel(cf)}</span>}
                                                 </div>
+                                                {cf.stay && cf.stay.check_in && (
+                                                    <div className="text-sm text-gray-700">Stay: {stayLabel(cf.stay)}</div>
+                                                )}
                                             </div>
                                             <StatusBadge status={cf.payment_status} />
                                         </div>
@@ -213,6 +216,7 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                                 <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{room.title}</span>
                                                                 <span className="text-xs text-gray-500">{room.beds}-bed</span>
                                                             </div>
+                                                            {stayLabel(room) && <div className="text-xs text-gray-500 mb-1">{stayLabel(room)}</div>}
                                                             {room.occupants.length === 0 ? (
                                                                 <div className="text-xs text-gray-400">Empty</div>
                                                             ) : (

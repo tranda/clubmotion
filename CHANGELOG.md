@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.119] - 2026-10-10
+
+### Added
+- **Stay dates (check-in / check-out).** The room planner has a default check-in/check-out for everyone (initially the competition's start/end dates). Each participant can have their own dates (participant window "Stay", or in the planner before being placed); dates equal to the default follow it. Room cards show the room's dates and nights; changing them sets the dates for everyone in the room, and rooms whose occupants' dates differ are flagged. Dates are shown in the participant list (when different from the default), group-by-room headers, My Payments (own stay and room plan) and the export (Check-in/Check-out columns; Rooms sheet with check-in, check-out and nights).
+
+### Note
+- Requires running `/migrate` after deploy (adds `competitions.rooms_check_in/rooms_check_out` and `competition_participants.check_in/check_out`). Saving a participant fails until it runs. Run `/clear-cache` if date saves return 404.
+
 ## [0.9.118] - 2026-10-10
 
 ### Added

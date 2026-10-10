@@ -12,7 +12,8 @@ class CompetitionParticipant extends Model
 
     protected $fillable = [
         'competition_id', 'member_id', 'role', 'fee_amount', 'status',
-        'extra_athletes', 'extra_supporters', 'extra_children', 'preferred_room', 'competition_room_id', 'can_edit_rooms', 'notes',
+        'extra_athletes', 'extra_supporters', 'extra_children', 'preferred_room', 'competition_room_id', 'can_edit_rooms',
+        'check_in', 'check_out', 'notes',
     ];
 
     protected $casts = [
@@ -23,6 +24,8 @@ class CompetitionParticipant extends Model
         'preferred_room' => 'integer',
         'competition_room_id' => 'integer',
         'can_edit_rooms' => 'boolean',
+        'check_in' => 'date:Y-m-d',
+        'check_out' => 'date:Y-m-d',
     ];
 
     public function competition()
@@ -33,6 +36,17 @@ class CompetitionParticipant extends Model
     public function member()
     {
         return $this->belongsTo(Member::class);
+    }
+
+    /**
+     * Effective stay, falling back to the competition default dates.
+     */
+    public function stay(array $defaults)
+    {
+        return [
+            'check_in' => $this->check_in ? $this->check_in->format('Y-m-d') : $defaults['check_in'],
+            'check_out' => $this->check_out ? $this->check_out->format('Y-m-d') : $defaults['check_out'],
+        ];
     }
 
     public function room()
@@ -134,6 +148,9 @@ class CompetitionParticipant extends Model
             'preferred_room' => $this->preferred_room ? (int) $this->preferred_room : null,
             'room_id' => $this->competition_room_id ? (int) $this->competition_room_id : null,
             'can_edit_rooms' => (bool) $this->can_edit_rooms,
+            // Own stay dates; null = use the competition default (room_dates).
+            'check_in' => $this->check_in ? $this->check_in->format('Y-m-d') : null,
+            'check_out' => $this->check_out ? $this->check_out->format('Y-m-d') : null,
             'notes' => $this->notes,
             'paid_amount' => $this->paid_amount,
             'remaining_amount' => $this->remaining_amount,

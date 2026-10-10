@@ -148,7 +148,7 @@ class CompetitionFeeController extends Controller
             'competition' => $this->competitionArray($competition),
             'totals' => Competition::totalsFor($participants),
             'roomPlan' => $competition->roomPlan($participants),
-            'rooms' => $competition->rooms()->get(['id', 'number', 'name', 'beds']),
+            'rooms' => $this->roomsArray($competition),
             'participants' => $participants->map(function ($p) {
                 return $p->toSummaryArray() + [
                     'payments' => $p->payments->map(fn ($pay) => [
@@ -239,7 +239,7 @@ class CompetitionFeeController extends Controller
         return Inertia::render('Payments/RoomPlanner', [
             'totals' => Competition::totalsFor($participants),
             'competition' => $this->competitionArray($competition),
-            'rooms' => $competition->rooms()->get(['id', 'number', 'name', 'beds']),
+            'rooms' => $this->roomsArray($competition),
             'roomPlan' => $competition->roomPlan($participants),
             'participants' => $participants->map(fn ($p) => $p->toSummaryArray() + [
                 'payments' => $p->payments->map(fn ($pay) => [
@@ -301,6 +301,67 @@ class CompetitionFeeController extends Controller
         return back()->with('success', $data['visible'] ? 'Room plan is now visible to members' : 'Room plan is hidden from members');
     }
 
+    /**
+     * Default check-in/check-out for every participant without their own dates.
+     */
+    public function updateRoomDates(Request $request, Competition $competition)
+    {
+        $this->authorizeRoomEditor($competition);
+
+        $competition->update($request->validate([
+            'rooms_check_in' => 'nullable|date',
+            'rooms_check_out' => 'nullable|date|after_or_equal:rooms_check_in',
+        ]));
+
+        return back();
+    }
+
+    /**
+     * A participant's own stay dates (null = use the competition default).
+     */
+    public function updateStay(Request $request, CompetitionParticipant $participant)
+    {
+        $this->authorizeRoomEditor($participant->competition);
+
+        $data = $request->validate([
+            'check_in' => 'nullable|date',
+            'check_out' => 'nullable|date',
+        ]);
+        $defaults = $participant->competition->defaultRoomDates();
+        foreach (['check_in', 'check_out'] as $field) {
+            $value = $data[$field] ?? null;
+            $data[$field] = $value && $value !== $defaults[$field] ? $value : null;
+        }
+        $participant->update($data);
+
+        return back();
+    }
+
+    /**
+     * Set the same stay dates for everyone in a room. Dates equal to the
+     * competition default are stored as null so they follow the default.
+     */
+    public function updateRoomStay(Request $request, CompetitionRoom $room)
+    {
+        $competition = $room->competition;
+        $this->authorizeRoomEditor($competition);
+
+        $data = $request->validate([
+            'check_in' => 'nullable|date',
+            'check_out' => 'nullable|date',
+        ]);
+        $defaults = $competition->defaultRoomDates();
+        $values = [];
+        foreach (['check_in', 'check_out'] as $field) {
+            $value = $data[$field] ?? null;
+            $values[$field] = $value && $value !== $defaults[$field] ? $value : null;
+        }
+
+        $room->participants()->where('status', '!=', 'cancelled')->update($values);
+
+        return back();
+    }
+
     public function updateRoom(Request $request, CompetitionRoom $room)
     {
         $this->authorizeRoomEditor($room->competition);
@@ -351,6 +412,8 @@ class CompetitionFeeController extends Controller
             'preferred_room' => ['nullable', 'integer', Rule::in(Competition::ROOM_SIZES)],
             'notes' => 'nullable|string|max:1000',
             'can_edit_rooms' => 'sometimes|boolean',
+            'check_in' => 'sometimes|nullable|date',
+            'check_out' => 'sometimes|nullable|date',
         ]);
         foreach (['extra_athletes', 'extra_supporters', 'extra_children'] as $field) {
             $data[$field] = (int) ($data[$field] ?? 0);
@@ -418,17 +481,21 @@ class CompetitionFeeController extends Controller
         $rooms = $competition->rooms()->get();
         // Room title as shown in the app: its name (e.g. "205"), else its number.
         $roomTitle = fn ($room) => $room ? ($room->name ?: $room->number) : '';
+        $defaults = $competition->defaultRoomDates();
+        $dmy = fn ($d) => $d ? date('d.m.Y', strtotime($d)) : '';
         $statusRows = $participants->map(fn ($p) => [
             $p->member->name ?? '?',
             ucfirst($p->role ?? 'athlete'),
             $roomTitle($rooms->firstWhere('id', $p->competition_room_id)),
+            $dmy($p->stay($defaults)['check_in']),
+            $dmy($p->stay($defaults)['check_out']),
             (float) $p->fee_amount,
             $p->paid_amount,
             $p->remaining_amount,
             ucfirst($p->payment_status),
             $p->last_payment_at ? date('d.m.Y', strtotime($p->last_payment_at)) : '',
         ])->all();
-        $statusHeader = ['Member', 'Role', 'Room', "Fee ({$cur})", "Paid ({$cur})", "Remaining ({$cur})", 'Status', 'Last payment'];
+        $statusHeader = ['Member', 'Role', 'Room', 'Check-in', 'Check-out', "Fee ({$cur})", "Paid ({$cur})", "Remaining ({$cur})", 'Status', 'Last payment'];
 
         $slug = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower(\Illuminate\Support\Str::ascii($competition->name))), '-');
         $filename = "competition-fees_{$slug}.{$format}";
@@ -453,17 +520,17 @@ class CompetitionFeeController extends Controller
         $sheet->setCellValue('A1', $competition->name . ($this->dateRange($competition) ? ' — ' . $this->dateRange($competition) : ''));
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
         $sheet->fromArray($statusHeader, null, 'A3');
-        $this->headerStyle($sheet, 'A3:H3');
+        $this->headerStyle($sheet, 'A3:J3');
         $r = 4;
         foreach ($statusRows as $row) {
             $sheet->fromArray($row, null, "A{$r}", true);
             $r++;
         }
         $totals = Competition::totalsFor($participants);
-        $sheet->fromArray(['Total', '', '', $totals['expected'], $totals['collected'], $totals['remaining']], null, "A{$r}", true);
-        $sheet->getStyle("A{$r}:H{$r}")->getFont()->setBold(true);
-        $sheet->getStyle("D4:F{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
-        foreach (range('A', 'H') as $col) {
+        $sheet->fromArray(['Total', '', '', '', '', $totals['expected'], $totals['collected'], $totals['remaining']], null, "A{$r}", true);
+        $sheet->getStyle("A{$r}:J{$r}")->getFont()->setBold(true);
+        $sheet->getStyle("F4:H{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
+        foreach (range('A', 'J') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -526,8 +593,10 @@ class CompetitionFeeController extends Controller
         $sheet->setTitle('Rooms');
         $sheet->setCellValue('A1', $competition->name . ' — rooms');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
-        $sheet->fromArray(['Room', 'Beds', 'Beds used', 'Occupants'], null, 'A3');
-        $this->headerStyle($sheet, 'A3:D3');
+        $sheet->fromArray(['Room', 'Beds', 'Beds used', 'Check-in', 'Check-out', 'Nights', 'Occupants'], null, 'A3');
+        $this->headerStyle($sheet, 'A3:G3');
+        $defaults = $competition->defaultRoomDates();
+        $dmy = fn ($d) => $d ? date('d.m.Y', strtotime($d)) : '';
 
         $r = 4;
         $bedsUsed = 0;
@@ -535,14 +604,18 @@ class CompetitionFeeController extends Controller
             $occupants = $active->where('competition_room_id', $room->id);
             $used = $occupants->sum($beds);
             $bedsUsed += $used;
+            $dates = Competition::stayRange($occupants, $defaults);
             $sheet->fromArray([
                 $room->name ?: $room->number,
                 $room->beds,
                 $used,
+                $dmy($dates['check_in']),
+                $dmy($dates['check_out']),
+                $dates['nights'] ?? '',
                 $occupants->map(fn ($p) => ($p->member->name ?? '?') . $extras($p))->implode("\n"),
             ], null, "A{$r}", true);
-            $sheet->getStyle("D{$r}")->getAlignment()->setWrapText(true);
-            $sheet->getStyle("A{$r}:D{$r}")->getAlignment()->setVertical('top');
+            $sheet->getStyle("G{$r}")->getAlignment()->setWrapText(true);
+            $sheet->getStyle("A{$r}:G{$r}")->getAlignment()->setVertical('top');
             if ($used > $room->beds) {
                 $sheet->getStyle("C{$r}")->getFont()->getColor()->setRGB('DC2626');
             }
@@ -570,10 +643,15 @@ class CompetitionFeeController extends Controller
             $r++;
         }
 
-        foreach (['A', 'B', 'C'] as $col) {
+        foreach (['A', 'B', 'C', 'D', 'E', 'F'] as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
-        $sheet->getColumnDimension('D')->setWidth(60);
+        $sheet->getColumnDimension('G')->setWidth(60);
+    }
+
+    private function roomsArray(Competition $competition)
+    {
+        return $competition->rooms()->get(['id', 'number', 'name', 'beds']);
     }
 
     private function isStaff()
@@ -643,6 +721,7 @@ class CompetitionFeeController extends Controller
             'notes' => $competition->notes,
             'room_types' => $competition->roomTypes(),
             'rooms_visible' => (bool) $competition->rooms_visible,
+            'room_dates' => $competition->defaultRoomDates(),
         ];
     }
 

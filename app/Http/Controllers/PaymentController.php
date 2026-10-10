@@ -203,6 +203,7 @@ class PaymentController extends Controller
                     'currency' => $p->competition->currency ?? 'EUR',
                 ],
                 'role' => $p->role ?? 'athlete',
+                'stay' => $p->competition ? $p->stay($p->competition->defaultRoomDates()) : null,
                 'extra_athletes' => (int) $p->extra_athletes,
                 'extra_supporters' => (int) $p->extra_supporters,
                 'extra_children' => (int) $p->extra_children,
@@ -876,7 +877,9 @@ class PaymentController extends Controller
             $q->where('status', '!=', 'cancelled')->with('member:id,name');
         }])->get();
 
-        return $rooms->map(fn ($room) => [
+        $defaults = $competition->defaultRoomDates();
+
+        return $rooms->map(fn ($room) => \App\Models\Competition::stayRange($room->participants, $defaults) + [
             'id' => $room->id,
             'title' => $room->name ? "Room {$room->name}" : "Room {$room->number}",
             'beds' => $room->beds,

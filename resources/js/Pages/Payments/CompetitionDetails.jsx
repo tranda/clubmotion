@@ -7,7 +7,7 @@ import AddParticipantsModal from '../../Components/CompetitionFees/AddParticipan
 import PaymentModal from '../../Components/CompetitionFees/PaymentModal';
 import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal';
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
-import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor, roomsSummary } from '../../Components/CompetitionFees/format';
+import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor, roomsSummary, stayRange, stayLabel, effectiveStay, hasOwnStay } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
     { key: 'all', label: 'All' },
@@ -82,6 +82,15 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                 <span className={`text-xs ${g.used > g.room.beds ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
                     {g.room.beds}-bed · {g.used}/{g.room.beds} beds
                 </span>
+                {(() => {
+                    const range = stayRange(participants.filter((p) => p.room_id === g.room.id && p.status !== 'cancelled'), competition.room_dates);
+                    return (
+                        <>
+                            {stayLabel(range) && <span className="text-xs text-gray-500">· {stayLabel(range)}</span>}
+                            {range.mixed && <span className="text-xs text-red-600 font-medium">dates differ</span>}
+                        </>
+                    );
+                })()}
             </div>
         ) : (
             <span className="text-xs font-semibold text-gray-600 uppercase">Not in a room</span>
@@ -291,7 +300,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                                 {p.member.name}
                                                 <RoleBadge role={p.role} />
                                                 {!grouped && roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
-{(extrasLabel(p) || roomLabel(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>}
+{(extrasLabel(p) || roomLabel(p) || hasOwnStay(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates))].filter(Boolean).join(' · ')}</div>}
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatMoney(p.fee_amount, cur)}</td>
@@ -330,7 +339,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                         <div className="font-medium text-gray-900">
                                             {p.member.name}<RoleBadge role={p.role} />
                                             {!grouped && roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
-{(extrasLabel(p) || roomLabel(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>}
+{(extrasLabel(p) || roomLabel(p) || hasOwnStay(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates))].filter(Boolean).join(' · ')}</div>}
                                         </div>
                                         <StatusBadge status={p.payment_status} />
                                     </div>
@@ -365,7 +374,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
             {showAdd && <AddParticipantsModal competition={competition} members={availableMembers} onClose={() => setShowAdd(false)} />}
             {detailsParticipant && (
                 <ParticipantModal
-                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${extrasLabel(detailsParticipant)}-${detailsParticipant.preferred_room}-${detailsParticipant.can_edit_rooms}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
+                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${extrasLabel(detailsParticipant)}-${detailsParticipant.preferred_room}-${detailsParticipant.can_edit_rooms}-${detailsParticipant.check_in}-${detailsParticipant.check_out}-${JSON.stringify(competition.room_dates)}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
                     competition={competition}
                     participant={detailsParticipant}
                     onAddPayment={() => setPaymentTarget({ participantId: detailsParticipant.id, payment: null })}

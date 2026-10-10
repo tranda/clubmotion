@@ -15,6 +15,41 @@ export const todayIso = () => {
     return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
 };
 
+// "28.05.2027 – 30.05.2027 · 2 nights" for room dates, or ''.
+export const stayLabel = ({ check_in, check_out, nights }) => {
+    if (!check_in && !check_out) return '';
+    const range = `${formatDate(check_in)} – ${formatDate(check_out)}`;
+    return nights != null ? `${range} · ${nights} night${nights === 1 ? '' : 's'}` : range;
+};
+
+const nightsBetween = (a, b) => (a && b ? Math.max(0, Math.round((new Date(b) - new Date(a)) / 86400000)) : null);
+
+// A participant's stay: own dates, else the competition default (room_dates).
+export const effectiveStay = (p, defaults = {}) => {
+    const check_in = p.check_in || defaults.check_in || null;
+    const check_out = p.check_out || defaults.check_out || null;
+    return { check_in, check_out, nights: nightsBetween(check_in, check_out) };
+};
+
+// Stay covering a room's occupants; `mixed` when their dates differ.
+export const stayRange = (people, defaults = {}) => {
+    if (people.length === 0) return { ...effectiveStay({}, defaults), mixed: false };
+    const stays = people.map((p) => effectiveStay(p, defaults));
+    const ins = stays.map((s) => s.check_in).filter(Boolean).sort();
+    const outs = stays.map((s) => s.check_out).filter(Boolean).sort();
+    const check_in = ins[0] || null;
+    const check_out = outs[outs.length - 1] || null;
+    return {
+        check_in,
+        check_out,
+        nights: nightsBetween(check_in, check_out),
+        mixed: new Set(ins).size > 1 || new Set(outs).size > 1,
+    };
+};
+
+// Own dates differ from the default?
+export const hasOwnStay = (p) => !!(p.check_in || p.check_out);
+
 export const METHOD_LABELS = { cash: 'Cash', bank_transfer: 'Bank transfer', other: 'Other' };
 
 const STATUS_STYLES = {

@@ -154,6 +154,9 @@ Route::middleware('auth')->group(function () {
     // (checked per competition in CompetitionFeeController::authorizeRoomEditor).
     Route::prefix('payments/competition-fees')->controller(App\Http\Controllers\CompetitionFeeController::class)->group(function () {
         Route::get('/{competition}/room-planner', 'roomPlanner')->name('competition-fees.room-planner');
+        Route::put('/{competition}/room-dates', 'updateRoomDates')->name('competition-fees.room-dates');
+        Route::put('/participants/{participant}/stay', 'updateStay')->name('competition-fees.participants.stay');
+        Route::put('/planner-rooms/{room}/stay', 'updateRoomStay')->name('competition-fees.planner-rooms.stay');
         Route::put('/{competition}/rooms-visibility', 'updateRoomsVisibility')->name('competition-fees.rooms.visibility');
         Route::put('/{competition}/rooms', 'updateRooms')->name('competition-fees.rooms.update');
         Route::post('/{competition}/planner-rooms', 'storeRoom')->name('competition-fees.planner-rooms.store');

@@ -4,7 +4,7 @@ import Layout from '../../Components/Layout';
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
 import {
     formatDate, formatMoney, METHOD_LABELS, StatusBadge, SummaryCard, RoleBadge,
-    extrasLabel, roomLabel, roomsSummary,
+    extrasLabel, roomLabel, roomsSummary, effectiveStay, hasOwnStay, stayLabel,
 } from '../../Components/CompetitionFees/format';
 
 // Trip overview for participants marked as room editors: room planner plus
@@ -80,8 +80,8 @@ export default function RoomPlanner({ competition, totals, rooms, roomPlan, part
                                                 <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomTitle(p)}</span>
                                             )}
                                         </div>
-                                        {(extrasLabel(p) || roomLabel(p)) && (
-                                            <div className="text-xs text-gray-600">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>
+                                        {(extrasLabel(p) || roomLabel(p) || hasOwnStay(p)) && (
+                                            <div className="text-xs text-gray-600">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates))].filter(Boolean).join(' · ')}</div>
                                         )}
                                         {p.notes && <div className="text-xs text-gray-500 whitespace-pre-line">{p.notes}</div>}
                                     </div>
