@@ -1,5 +1,6 @@
 import { useForm, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import BirthDateSelect from '../../Components/BirthDateSelect';
 
 export default function JoinRequestCreate({ clubName }) {
     const { flash } = usePage().props;
@@ -47,7 +48,7 @@ export default function JoinRequestCreate({ clubName }) {
                             {flash?.success || "Thank you! We've received your request and will be in touch shortly."}
                         </p>
                         <Link
-                            href="/login"
+                            href="/"
                             className="mt-6 inline-block w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
                         >
                             Back to sign in
@@ -110,12 +111,11 @@ export default function JoinRequestCreate({ clubName }) {
                             <label htmlFor="date_of_birth" className="block text-sm font-medium text-gray-700 mb-2">
                                 Date of birth
                             </label>
-                            <input
+                            <BirthDateSelect
                                 id="date_of_birth"
-                                type="date"
                                 value={data.date_of_birth}
-                                onChange={(e) => setData('date_of_birth', e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                onChange={(v) => setData('date_of_birth', v)}
+                                className="w-full px-2 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                             />
                             {errors.date_of_birth && <p className="mt-1 text-sm text-red-600">{errors.date_of_birth}</p>}
                         </div>
@@ -147,7 +147,7 @@ export default function JoinRequestCreate({ clubName }) {
                     </form>
 
                     <div className="mt-6 text-center">
-                        <Link href="/login" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                        <Link href="/" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
                             ← Back to sign in
                         </Link>
                     </div>

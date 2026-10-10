@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.100] - 2026-10-10
+
+### Changed
+- **Join page: date of birth uses Day / Month / Year dropdowns** instead of the native date picker, which on Android only paged month by month.
+- **Join page: "Back to sign in" links go to the site root** (club.motion.rs) instead of /login.
+
+### Removed
+- **"Join in" button and info popup removed from the sign-in page.** The Join page is still available at /join.
+
 ## [0.9.99] - 2026-10-09
 
 ### Added
