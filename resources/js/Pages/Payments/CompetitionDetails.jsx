@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import ConfirmModal from '../../Components/ConfirmModal';
@@ -7,7 +7,7 @@ import AddParticipantsModal from '../../Components/CompetitionFees/AddParticipan
 import PaymentModal from '../../Components/CompetitionFees/PaymentModal';
 import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal';
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
-import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel } from '../../Components/CompetitionFees/format';
+import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
     { key: 'all', label: 'All' },
@@ -26,6 +26,13 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
     const [showEdit, setShowEdit] = useState(false);
     const [showAdd, setShowAdd] = useState(false);
     const [showRooms, setShowRooms] = useState(false);
+    const [groupByRoom, setGroupByRoomState] = useState(() => {
+        try { return localStorage.getItem('competitionGroupByRoom') === '1'; } catch { return false; }
+    });
+    const setGroupByRoom = (on) => {
+        setGroupByRoomState(on);
+        try { localStorage.setItem('competitionGroupByRoom', on ? '1' : '0'); } catch { /* ignore */ }
+    };
     const [detailsId, setDetailsId] = useState(null);
     // { participantId, payment|null } for the add/edit payment modal
     const [paymentTarget, setPaymentTarget] = useState(null);
@@ -49,6 +56,35 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
             return p.payment_status === filter;
         });
     }, [participants, filter, search]);
+
+    // Visible participants, optionally grouped by room (rooms in order, then "Not in a room").
+    const groups = useMemo(() => {
+        if (!groupByRoom || rooms.length === 0) return [{ key: 'all', items: visible }];
+        const result = rooms.map((room) => {
+            const items = visible.filter((p) => p.room_id === room.id);
+            const used = participants
+                .filter((p) => p.room_id === room.id && p.status !== 'cancelled')
+                .reduce((n, p) => n + bedsFor(p), 0);
+            return { key: `room-${room.id}`, room, used, items };
+        });
+        result.push({ key: 'none', items: visible.filter((p) => !p.room_id || !rooms.some((r) => r.id === p.room_id)) });
+        return result.filter((g) => g.items.length > 0);
+    }, [groupByRoom, rooms, visible, participants]);
+    const grouped = groups.length > 1 || groups[0]?.key !== 'all';
+
+    const groupHeader = (g) =>
+        g.room ? (
+            <div className="flex items-center gap-2">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">
+                    {g.room.name ? `Room ${g.room.name}` : `Room ${g.room.number}`}
+                </span>
+                <span className={`text-xs ${g.used > g.room.beds ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
+                    {g.room.beds}-bed · {g.used}/{g.room.beds} beds
+                </span>
+            </div>
+        ) : (
+            <span className="text-xs font-semibold text-gray-600 uppercase">Not in a room</span>
+        );
 
     const countFor = (key) => {
         if (key === 'all') return totals.participants;
@@ -186,7 +222,13 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                             </button>
                         ))}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
+                        {rooms.length > 0 && (
+                            <label className="flex items-center gap-1.5 text-sm text-gray-700 whitespace-nowrap cursor-pointer">
+                                <input type="checkbox" checked={groupByRoom} onChange={(e) => setGroupByRoom(e.target.checked)} />
+                                Group by room
+                            </label>
+                        )}
                         <input
                             type="text"
                             placeholder="Search member…"
@@ -217,12 +259,19 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {visible.map((p) => (
+                                    {groups.map((g) => (
+                                        <Fragment key={g.key}>
+                                        {grouped && (
+                                            <tr className="bg-indigo-50">
+                                                <td colSpan={7} className="px-4 py-2">{groupHeader(g)}</td>
+                                            </tr>
+                                        )}
+                                    {g.items.map((p) => (
                                         <tr key={p.id} className={`hover:bg-gray-50 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(p.id)}>
                                                 {p.member.name}
                                                 <RoleBadge role={p.role} />
-                                                {roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
+                                                {!grouped && roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
 {(extrasLabel(p) || roomLabel(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>}
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
@@ -246,17 +295,22 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                             </td>
                                         </tr>
                                     ))}
+                                        </Fragment>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
 
                         <div className="md:hidden bg-white rounded-lg shadow divide-y divide-gray-200">
-                            {visible.map((p) => (
+                            {groups.map((g) => (
+                                <Fragment key={g.key}>
+                                {grouped && <div className="px-4 py-2 bg-indigo-50">{groupHeader(g)}</div>}
+                            {g.items.map((p) => (
                                 <div key={p.id} className={`p-4 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                     <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(p.id)}>
                                         <div className="font-medium text-gray-900">
                                             {p.member.name}<RoleBadge role={p.role} />
-                                            {roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
+                                            {!grouped && roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
 {(extrasLabel(p) || roomLabel(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>}
                                         </div>
                                         <StatusBadge status={p.payment_status} />
@@ -277,6 +331,8 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                         <button onClick={() => setDetailsId(p.id)} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded">View</button>
                                     </div>
                                 </div>
+                            ))}
+                                </Fragment>
                             ))}
                         </div>
                     </>

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.112] - 2026-10-10
+
+### Added
+- **Competition participants: Group by room.** A "Group by room" checkbox (shown once rooms exist) groups the participant list under room headers (room badge, bed size, beds used; red when over capacity), with "Not in a room" last. Filters and search still apply; the setting is remembered in the browser.
+
 ## [0.9.111] - 2026-10-10
 
 ### Changed

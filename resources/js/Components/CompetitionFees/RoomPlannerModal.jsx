@@ -1,14 +1,11 @@
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Modal, RoleBadge, extrasLabel, inputClass } from './format';
+import { Modal, RoleBadge, extrasLabel, inputClass, bedsFor as partySize } from './format';
 
 const SIZES = [1, 2, 3, 4, 5];
 const base = '/payments/competition-fees';
 const opts = { preserveScroll: true, preserveState: true };
 
-// Beds a participant takes: themselves + additional athletes/supporters.
-// Children don't take a bed (they share with their parent).
-const partySize = (p) => 1 + (p.extra_athletes || 0) + (p.extra_supporters || 0);
 
 // Room planner: room types available, numbered rooms and who sleeps where.
 export default function RoomPlannerModal({ competition, rooms, participants, roomPlan, onClose }) {

@@ -53,6 +53,10 @@ export const extrasLabel = (p) =>
         .map(([n, one, many]) => `+${n} ${n === 1 ? one : many}`)
         .join(', ');
 
+// Beds a participant takes: themselves + additional athletes/supporters.
+// Children don't take a bed (they share with their parent).
+export const bedsFor = (p) => 1 + (p.extra_athletes || 0) + (p.extra_supporters || 0);
+
 // "2-bed room" for a participant's preferred room, or ''.
 export const roomLabel = (p) => (p.preferred_room ? `${p.preferred_room}-bed room` : '');
 
