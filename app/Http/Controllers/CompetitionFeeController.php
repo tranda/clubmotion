@@ -169,6 +169,7 @@ class CompetitionFeeController extends Controller
         $request->validate([
             'member_ids' => 'required|array|min:1',
             'member_ids.*' => 'integer|exists:members,id',
+            'role' => ['nullable', Rule::in(CompetitionParticipant::ROLES)],
             'use_default_fee' => 'boolean',
             'fee_amount' => 'nullable|required_if:use_default_fee,false|numeric|min:0',
         ]);
@@ -185,6 +186,7 @@ class CompetitionFeeController extends Controller
             }
             $competition->participants()->create([
                 'member_id' => $memberId,
+                'role' => $request->input('role', 'athlete'),
                 'fee_amount' => $fee,
                 'status' => 'active',
             ]);
@@ -197,6 +199,7 @@ class CompetitionFeeController extends Controller
     public function updateParticipant(Request $request, CompetitionParticipant $participant)
     {
         $participant->update($request->validate([
+            'role' => ['required', Rule::in(CompetitionParticipant::ROLES)],
             'fee_amount' => 'required|numeric|min:0',
             'status' => ['required', Rule::in(CompetitionParticipant::STATUSES)],
             'notes' => 'nullable|string|max:1000',
@@ -261,13 +264,14 @@ class CompetitionFeeController extends Controller
         $cur = $competition->currency;
         $statusRows = $participants->map(fn ($p) => [
             $p->member->name ?? '?',
+            ucfirst($p->role ?? 'athlete'),
             (float) $p->fee_amount,
             $p->paid_amount,
             $p->remaining_amount,
             ucfirst($p->payment_status),
             $p->last_payment_at ? date('d.m.Y', strtotime($p->last_payment_at)) : '',
         ])->all();
-        $statusHeader = ['Member', "Fee ({$cur})", "Paid ({$cur})", "Remaining ({$cur})", 'Status', 'Last payment'];
+        $statusHeader = ['Member', 'Role', "Fee ({$cur})", "Paid ({$cur})", "Remaining ({$cur})", 'Status', 'Last payment'];
 
         $slug = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower(\Illuminate\Support\Str::ascii($competition->name))), '-');
         $filename = "competition-fees_{$slug}.{$format}";
@@ -292,17 +296,17 @@ class CompetitionFeeController extends Controller
         $sheet->setCellValue('A1', $competition->name . ($this->dateRange($competition) ? ' — ' . $this->dateRange($competition) : ''));
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
         $sheet->fromArray($statusHeader, null, 'A3');
-        $this->headerStyle($sheet, 'A3:F3');
+        $this->headerStyle($sheet, 'A3:G3');
         $r = 4;
         foreach ($statusRows as $row) {
             $sheet->fromArray($row, null, "A{$r}", true);
             $r++;
         }
         $totals = Competition::totalsFor($participants);
-        $sheet->fromArray(['Total', $totals['expected'], $totals['collected'], $totals['remaining']], null, "A{$r}", true);
-        $sheet->getStyle("A{$r}:F{$r}")->getFont()->setBold(true);
-        $sheet->getStyle("B4:D{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
-        foreach (range('A', 'F') as $col) {
+        $sheet->fromArray(['Total', '', $totals['expected'], $totals['collected'], $totals['remaining']], null, "A{$r}", true);
+        $sheet->getStyle("A{$r}:G{$r}")->getFont()->setBold(true);
+        $sheet->getStyle("C4:E{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
+        foreach (range('A', 'G') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

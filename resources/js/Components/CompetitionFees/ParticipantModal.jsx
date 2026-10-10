@@ -5,6 +5,7 @@ import { Modal, StatusBadge, METHOD_LABELS, formatDate, formatMoney, inputClass 
 export default function ParticipantModal({ competition, participant, onAddPayment, onEditPayment, onDeletePayment, onRemove, onClose }) {
     const cur = competition.currency;
     const { data, setData, put, processing, errors, isDirty } = useForm({
+        role: participant.role || 'athlete',
         fee_amount: participant.fee_amount,
         status: participant.status,
         notes: participant.notes || '',
@@ -54,6 +55,13 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                             <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Registered as</label>
+                    <select value={data.role} onChange={(e) => setData('role', e.target.value)} className={inputClass}>
+                        <option value="athlete">Athlete</option>
+                        <option value="supporter">Supporter</option>
+                    </select>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>

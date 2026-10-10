@@ -8,7 +8,9 @@ class CompetitionParticipant extends Model
 {
     public const STATUSES = ['active', 'cancelled', 'exempt'];
 
-    protected $fillable = ['competition_id', 'member_id', 'fee_amount', 'status', 'notes'];
+    public const ROLES = ['athlete', 'supporter'];
+
+    protected $fillable = ['competition_id', 'member_id', 'role', 'fee_amount', 'status', 'notes'];
 
     protected $casts = [
         'fee_amount' => 'decimal:2',
@@ -109,6 +111,7 @@ class CompetitionParticipant extends Model
                 'name' => $this->member->name ?? '?',
                 'membership_number' => $this->member->membership_number ?? null,
             ],
+            'role' => $this->role ?? 'athlete',
             'fee_amount' => (float) $this->fee_amount,
             'status' => $this->status,
             'notes' => $this->notes,

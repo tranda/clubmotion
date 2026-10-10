@@ -42,6 +42,16 @@ export function StatusBadge({ status }) {
     );
 }
 
+// Only supporters get a badge; athletes are the default.
+export function RoleBadge({ role }) {
+    if (role !== 'supporter') return null;
+    return (
+        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+            Supporter
+        </span>
+    );
+}
+
 export function CompetitionStatusBadge({ status }) {
     return (
         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${COMPETITION_STATUS_STYLES[status] || ''}`}>

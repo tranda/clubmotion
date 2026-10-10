@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.102] - 2026-10-10
+
+### Added
+- **Competition Fees: register participants as Athlete or Supporter.** The Add Participants window has an Athlete / Supporter choice (Athlete by default), the participant window has a "Registered as" field, supporters get a "Supporter" badge in the list, and the export has a Role column. Existing participants are Athletes.
+
+### Note
+- Requires running `/migrate` after deploy (adds `competition_participants.role`). Adding or editing participants fails until it runs.
+
 ## [0.9.101] - 2026-10-10
 
 ### Changed

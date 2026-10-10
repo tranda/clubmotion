@@ -6,7 +6,7 @@ import CompetitionFormModal from '../../Components/CompetitionFees/CompetitionFo
 import AddParticipantsModal from '../../Components/CompetitionFees/AddParticipantsModal';
 import PaymentModal from '../../Components/CompetitionFees/PaymentModal';
 import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal';
-import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard } from '../../Components/CompetitionFees/format';
+import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
     { key: 'all', label: 'All' },
@@ -187,6 +187,7 @@ export default function CompetitionDetails({ competition, totals, participants, 
                                         <tr key={p.id} className={`hover:bg-gray-50 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(p.id)}>
                                                 {p.member.name}
+                                                <RoleBadge role={p.role} />
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatMoney(p.fee_amount, cur)}</td>
@@ -217,7 +218,7 @@ export default function CompetitionDetails({ competition, totals, participants, 
                             {visible.map((p) => (
                                 <div key={p.id} className={`p-4 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                     <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(p.id)}>
-                                        <div className="font-medium text-gray-900">{p.member.name}</div>
+                                        <div className="font-medium text-gray-900">{p.member.name}<RoleBadge role={p.role} /></div>
                                         <StatusBadge status={p.payment_status} />
                                     </div>
                                     <div className="mt-1 text-sm text-gray-600" onClick={() => setDetailsId(p.id)}>
@@ -246,7 +247,7 @@ export default function CompetitionDetails({ competition, totals, participants, 
             {showAdd && <AddParticipantsModal competition={competition} members={availableMembers} onClose={() => setShowAdd(false)} />}
             {detailsParticipant && (
                 <ParticipantModal
-                    key={`${detailsParticipant.id}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
+                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
                     competition={competition}
                     participant={detailsParticipant}
                     onAddPayment={() => setPaymentTarget({ participantId: detailsParticipant.id, payment: null })}
