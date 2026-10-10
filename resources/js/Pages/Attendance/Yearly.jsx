@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Layout from '../../Components/Layout';
 
 const MONTH_LABELS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -13,6 +13,19 @@ export default function AttendanceYearly({
     };
 
     const totalsByMember = useMemo(() => rows.reduce((acc, r) => acc + (r.total ?? 0), 0), [rows]);
+
+    // Sort: name (A–Z) or total (most attended first), remembered per browser.
+    const [sortBy, setSortByState] = useState(() => {
+        try { return localStorage.getItem('attendanceYearlySort') === 'total' ? 'total' : 'name'; } catch { return 'name'; }
+    });
+    const setSortBy = (value) => {
+        setSortByState(value);
+        try { localStorage.setItem('attendanceYearlySort', value); } catch { /* ignore */ }
+    };
+    const sortedRows = useMemo(() => {
+        const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
+        return [...rows].sort(sortBy === 'total' ? (a, b) => (b.total ?? 0) - (a.total ?? 0) || byName(a, b) : byName);
+    }, [rows, sortBy]);
 
     return (
         <Layout>
@@ -52,6 +65,15 @@ export default function AttendanceYearly({
                             <option value="active">Active members</option>
                             <option value="all">All members</option>
                         </select>
+                        <select
+                            aria-label="Sort"
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="px-3 py-2 border border-gray-300 rounded-lg"
+                        >
+                            <option value="name">Sort by name</option>
+                            <option value="total">Sort by total</option>
+                        </select>
                     </div>
                 </div>
 
@@ -79,7 +101,7 @@ export default function AttendanceYearly({
                             {rows.length === 0 && (
                                 <tr><td colSpan="15" className="px-3 py-6 text-center text-gray-400">No members.</td></tr>
                             )}
-                            {rows.map((r) => (
+                            {sortedRows.map((r) => (
                                 <tr key={r.id} className="border-t border-gray-100 hover:bg-gray-50">
                                     <td className="px-3 py-2 sticky left-0 bg-white hover:bg-gray-50 whitespace-nowrap">
                                         <Link href={`/members/${r.id}`} className="text-gray-900 hover:text-blue-600">

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.127] - 2026-10-10
+
+### Added
+- **Attendance yearly: sort by name or total.** Sort dropdown next to the filters (name A–Z, or most attended first); remembered in the browser.
+
 ## [0.9.126] - 2026-10-10
 
 ### Changed
