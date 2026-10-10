@@ -193,6 +193,16 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                 </div>
                                             </div>
                                         </div>
+                                        {cf.payments.length > 0 && (
+                                            <ul className="mt-3 pt-3 border-t border-gray-100 space-y-1 text-sm text-gray-600">
+                                                {cf.payments.map((pay) => (
+                                                    <li key={pay.id} className="flex justify-between">
+                                                        <span>{formatDate(pay.paid_at)} • {METHOD_LABELS[pay.payment_method] || pay.payment_method}</span>
+                                                        <span className="font-medium text-gray-900">{formatMoney(pay.amount, cur)}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
                                         {cf.rooms && cf.rooms.length > 0 && (
                                             <div className="mt-3 pt-3 border-t border-gray-100">
                                                 <div className="text-sm font-medium text-gray-700 mb-2">Room plan</div>
@@ -220,16 +230,6 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                     ))}
                                                 </div>
                                             </div>
-                                        )}
-                                        {cf.payments.length > 0 && (
-                                            <ul className="mt-3 pt-3 border-t border-gray-100 space-y-1 text-sm text-gray-600">
-                                                {cf.payments.map((pay) => (
-                                                    <li key={pay.id} className="flex justify-between">
-                                                        <span>{formatDate(pay.paid_at)} • {METHOD_LABELS[pay.payment_method] || pay.payment_method}</span>
-                                                        <span className="font-medium text-gray-900">{formatMoney(pay.amount, cur)}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
                                         )}
                                     </div>
                                 );

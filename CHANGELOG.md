@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.116] - 2026-10-10
+
+### Changed
+- **My Payments: Room plan moved to the end of the competition card**, after the payment lines.
+
 ## [0.9.115] - 2026-10-10
 
 ### Changed
