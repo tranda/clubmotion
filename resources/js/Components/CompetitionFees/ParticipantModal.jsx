@@ -1,4 +1,5 @@
 import { useForm } from '@inertiajs/react';
+import { useLayoutEffect, useRef } from 'react';
 import { Modal, StatusBadge, METHOD_LABELS, formatDate, formatMoney, inputClass } from './format';
 
 // Participant details: amounts, fee/status editing and payment history.
@@ -18,6 +19,15 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
         e.preventDefault();
         put(`/payments/competition-fees/participants/${participant.id}`, { preserveScroll: true });
     };
+
+    // Notes start one line tall and grow with their content.
+    const notesRef = useRef(null);
+    useLayoutEffect(() => {
+        const el = notesRef.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight}px`;
+    }, [data.notes]);
 
     return (
         <Modal title={participant.member.name} onClose={onClose} wide>
@@ -89,7 +99,7 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                    <textarea rows={3} value={data.notes} onChange={(e) => setData('notes', e.target.value)} className={inputClass} />
+                    <textarea ref={notesRef} rows={1} value={data.notes} onChange={(e) => setData('notes', e.target.value)} className={`${inputClass} resize-none overflow-hidden`} />
                 </div>
                 <div className="flex justify-between items-center">
                     <button type="button" onClick={onRemove} className="text-sm text-red-600 hover:text-red-800">

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.105] - 2026-10-10
+
+### Changed
+- **Competition participant Notes start one line tall** and grow automatically with multiline content.
+
 ## [0.9.104] - 2026-10-10
 
 ### Added
