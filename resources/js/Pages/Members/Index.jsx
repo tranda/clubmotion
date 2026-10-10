@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Layout from '../../Components/Layout';
 
 const ROLE_BADGE_STYLES = {
@@ -22,6 +22,29 @@ export default function Index({ members, filter, categoryStats }) {
     const { auth } = usePage().props;
     const viewerIsAdmin = auth.user?.role?.name === 'admin';
     const [viewMode, setViewMode] = useState('list');
+    const [sortBy, setSortByState] = useState(() => {
+        try { return localStorage.getItem('membersSort') || 'id'; } catch { return 'id'; }
+    });
+    const setSortBy = (value) => {
+        setSortByState(value);
+        try { localStorage.setItem('membersSort', value); } catch { /* ignore */ }
+    };
+
+    // id = membership number; category = by age band (like the stats), then name.
+    const sortedMembers = useMemo(() => {
+        const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
+        const list = [...members];
+        if (sortBy === 'name') return list.sort(byName);
+        if (sortBy === 'category') {
+            const age = (m) => m.category?.min_age ?? 999;
+            return list.sort((a, b) =>
+                (a.category ? 0 : 1) - (b.category ? 0 : 1)
+                || age(a) - age(b)
+                || (a.category?.category_name || '').localeCompare(b.category?.category_name || '')
+                || byName(a, b));
+        }
+        return list.sort((a, b) => (a.membership_number ?? Infinity) - (b.membership_number ?? Infinity));
+    }, [members, sortBy]);
     const handleFilterChange = (e) => {
         const value = e.target.value;
         router.get('/members', { filter: value }, {
@@ -88,6 +111,17 @@ export default function Index({ members, filter, categoryStats }) {
                         >
                             <option value="all">All</option>
                             <option value="active">Active</option>
+                        </select>
+                        <label htmlFor="sort" className="text-sm text-gray-600 ml-2">Sort:</label>
+                        <select
+                            id="sort"
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="id">ID</option>
+                            <option value="name">Name</option>
+                            <option value="category">Category</option>
                         </select>
                     </div>
                 </div>
@@ -162,7 +196,7 @@ export default function Index({ members, filter, categoryStats }) {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {members.map((member, index) => (
+                                {sortedMembers.map((member, index) => (
                                     <tr
                                         key={member.id}
                                         onClick={() => navigateToMember(member.id)}
@@ -210,7 +244,7 @@ export default function Index({ members, filter, categoryStats }) {
 
                     {/* Mobile Card View (visible on mobile only) */}
                     <div className="md:hidden divide-y divide-gray-200">
-                        {members.map((member, index) => (
+                        {sortedMembers.map((member, index) => (
                             <div
                                 key={member.id}
                                 onClick={() => navigateToMember(member.id)}

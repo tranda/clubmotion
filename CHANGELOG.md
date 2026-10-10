@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.121] - 2026-10-10
+
+### Added
+- **Members list: Sort dropdown** (ID / Name / Category) next to Show. Category sorts by age band (as in the stats), then name; members without a category last. The choice is remembered in the browser.
+
 ## [0.9.120] - 2026-10-10
 
 ### Added
