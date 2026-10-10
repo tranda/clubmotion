@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.115] - 2026-10-10
+
+### Changed
+- **Member room plan: "Your room" label moved** below the last occupant in the member's own room card.
+
 ## [0.9.114] - 2026-10-10
 
 ### Added

@@ -202,7 +202,6 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{room.title}</span>
                                                                 <span className="text-xs text-gray-500">{room.beds}-bed</span>
-                                                                {room.is_mine && <span className="text-xs font-medium text-indigo-700">Your room</span>}
                                                             </div>
                                                             {room.occupants.length === 0 ? (
                                                                 <div className="text-xs text-gray-400">Empty</div>
@@ -216,6 +215,7 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                                     ))}
                                                                 </ul>
                                                             )}
+                                                            {room.is_mine && <div className="mt-1 text-xs font-medium text-indigo-700">Your room</div>}
                                                         </div>
                                                     ))}
                                                 </div>
