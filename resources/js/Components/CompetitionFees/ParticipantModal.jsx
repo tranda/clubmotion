@@ -14,6 +14,7 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
         extra_supporters: participant.extra_supporters ?? 0,
         extra_children: participant.extra_children ?? 0,
         notes: participant.notes || '',
+        can_edit_rooms: !!participant.can_edit_rooms,
     });
 
     const save = (e) => {
@@ -113,6 +114,11 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                         ))}
                     </div>
                 </div>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={data.can_edit_rooms} onChange={(e) => setData('can_edit_rooms', e.target.checked)} />
+                    Can edit room planner
+                    <span className="text-xs text-gray-500">(from My Payments; can view fees, payments and notes)</span>
+                </label>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                     <textarea ref={notesRef} rows={1} value={data.notes} onChange={(e) => setData('notes', e.target.value)} className={`${inputClass} resize-none overflow-hidden`} />

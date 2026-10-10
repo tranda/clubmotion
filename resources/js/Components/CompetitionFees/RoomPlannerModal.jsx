@@ -8,7 +8,7 @@ const opts = { preserveScroll: true, preserveState: true };
 
 
 // Room planner: room types available, numbered rooms and who sleeps where.
-export default function RoomPlannerModal({ competition, rooms, participants, roomPlan, onClose }) {
+export default function RoomPlannerModal({ competition, rooms, participants, roomPlan, onClose, canToggleVisibility = true }) {
     const [newBeds, setNewBeds] = useState(competition.room_types?.[0] || 2);
     const types = competition.room_types || [];
 
@@ -72,6 +72,7 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
             </div>
 
             {/* Member visibility */}
+            {canToggleVisibility && (
             <label className="mb-4 flex items-center gap-2 text-sm cursor-pointer rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2">
                 <input type="checkbox" checked={!!competition.rooms_visible} onChange={(e) => setVisible(e.target.checked)} />
                 <span>
@@ -79,6 +80,7 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                     <span className="text-gray-500"> · participants see all rooms and who is in them (read-only) on My Payments</span>
                 </span>
             </label>
+            )}
 
             {/* Actions */}
             <div className="flex flex-wrap items-center gap-2 mb-4">

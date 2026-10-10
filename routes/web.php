@@ -150,6 +150,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-payments', [App\Http\Controllers\PaymentController::class, 'myPayments'])
         ->name('payments.mine');
 
+    // Room planner: staff plus participants marked as room editors
+    // (checked per competition in CompetitionFeeController::authorizeRoomEditor).
+    Route::prefix('payments/competition-fees')->controller(App\Http\Controllers\CompetitionFeeController::class)->group(function () {
+        Route::get('/{competition}/room-planner', 'roomPlanner')->name('competition-fees.room-planner');
+        Route::put('/{competition}/rooms-visibility', 'updateRoomsVisibility')->name('competition-fees.rooms.visibility');
+        Route::put('/{competition}/rooms', 'updateRooms')->name('competition-fees.rooms.update');
+        Route::post('/{competition}/planner-rooms', 'storeRoom')->name('competition-fees.planner-rooms.store');
+        Route::post('/{competition}/planner-rooms/generate', 'generateRooms')->name('competition-fees.planner-rooms.generate');
+        Route::put('/planner-rooms/{room}', 'updateRoom')->name('competition-fees.planner-rooms.update');
+        Route::delete('/planner-rooms/{room}', 'destroyRoom')->name('competition-fees.planner-rooms.destroy');
+        Route::put('/participants/{participant}/room', 'assignRoom')->name('competition-fees.participants.room');
+    });
+
     // Admin & Superuser: Full payment management
     Route::middleware('role:admin,superuser')->group(function () {
         // Payment grid
@@ -164,13 +177,6 @@ Route::middleware('auth')->group(function () {
             Route::put('/{competition}', 'update')->name('competition-fees.update');
             Route::delete('/{competition}', 'destroy')->name('competition-fees.destroy');
             Route::get('/{competition}/export', 'export')->name('competition-fees.export');
-            Route::put('/{competition}/rooms', 'updateRooms')->name('competition-fees.rooms.update');
-            Route::post('/{competition}/planner-rooms', 'storeRoom')->name('competition-fees.planner-rooms.store');
-            Route::put('/{competition}/rooms-visibility', 'updateRoomsVisibility')->name('competition-fees.rooms.visibility');
-            Route::post('/{competition}/planner-rooms/generate', 'generateRooms')->name('competition-fees.planner-rooms.generate');
-            Route::put('/planner-rooms/{room}', 'updateRoom')->name('competition-fees.planner-rooms.update');
-            Route::delete('/planner-rooms/{room}', 'destroyRoom')->name('competition-fees.planner-rooms.destroy');
-            Route::put('/participants/{participant}/room', 'assignRoom')->name('competition-fees.participants.room');
             Route::post('/{competition}/participants', 'addParticipants')->name('competition-fees.participants.store');
             Route::put('/participants/{participant}', 'updateParticipant')->name('competition-fees.participants.update');
             Route::delete('/participants/{participant}', 'destroyParticipant')->name('competition-fees.participants.destroy');

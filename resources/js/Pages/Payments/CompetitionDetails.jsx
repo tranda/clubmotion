@@ -365,7 +365,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
             {showAdd && <AddParticipantsModal competition={competition} members={availableMembers} onClose={() => setShowAdd(false)} />}
             {detailsParticipant && (
                 <ParticipantModal
-                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${extrasLabel(detailsParticipant)}-${detailsParticipant.preferred_room}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
+                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${extrasLabel(detailsParticipant)}-${detailsParticipant.preferred_room}-${detailsParticipant.can_edit_rooms}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
                     competition={competition}
                     participant={detailsParticipant}
                     onAddPayment={() => setPaymentTarget({ participantId: detailsParticipant.id, payment: null })}

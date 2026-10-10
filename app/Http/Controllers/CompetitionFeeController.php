@@ -201,6 +201,8 @@ class CompetitionFeeController extends Controller
 
     public function updateRooms(Request $request, Competition $competition)
     {
+        $this->authorizeRoomEditor($competition);
+
         $request->validate([
             'room_types' => 'nullable|array',
             'room_types.*' => ['integer', Rule::in(Competition::ROOM_SIZES)],
@@ -217,9 +219,44 @@ class CompetitionFeeController extends Controller
     }
 
     // ─── Room planner ────────────────────────────────────────────────────────
+    // Admins/superusers, plus participants marked "can edit room planner".
+
+    /**
+     * Room planner page, for room editors who can't open the staff page.
+     * Fees, payments and notes are included read-only for trip planning.
+     */
+    public function roomPlanner(Competition $competition)
+    {
+        $this->authorizeRoomEditor($competition);
+
+        $participants = $competition->participants()
+            ->withPaymentTotals()
+            ->with(['member:id,name,membership_number', 'payments'])
+            ->get()
+            ->sortBy(fn ($p) => mb_strtolower($p->member->name ?? ''))
+            ->values();
+
+        return Inertia::render('Payments/RoomPlanner', [
+            'totals' => Competition::totalsFor($participants),
+            'competition' => $this->competitionArray($competition),
+            'rooms' => $competition->rooms()->get(['id', 'number', 'name', 'beds']),
+            'roomPlan' => $competition->roomPlan($participants),
+            'participants' => $participants->map(fn ($p) => $p->toSummaryArray() + [
+                'payments' => $p->payments->map(fn ($pay) => [
+                    'id' => $pay->id,
+                    'amount' => (float) $pay->amount,
+                    'paid_at' => $pay->paid_at->format('Y-m-d'),
+                    'payment_method' => $pay->payment_method,
+                    'note' => $pay->note,
+                ])->values(),
+            ])->values(),
+        ]);
+    }
 
     public function storeRoom(Request $request, Competition $competition)
     {
+        $this->authorizeRoomEditor($competition);
+
         $data = $request->validate(['beds' => ['required', 'integer', Rule::in(Competition::ROOM_SIZES)]]);
 
         $competition->rooms()->create([
@@ -235,6 +272,8 @@ class CompetitionFeeController extends Controller
      */
     public function generateRooms(Competition $competition)
     {
+        $this->authorizeRoomEditor($competition);
+
         $participants = $competition->participants()->get();
         $plan = $competition->roomPlan($participants);
         $existing = $competition->rooms()->get()->countBy('beds');
@@ -254,6 +293,8 @@ class CompetitionFeeController extends Controller
 
     public function updateRoomsVisibility(Request $request, Competition $competition)
     {
+        $this->authorizeRoomEditor($competition);
+
         $data = $request->validate(['visible' => 'required|boolean']);
         $competition->update(['rooms_visible' => $data['visible']]);
 
@@ -262,6 +303,8 @@ class CompetitionFeeController extends Controller
 
     public function updateRoom(Request $request, CompetitionRoom $room)
     {
+        $this->authorizeRoomEditor($room->competition);
+
         $room->update($request->validate([
             'beds' => ['sometimes', 'required', 'integer', Rule::in(Competition::ROOM_SIZES)],
             'name' => 'sometimes|nullable|string|max:50',
@@ -272,6 +315,8 @@ class CompetitionFeeController extends Controller
 
     public function destroyRoom(CompetitionRoom $room)
     {
+        $this->authorizeRoomEditor($room->competition);
+
         // Occupants become unassigned (FK nullOnDelete).
         $room->delete();
 
@@ -280,6 +325,8 @@ class CompetitionFeeController extends Controller
 
     public function assignRoom(Request $request, CompetitionParticipant $participant)
     {
+        $this->authorizeRoomEditor($participant->competition);
+
         $data = $request->validate(['room_id' => 'nullable|integer|exists:competition_rooms,id']);
         $roomId = $data['room_id'] ?? null;
 
@@ -303,6 +350,7 @@ class CompetitionFeeController extends Controller
             'extra_children' => 'nullable|integer|min:0|max:99',
             'preferred_room' => ['nullable', 'integer', Rule::in(Competition::ROOM_SIZES)],
             'notes' => 'nullable|string|max:1000',
+            'can_edit_rooms' => 'sometimes|boolean',
         ]);
         foreach (['extra_athletes', 'extra_supporters', 'extra_children'] as $field) {
             $data[$field] = (int) ($data[$field] ?? 0);
@@ -447,6 +495,34 @@ class CompetitionFeeController extends Controller
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    private function isStaff()
+    {
+        $user = auth()->user();
+        return $user && ($user->isAdmin() || $user->isSuperuser());
+    }
+
+    /**
+     * Staff, or an active participant of this competition marked as a room editor.
+     */
+    private function authorizeRoomEditor(?Competition $competition)
+    {
+        if (!$competition) {
+            abort(404);
+        }
+        if ($this->isStaff()) {
+            return;
+        }
+
+        $memberId = optional(auth()->user()->member)->id;
+        $allowed = $memberId && $competition->participants()
+            ->where('member_id', $memberId)
+            ->where('status', '!=', 'cancelled')
+            ->where('can_edit_rooms', true)
+            ->exists();
+
+        abort_unless($allowed, 403, 'You cannot edit the room planner for this competition');
+    }
 
     private function validateCompetition(Request $request)
     {

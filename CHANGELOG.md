@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.117] - 2026-10-10
+
+### Added
+- **Room planner editors per competition.** Staff can tick "Can edit room planner" on a participant. That participant gets a "Trip planner (rooms & fees)" button on their competition card in My Payments, opening a page with totals, people and rooms summary, every participant's room, extras, notes, payment status and payments (read-only), and the full room planner including the "Show room plan to members" switch. Fees and payments stay managed by admins/superusers. Planner actions are authorized per competition (staff or an active participant marked as editor).
+
+### Note
+- Requires running `/migrate` after deploy (adds `competition_participants.can_edit_rooms`). Saving a participant fails until it runs. Run `/clear-cache` if the new page returns 404.
+
 ## [0.9.116] - 2026-10-10
 
 ### Changed

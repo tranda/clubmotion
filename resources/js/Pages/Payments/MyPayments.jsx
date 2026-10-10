@@ -231,6 +231,16 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                 </div>
                                             </div>
                                         )}
+                                        {cf.can_edit_rooms && (
+                                            <div className="mt-3 pt-3 border-t border-gray-100">
+                                                <Link
+                                                    href={`/payments/competition-fees/${cf.competition_id}/room-planner`}
+                                                    className="inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700"
+                                                >
+                                                    Trip planner (rooms &amp; fees)
+                                                </Link>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}

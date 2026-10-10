@@ -194,6 +194,8 @@ class PaymentController extends Controller
             ->values()
             ->map(fn ($p) => [
                 'id' => $p->id,
+                'competition_id' => $p->competition_id,
+                'can_edit_rooms' => (bool) $p->can_edit_rooms,
                 'competition' => [
                     'name' => $p->competition->name ?? '?',
                     'location' => $p->competition->location ?? null,

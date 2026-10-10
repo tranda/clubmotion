@@ -12,7 +12,7 @@ class CompetitionParticipant extends Model
 
     protected $fillable = [
         'competition_id', 'member_id', 'role', 'fee_amount', 'status',
-        'extra_athletes', 'extra_supporters', 'extra_children', 'preferred_room', 'competition_room_id', 'notes',
+        'extra_athletes', 'extra_supporters', 'extra_children', 'preferred_room', 'competition_room_id', 'can_edit_rooms', 'notes',
     ];
 
     protected $casts = [
@@ -22,6 +22,7 @@ class CompetitionParticipant extends Model
         'extra_children' => 'integer',
         'preferred_room' => 'integer',
         'competition_room_id' => 'integer',
+        'can_edit_rooms' => 'boolean',
     ];
 
     public function competition()
@@ -132,6 +133,7 @@ class CompetitionParticipant extends Model
             'extra_children' => (int) $this->extra_children,
             'preferred_room' => $this->preferred_room ? (int) $this->preferred_room : null,
             'room_id' => $this->competition_room_id ? (int) $this->competition_room_id : null,
+            'can_edit_rooms' => (bool) $this->can_edit_rooms,
             'notes' => $this->notes,
             'paid_amount' => $this->paid_amount,
             'remaining_amount' => $this->remaining_amount,
