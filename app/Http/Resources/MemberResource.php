@@ -21,6 +21,8 @@ class MemberResource extends JsonResource
             'name' => $this->name,
             'membership_number' => $this->membership_number,
             'date_of_birth' => $this->date_of_birth ? $this->date_of_birth->format('Y-m-d') : null,
+            'gender' => $this->gender, // 'M', 'F' or null
+            'edbf_id' => $this->edbf_id,
             'address' => $this->address,
             'phone' => $this->phone,
             'email' => $this->email,

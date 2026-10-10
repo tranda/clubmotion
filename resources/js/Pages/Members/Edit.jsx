@@ -12,6 +12,8 @@ export default function Edit({ member, categories, roles = [], linkedUser = null
         name: member.name || '',
         membership_number: member.membership_number || '',
         date_of_birth: member.date_of_birth || '',
+        gender: member.gender || '',
+        edbf_id: member.edbf_id || '',
         address: member.address || '',
         phone: member.phone || '',
         email: member.email || '',
@@ -164,6 +166,40 @@ export default function Edit({ member, categories, roles = [], linkedUser = null
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             {errors.date_of_birth && <p className="mt-1 text-sm text-red-600">{errors.date_of_birth}</p>}
+                        </div>
+
+                        {/* Gender */}
+                        <div>
+                            <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
+                                Gender
+                            </label>
+                            <select
+                                id="gender"
+                                value={data.gender}
+                                onChange={(e) => setData('gender', e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">Not set</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                            </select>
+                            {errors.gender && <p className="mt-1 text-sm text-red-600">{errors.gender}</p>}
+                        </div>
+
+                        {/* EDBF ID */}
+                        <div>
+                            <label htmlFor="edbf_id" className="block text-sm font-medium text-gray-700 mb-2">
+                                EDBF ID
+                            </label>
+                            <input
+                                type="text"
+                                id="edbf_id"
+                                value={data.edbf_id}
+                                onChange={(e) => setData('edbf_id', e.target.value)}
+                                maxLength={50}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                            {errors.edbf_id && <p className="mt-1 text-sm text-red-600">{errors.edbf_id}</p>}
                         </div>
 
                         {/* Address */}

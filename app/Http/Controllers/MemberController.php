@@ -133,6 +133,8 @@ class MemberController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'date_of_birth' => 'nullable|date',
+            'gender' => 'nullable|in:M,F',
+            'edbf_id' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
@@ -297,6 +299,8 @@ class MemberController extends Controller
             'name' => 'required|string|max:255',
             'membership_number' => 'required|integer',
             'date_of_birth' => 'nullable|date',
+            'gender' => 'nullable|in:M,F',
+            'edbf_id' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',

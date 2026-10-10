@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import Layout from '../../Components/Layout';
 
 const ROLE_BADGE_STYLES = {
@@ -22,6 +22,7 @@ export default function Index({ members, filter, categoryStats }) {
     const { auth } = usePage().props;
     const viewerIsAdmin = auth.user?.role?.name === 'admin';
     const [viewMode, setViewMode] = useState('list');
+    const [genderFilter, setGenderFilter] = useState('');
     const [sortBy, setSortByState] = useState(() => {
         try { return localStorage.getItem('membersSort') || 'id'; } catch { return 'id'; }
     });
@@ -33,7 +34,7 @@ export default function Index({ members, filter, categoryStats }) {
     // id = membership number; category = by age band (like the stats), then name.
     const sortedMembers = useMemo(() => {
         const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
-        const list = [...members];
+        const list = members.filter((m) => !genderFilter || (genderFilter === 'none' ? !m.gender : m.gender === genderFilter));
         if (sortBy === 'name') return list.sort(byName);
         if (sortBy === 'category') {
             const age = (m) => m.category?.min_age ?? 999;
@@ -44,7 +45,35 @@ export default function Index({ members, filter, categoryStats }) {
                 || byName(a, b));
         }
         return list.sort((a, b) => (a.membership_number ?? Infinity) - (b.membership_number ?? Infinity));
-    }, [members, sortBy]);
+    }, [members, sortBy, genderFilter]);
+
+    const [groupBy, setGroupByState] = useState(() => {
+        try { return localStorage.getItem('membersGroupBy') || ''; } catch { return ''; }
+    });
+    const setGroupBy = (value) => {
+        setGroupByState(value);
+        try { localStorage.setItem('membersGroupBy', value); } catch { /* ignore */ }
+    };
+
+    // Groups keep the chosen sort inside each group.
+    const groups = useMemo(() => {
+        if (groupBy === 'gender') {
+            return [['M', 'Male'], ['F', 'Female'], ['', 'Gender not set']]
+                .map(([key, label]) => ({ key: `g-${key}`, label, items: sortedMembers.filter((m) => (m.gender || '') === key) }))
+                .filter((g) => g.items.length > 0);
+        }
+        if (groupBy === 'category') {
+            const order = new Map();
+            sortedMembers.forEach((m) => {
+                const key = m.category?.id ?? 'none';
+                if (!order.has(key)) order.set(key, { key: `c-${key}`, label: m.category?.category_name || 'No category', category: m.category, items: [] });
+                order.get(key).items.push(m);
+            });
+            const age = (g) => (g.category ? g.category.min_age ?? 999 : 1000);
+            return [...order.values()].sort((a, b) => age(a) - age(b) || a.label.localeCompare(b.label));
+        }
+        return [{ key: 'all', label: null, items: sortedMembers }];
+    }, [sortedMembers, groupBy]);
     const handleFilterChange = (e) => {
         const value = e.target.value;
         router.get('/members', { filter: value }, {
@@ -101,7 +130,7 @@ export default function Index({ members, filter, categoryStats }) {
                 <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h1 className="text-2xl font-bold text-gray-800">Members</h1>
 
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                         <label htmlFor="filter" className="text-sm text-gray-600">Show:</label>
                         <select
                             id="filter"
@@ -111,6 +140,27 @@ export default function Index({ members, filter, categoryStats }) {
                         >
                             <option value="all">All</option>
                             <option value="active">Active</option>
+                        </select>
+                        <select
+                            aria-label="Gender"
+                            value={genderFilter}
+                            onChange={(e) => setGenderFilter(e.target.value)}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="">All genders</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                            <option value="none">Not set</option>
+                        </select>
+                        <select
+                            aria-label="Group by"
+                            value={groupBy}
+                            onChange={(e) => setGroupBy(e.target.value)}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="">No grouping</option>
+                            <option value="gender">Group by gender</option>
+                            <option value="category">Group by category</option>
                         </select>
                         <label htmlFor="sort" className="text-sm text-gray-600 ml-2">Sort:</label>
                         <select
@@ -185,6 +235,7 @@ export default function Index({ members, filter, categoryStats }) {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DOB</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
@@ -196,7 +247,16 @@ export default function Index({ members, filter, categoryStats }) {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {sortedMembers.map((member, index) => (
+                                {groups.map((g) => (
+                                    <Fragment key={g.key}>
+                                        {g.label && (
+                                            <tr className="bg-gray-100">
+                                                <td colSpan={viewerIsAdmin ? 12 : 11} className="px-6 py-2 text-sm font-semibold text-gray-700">
+                                                    {g.label} <span className="font-normal text-gray-500">({g.items.length})</span>
+                                                </td>
+                                            </tr>
+                                        )}
+                                {g.items.map((member, index) => (
                                     <tr
                                         key={member.id}
                                         onClick={() => navigateToMember(member.id)}
@@ -222,6 +282,7 @@ export default function Index({ members, filter, categoryStats }) {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.date_of_birth}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.gender || '−'}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.phone}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.email}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -238,13 +299,22 @@ export default function Index({ members, filter, categoryStats }) {
                                         </td>
                                     </tr>
                                 ))}
+                                    </Fragment>
+                                ))}
                             </tbody>
                         </table>
                     </div>
 
                     {/* Mobile Card View (visible on mobile only) */}
                     <div className="md:hidden divide-y divide-gray-200">
-                        {sortedMembers.map((member, index) => (
+                        {groups.map((g) => (
+                            <Fragment key={g.key}>
+                                {g.label && (
+                                    <div className="px-4 py-2 bg-gray-100 text-sm font-semibold text-gray-700">
+                                        {g.label} <span className="font-normal text-gray-500">({g.items.length})</span>
+                                    </div>
+                                )}
+                        {g.items.map((member, index) => (
                             <div
                                 key={member.id}
                                 onClick={() => navigateToMember(member.id)}
@@ -277,7 +347,7 @@ export default function Index({ members, filter, categoryStats }) {
                                             </h3>
                                             <span className="ml-2">{member.is_active ? '✅' : '❌'}</span>
                                         </div>
-                                        <p className="text-sm text-gray-500">ID: {member.membership_number}</p>
+                                        <p className="text-sm text-gray-500">ID: {member.membership_number}{member.gender && ` · ${member.gender === 'M' ? 'Male' : 'Female'}`}</p>
                                         <p className="text-sm text-gray-500">{member.email}</p>
                                         <p className="text-sm text-gray-500">{member.phone}</p>
                                         <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -293,10 +363,12 @@ export default function Index({ members, filter, categoryStats }) {
                                 </div>
                             </div>
                         ))}
+                            </Fragment>
+                        ))}
                     </div>
 
                     {/* Empty State */}
-                    {members.length === 0 && (
+                    {sortedMembers.length === 0 && (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />

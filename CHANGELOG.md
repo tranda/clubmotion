@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.122] - 2026-10-10
+
+### Added
+- **Member gender and EDBF ID.** New fields on member create/edit and the member page; included in the members API (`gender`: M/F/null, `edbf_id`).
+- **Members list: gender column, gender filter and Group by** (gender or category, with counts; categories in age order). Sort applies within groups; Sort and Group by are remembered in the browser.
+
+### Note
+- Requires running `/migrate` after deploy (adds `members.gender` and `members.edbf_id`). Saving a member fails until it runs.
+
 ## [0.9.121] - 2026-10-10
 
 ### Added

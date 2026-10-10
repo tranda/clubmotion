@@ -268,6 +268,16 @@ export default function Show({ member, recentPayments = [], currentYear, imageHi
                             </div>
 
                             <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                                <dt className="text-sm font-medium text-gray-500">Gender</dt>
+                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ M: 'Male', F: 'Female' }[member.gender] || 'N/A'}</dd>
+                            </div>
+
+                            <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                                <dt className="text-sm font-medium text-gray-500">EDBF ID</dt>
+                                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{member.edbf_id || 'N/A'}</dd>
+                            </div>
+
+                            <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                                 <dt className="text-sm font-medium text-gray-500">Address</dt>
                                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{member.address || 'N/A'}</dd>
                             </div>
