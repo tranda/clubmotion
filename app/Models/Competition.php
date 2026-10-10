@@ -42,25 +42,29 @@ class Competition extends Model
     }
 
     /**
-     * Rooms available per bed count, always with keys 1..5.
+     * Room types (bed counts) available, e.g. [2, 3]. Stored in room_counts
+     * as {"1":0,"2":1,...}; any value above 0 means that type is available.
      */
-    public function roomCounts()
+    public function roomTypes()
     {
-        $counts = [];
+        $types = [];
         foreach (self::ROOM_SIZES as $size) {
-            $counts[$size] = (int) ($this->room_counts[$size] ?? $this->room_counts[(string) $size] ?? 0);
+            if ((int) ($this->room_counts[$size] ?? 0) > 0) {
+                $types[] = $size;
+            }
         }
-        return $counts;
+        return $types;
     }
 
     /**
-     * Accommodation plan per room size: rooms available, people who prefer
-     * that size (participant + their additional people) and rooms needed if
-     * they share (ceil(people / beds)). Cancelled participants are excluded.
+     * Accommodation plan per room size: whether that type is available,
+     * people who prefer it (participant + their additional people) and rooms
+     * needed if they share (ceil(people / beds)). Cancelled participants are
+     * excluded.
      */
     public function roomPlan($participants)
     {
-        $available = $this->roomCounts();
+        $available = $this->roomTypes();
         $people = array_fill_keys(self::ROOM_SIZES, 0);
         $noPreference = 0;
 
@@ -80,7 +84,7 @@ class Competition extends Model
         foreach (self::ROOM_SIZES as $size) {
             $sizes[] = [
                 'beds' => $size,
-                'available' => $available[$size],
+                'available' => in_array($size, $available, true),
                 'people' => $people[$size],
                 'needed' => (int) ceil($people[$size] / $size),
             ];

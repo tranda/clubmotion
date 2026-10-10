@@ -82,9 +82,12 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                         <label className="block text-sm font-medium text-gray-700 mb-1">Preferred room</label>
                         <select value={data.preferred_room} onChange={(e) => setData('preferred_room', e.target.value === '' ? '' : Number(e.target.value))} className={inputClass}>
                             <option value="">No preference</option>
-                            {[1, 2, 3, 4, 5].map((b) => (
-                                <option key={b} value={b}>{b}-bed room</option>
-                            ))}
+                            {[1, 2, 3, 4, 5]
+                                // Only available types, plus the current choice if it no longer is.
+                                .filter((b) => !competition.room_types?.length || competition.room_types.includes(b) || b === participant.preferred_room)
+                                .map((b) => (
+                                    <option key={b} value={b}>{b}-bed room</option>
+                                ))}
                         </select>
                         {errors.preferred_room && <p className="mt-1 text-sm text-red-600">{errors.preferred_room}</p>}
                     </div>

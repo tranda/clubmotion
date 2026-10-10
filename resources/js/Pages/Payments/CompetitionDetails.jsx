@@ -143,13 +143,17 @@ export default function CompetitionDetails({ competition, totals, roomPlan, part
                 )}
                 {roomPlan && (
                     <div className="mb-4 text-sm text-gray-700 flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span>Rooms needed / available:</span>
-                        {roomPlan.sizes.filter((r) => r.available > 0 || r.needed > 0).map((r) => (
-                            <span key={r.beds} className={r.needed > r.available ? 'text-red-600 font-medium' : ''}>
-                                {r.beds}-bed <strong>{r.needed}</strong>/{r.available}
+                        <span>Rooms needed:</span>
+                        {roomPlan.sizes.filter((r) => r.available || r.needed > 0).map((r) => (
+                            <span
+                                key={r.beds}
+                                className={!r.available ? 'text-red-600 font-medium' : ''}
+                                title={!r.available ? 'This room type is not available' : ''}
+                            >
+                                {r.beds}-bed <strong>{r.needed}</strong>{!r.available && ' (not available)'}
                             </span>
                         ))}
-                        {roomPlan.sizes.every((r) => r.available === 0 && r.needed === 0) && <span className="text-gray-400">no rooms set</span>}
+                        {roomPlan.sizes.every((r) => !r.available && r.needed === 0) && <span className="text-gray-400">no room types set</span>}
                         {roomPlan.no_preference > 0 && <span className="text-gray-500">· {roomPlan.no_preference} without preference</span>}
                         <button type="button" onClick={() => setShowRooms(true)} className="text-blue-600 hover:text-blue-800">Edit rooms</button>
                     </div>
@@ -269,7 +273,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, part
             </div>
 
             {showEdit && <CompetitionFormModal competition={competition} currencies={currencies} onClose={() => setShowEdit(false)} />}
-            {showRooms && <RoomsModal key={JSON.stringify(competition.room_counts)} competition={competition} onClose={() => setShowRooms(false)} />}
+            {showRooms && <RoomsModal key={(competition.room_types || []).join(',')} competition={competition} onClose={() => setShowRooms(false)} />}
             {showAdd && <AddParticipantsModal competition={competition} members={availableMembers} onClose={() => setShowAdd(false)} />}
             {detailsParticipant && (
                 <ParticipantModal

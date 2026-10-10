@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.107] - 2026-10-10
+
+### Changed
+- **Accommodation planner: room types instead of counts.** "Edit rooms" now has checkboxes for the available room types (1–5 beds). The rooms line shows rooms needed per type and flags preferred types that are not available. The participant "Preferred room" dropdown only offers available types (keeping a participant's current choice).
+
 ## [0.9.106] - 2026-10-10
 
 ### Added

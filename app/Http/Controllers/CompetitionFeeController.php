@@ -199,15 +199,15 @@ class CompetitionFeeController extends Controller
 
     public function updateRooms(Request $request, Competition $competition)
     {
-        $rules = [];
-        foreach (Competition::ROOM_SIZES as $size) {
-            $rules["rooms.{$size}"] = 'nullable|integer|min:0|max:999';
-        }
-        $request->validate($rules);
+        $request->validate([
+            'room_types' => 'nullable|array',
+            'room_types.*' => ['integer', Rule::in(Competition::ROOM_SIZES)],
+        ]);
 
+        $selected = array_map('intval', $request->input('room_types', []));
         $counts = [];
         foreach (Competition::ROOM_SIZES as $size) {
-            $counts[$size] = (int) $request->input("rooms.{$size}", 0);
+            $counts[$size] = in_array($size, $selected, true) ? 1 : 0;
         }
         $competition->update(['room_counts' => $counts]);
 
@@ -407,7 +407,7 @@ class CompetitionFeeController extends Controller
             'currency' => $competition->currency,
             'status' => $competition->status,
             'notes' => $competition->notes,
-            'room_counts' => $competition->roomCounts(),
+            'room_types' => $competition->roomTypes(),
         ];
     }
 
