@@ -154,7 +154,12 @@ export default function CompetitionDetails({ competition, totals, roomPlan, part
                             </span>
                         ))}
                         {roomPlan.sizes.every((r) => !r.available && r.needed === 0) && <span className="text-gray-400">no room types set</span>}
-                        {roomPlan.no_preference > 0 && <span className="text-gray-500">· {roomPlan.no_preference} without preference</span>}
+                        {roomPlan.total_rooms > 0 && <span>· total <strong>{roomPlan.total_rooms}</strong></span>}
+                        {roomPlan.no_preference > 0 && (
+                            <span className={roomPlan.unplaced > 0 ? 'text-red-600' : 'text-gray-500'}>
+                                ({roomPlan.no_preference} without preference{roomPlan.unplaced > 0 ? ' not placed: no room types set' : ' included'})
+                            </span>
+                        )}
                         <button type="button" onClick={() => setShowRooms(true)} className="text-blue-600 hover:text-blue-800">Edit rooms</button>
                     </div>
                 )}

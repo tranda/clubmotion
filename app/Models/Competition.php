@@ -59,7 +59,8 @@ class Competition extends Model
     /**
      * Accommodation plan per room size: whether that type is available,
      * people who prefer it (participant + their additional people) and rooms
-     * needed if they share (ceil(people / beds)). Cancelled participants are
+     * needed if they share (ceil(people / beds)), with people without a
+     * preference fitted into the available types. Cancelled participants are
      * excluded.
      */
     public function roomPlan($participants)
@@ -80,17 +81,56 @@ class Competition extends Model
             }
         }
 
+        $needed = [];
+        foreach (self::ROOM_SIZES as $size) {
+            $needed[$size] = (int) ceil($people[$size] / $size);
+        }
+
+        // Place people without a preference, counted per person:
+        // 1. empty beds left in rooms already needed (available types only),
+        // 2. then the largest available type, with the last few in the
+        //    smallest available type that fits them.
+        $remaining = $noPreference;
+        $extra = array_fill_keys(self::ROOM_SIZES, 0);
+        $desc = $available;
+        rsort($desc);
+        foreach ($desc as $size) {
+            $spare = $needed[$size] * $size - $people[$size];
+            $remaining -= min($spare, $remaining);
+        }
+        if ($remaining > 0 && $desc) {
+            $largest = $desc[0];
+            $extra[$largest] += intdiv($remaining, $largest);
+            $rest = $remaining % $largest;
+            if ($rest > 0) {
+                foreach (array_reverse($desc) as $size) {
+                    if ($size >= $rest) {
+                        $extra[$size]++;
+                        break;
+                    }
+                }
+            }
+            $remaining = 0;
+        }
+
         $sizes = [];
         foreach (self::ROOM_SIZES as $size) {
             $sizes[] = [
                 'beds' => $size,
                 'available' => in_array($size, $available, true),
                 'people' => $people[$size],
-                'needed' => (int) ceil($people[$size] / $size),
+                'needed' => $needed[$size] + $extra[$size],
+                'for_no_preference' => $extra[$size],
             ];
         }
 
-        return ['sizes' => $sizes, 'no_preference' => $noPreference];
+        return [
+            'sizes' => $sizes,
+            'no_preference' => $noPreference,
+            // People without a preference who couldn't be placed (no room types set).
+            'unplaced' => $remaining,
+            'total_rooms' => array_sum($needed) + array_sum($extra),
+        ];
     }
 
     /**

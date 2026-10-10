@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.108] - 2026-10-10
+
+### Changed
+- **Accommodation planner: people without a preference are placed in rooms.** They first fill spare beds in rooms already needed, then the largest available room type, with the remainder in the smallest available type that fits. The rooms line shows the total number of rooms; if no room types are set, unplaced people are flagged.
+
 ## [0.9.107] - 2026-10-10
 
 ### Changed
