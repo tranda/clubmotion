@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 /**
- * Membership categories (Tools → Categories). Age-based ones are assigned
+ * Membership categories (Settings → Member categories). Age-based ones are assigned
  * automatically from members' birth dates (Member::calculateCategory).
  */
 class MembershipCategoryController extends Controller
@@ -33,7 +33,7 @@ class MembershipCategoryController extends Controller
                 'active_members' => (int) optional($counts->get($c->id))->active,
             ]);
 
-        return Inertia::render('Tools/Categories', ['categories' => $categories]);
+        return Inertia::render('Settings/Categories', ['categories' => $categories]);
     }
 
     public function store(Request $request)

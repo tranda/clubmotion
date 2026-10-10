@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 const PRESET_DISTANCES = [200, 500, 1000, 2000];
@@ -281,14 +281,6 @@ export default function ToolsIndex({ coefs: serverCoefs }) {
                     <h1 className="text-2xl font-bold text-gray-900">Tools</h1>
                     <p className="text-sm text-gray-600 mt-1">Internal admin utilities.</p>
                 </div>
-
-                <Link href="/tools/categories" className="mb-6 flex items-center justify-between bg-white rounded-lg shadow-md p-4 hover:bg-gray-50">
-                    <span>
-                        <span className="block font-semibold text-gray-900">Member categories</span>
-                        <span className="block text-sm text-gray-600">Names and age ranges used to assign categories automatically.</span>
-                    </span>
-                    <span className="text-blue-600">→</span>
-                </Link>
 
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <div className="flex items-center gap-3 mb-1">

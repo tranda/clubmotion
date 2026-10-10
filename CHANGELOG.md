@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.126] - 2026-10-10
+
+### Changed
+- **Member categories moved to Settings.** New "Settings" item in the profile menu (admins & superusers) opens a Settings page; Member categories are now at /settings/categories instead of under Tools.
+
 ## [0.9.125] - 2026-10-10
 
 ### Added

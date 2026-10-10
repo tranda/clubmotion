@@ -310,14 +310,19 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{joinRequest}', [App\Http\Controllers\JoinRequestController::class, 'destroy'])->name('destroy');
     });
 
-    // Tools - Admin & Superuser
-    Route::middleware('role:admin,superuser')->prefix('tools')->name('tools.')->group(function () {
-        Route::get('/', [App\Http\Controllers\ToolsController::class, 'index'])->name('index');
-        Route::put('/coefs', [App\Http\Controllers\ToolsController::class, 'updateCoefs'])->name('coefs.update');
+    // Settings - Admin & Superuser (profile menu)
+    Route::middleware('role:admin,superuser')->prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', fn () => Inertia::render('Settings/Index'))->name('index');
         Route::get('/categories', [App\Http\Controllers\MembershipCategoryController::class, 'index'])->name('member-categories.index');
         Route::post('/categories', [App\Http\Controllers\MembershipCategoryController::class, 'store'])->name('member-categories.store');
         Route::put('/categories/{category}', [App\Http\Controllers\MembershipCategoryController::class, 'update'])->name('member-categories.update');
         Route::delete('/categories/{category}', [App\Http\Controllers\MembershipCategoryController::class, 'destroy'])->name('member-categories.destroy');
+    });
+
+    // Tools - Admin & Superuser
+    Route::middleware('role:admin,superuser')->prefix('tools')->name('tools.')->group(function () {
+        Route::get('/', [App\Http\Controllers\ToolsController::class, 'index'])->name('index');
+        Route::put('/coefs', [App\Http\Controllers\ToolsController::class, 'updateCoefs'])->name('coefs.update');
     });
 
     // Test email sender - Admin only (verify SMTP config)
