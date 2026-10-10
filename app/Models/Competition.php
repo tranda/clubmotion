@@ -63,7 +63,8 @@ class Competition extends Model
 
     /**
      * Accommodation plan per room size: whether that type is available,
-     * people who prefer it (participant + their additional people) and rooms
+     * people who prefer it (participant + their additional adults; children
+     * don't take a bed) and rooms
      * needed if they share (ceil(people / beds)), with people without a
      * preference fitted into the available types. Cancelled participants are
      * excluded.
@@ -78,7 +79,8 @@ class Competition extends Model
             if ($p->status === 'cancelled') {
                 continue;
             }
-            $party = 1 + (int) $p->extra_athletes + (int) $p->extra_supporters + (int) $p->extra_children;
+            // Children don't take a bed (they share with their parent).
+            $party = 1 + (int) $p->extra_athletes + (int) $p->extra_supporters;
             if ($p->preferred_room && isset($people[$p->preferred_room])) {
                 $people[$p->preferred_room] += $party;
             } else {

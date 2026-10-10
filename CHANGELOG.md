@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.110] - 2026-10-10
+
+### Changed
+- **Room planning: children don't take a bed.** Children no longer count toward a room's beds used or the rooms-needed calculation (they share with their parent). They still appear with the participant and in "People going".
+
 ## [0.9.109] - 2026-10-10
 
 ### Added
