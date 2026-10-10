@@ -114,7 +114,7 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                                         onBlur={(e) => rename(room, e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
                                         aria-label="Room title"
-                                        className="font-semibold text-gray-900 placeholder-gray-900 min-w-0 flex-1 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none"
+                                        className="min-w-0 w-28 px-2 py-0.5 rounded-md bg-indigo-600 text-white placeholder-white/90 text-sm font-semibold hover:bg-indigo-700 focus:bg-white focus:text-gray-900 focus:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     />
                                     <div className="flex items-center gap-2">
                                         <select

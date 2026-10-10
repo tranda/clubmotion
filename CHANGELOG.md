@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.111] - 2026-10-10
+
+### Changed
+- **Room title shown as a badge.** The assigned room appears as an indigo badge next to the participant's name, and room planner card titles are indigo badges (click to edit).
+
 ## [0.9.110] - 2026-10-10
 
 ### Changed

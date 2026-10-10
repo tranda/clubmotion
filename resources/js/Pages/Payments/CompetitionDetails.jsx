@@ -222,7 +222,8 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(p.id)}>
                                                 {p.member.name}
                                                 <RoleBadge role={p.role} />
-                                                {(extrasLabel(p) || roomLabel(p) || roomNumber(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), roomNumber(p)].filter(Boolean).join(' · ')}</div>}
+                                                {roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
+{(extrasLabel(p) || roomLabel(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>}
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatMoney(p.fee_amount, cur)}</td>
@@ -255,7 +256,8 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                     <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(p.id)}>
                                         <div className="font-medium text-gray-900">
                                             {p.member.name}<RoleBadge role={p.role} />
-                                            {(extrasLabel(p) || roomLabel(p) || roomNumber(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), roomNumber(p)].filter(Boolean).join(' · ')}</div>}
+                                            {roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
+{(extrasLabel(p) || roomLabel(p)) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p)].filter(Boolean).join(' · ')}</div>}
                                         </div>
                                         <StatusBadge status={p.payment_status} />
                                     </div>
