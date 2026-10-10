@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.118] - 2026-10-10
+
+### Added
+- **Competition export includes rooms.** XLSX and CSV have a "Room" column (room title or number). The XLSX also gets a "Rooms" sheet (when rooms exist) with one row per room (beds, beds used, occupants with additional people) and room counts per type, total rooms, total beds, beds used and people not in a room. Children don't take a bed; cancelled participants are excluded.
+
 ## [0.9.117] - 2026-10-10
 
 ### Added

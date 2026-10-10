@@ -415,16 +415,20 @@ class CompetitionFeeController extends Controller
             ->values();
 
         $cur = $competition->currency;
+        $rooms = $competition->rooms()->get();
+        // Room title as shown in the app: its name (e.g. "205"), else its number.
+        $roomTitle = fn ($room) => $room ? ($room->name ?: $room->number) : '';
         $statusRows = $participants->map(fn ($p) => [
             $p->member->name ?? '?',
             ucfirst($p->role ?? 'athlete'),
+            $roomTitle($rooms->firstWhere('id', $p->competition_room_id)),
             (float) $p->fee_amount,
             $p->paid_amount,
             $p->remaining_amount,
             ucfirst($p->payment_status),
             $p->last_payment_at ? date('d.m.Y', strtotime($p->last_payment_at)) : '',
         ])->all();
-        $statusHeader = ['Member', 'Role', "Fee ({$cur})", "Paid ({$cur})", "Remaining ({$cur})", 'Status', 'Last payment'];
+        $statusHeader = ['Member', 'Role', 'Room', "Fee ({$cur})", "Paid ({$cur})", "Remaining ({$cur})", 'Status', 'Last payment'];
 
         $slug = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower(\Illuminate\Support\Str::ascii($competition->name))), '-');
         $filename = "competition-fees_{$slug}.{$format}";
@@ -449,17 +453,17 @@ class CompetitionFeeController extends Controller
         $sheet->setCellValue('A1', $competition->name . ($this->dateRange($competition) ? ' — ' . $this->dateRange($competition) : ''));
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
         $sheet->fromArray($statusHeader, null, 'A3');
-        $this->headerStyle($sheet, 'A3:G3');
+        $this->headerStyle($sheet, 'A3:H3');
         $r = 4;
         foreach ($statusRows as $row) {
             $sheet->fromArray($row, null, "A{$r}", true);
             $r++;
         }
         $totals = Competition::totalsFor($participants);
-        $sheet->fromArray(['Total', '', $totals['expected'], $totals['collected'], $totals['remaining']], null, "A{$r}", true);
-        $sheet->getStyle("A{$r}:G{$r}")->getFont()->setBold(true);
-        $sheet->getStyle("C4:E{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
-        foreach (range('A', 'G') as $col) {
+        $sheet->fromArray(['Total', '', '', $totals['expected'], $totals['collected'], $totals['remaining']], null, "A{$r}", true);
+        $sheet->getStyle("A{$r}:H{$r}")->getFont()->setBold(true);
+        $sheet->getStyle("D4:F{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
+        foreach (range('A', 'H') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -485,6 +489,10 @@ class CompetitionFeeController extends Controller
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
+        if ($rooms->isNotEmpty()) {
+            $this->roomsSheet($spreadsheet->createSheet(), $competition, $rooms, $participants);
+        }
+
         $spreadsheet->setActiveSheetIndex(0);
 
         return response()->streamDownload(function () use ($spreadsheet) {
@@ -495,6 +503,78 @@ class CompetitionFeeController extends Controller
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    /**
+     * XLSX "Rooms" sheet: one row per room with occupants, then room counts.
+     * Children don't take a bed; cancelled participants are left out.
+     */
+    private function roomsSheet($sheet, Competition $competition, $rooms, $participants)
+    {
+        $active = $participants->where('status', '!=', 'cancelled');
+        $beds = fn ($p) => 1 + (int) $p->extra_athletes + (int) $p->extra_supporters;
+        $extras = function ($p) {
+            $parts = [];
+            foreach (['extra_athletes' => ['athlete', 'athletes'], 'extra_supporters' => ['supporter', 'supporters'], 'extra_children' => ['child', 'children']] as $field => [$one, $many]) {
+                $n = (int) $p->{$field};
+                if ($n > 0) {
+                    $parts[] = '+' . $n . ' ' . ($n === 1 ? $one : $many);
+                }
+            }
+            return $parts ? ' (' . implode(', ', $parts) . ')' : '';
+        };
+
+        $sheet->setTitle('Rooms');
+        $sheet->setCellValue('A1', $competition->name . ' — rooms');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
+        $sheet->fromArray(['Room', 'Beds', 'Beds used', 'Occupants'], null, 'A3');
+        $this->headerStyle($sheet, 'A3:D3');
+
+        $r = 4;
+        $bedsUsed = 0;
+        foreach ($rooms as $room) {
+            $occupants = $active->where('competition_room_id', $room->id);
+            $used = $occupants->sum($beds);
+            $bedsUsed += $used;
+            $sheet->fromArray([
+                $room->name ?: $room->number,
+                $room->beds,
+                $used,
+                $occupants->map(fn ($p) => ($p->member->name ?? '?') . $extras($p))->implode("\n"),
+            ], null, "A{$r}", true);
+            $sheet->getStyle("D{$r}")->getAlignment()->setWrapText(true);
+            $sheet->getStyle("A{$r}:D{$r}")->getAlignment()->setVertical('top');
+            if ($used > $room->beds) {
+                $sheet->getStyle("C{$r}")->getFont()->getColor()->setRGB('DC2626');
+            }
+            $r++;
+        }
+
+        // Room counts
+        $r++;
+        $sheet->fromArray(['Room type', 'Rooms'], null, "A{$r}");
+        $this->headerStyle($sheet, "A{$r}:B{$r}");
+        $r++;
+        foreach ($rooms->groupBy('beds')->sortKeys() as $size => $group) {
+            $sheet->fromArray(["{$size}-bed", $group->count()], null, "A{$r}", true);
+            $r++;
+        }
+        $notInRoom = $active->filter(fn ($p) => !$rooms->contains('id', $p->competition_room_id))->count();
+        foreach ([
+            ['Total rooms', $rooms->count()],
+            ['Total beds', $rooms->sum('beds')],
+            ['Beds used', $bedsUsed],
+            ['Not in a room', $notInRoom],
+        ] as $row) {
+            $sheet->fromArray($row, null, "A{$r}", true);
+            $sheet->getStyle("A{$r}")->getFont()->setBold(true);
+            $r++;
+        }
+
+        foreach (['A', 'B', 'C'] as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        $sheet->getColumnDimension('D')->setWidth(60);
+    }
 
     private function isStaff()
     {
