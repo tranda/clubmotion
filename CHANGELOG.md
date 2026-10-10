@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.113] - 2026-10-10
+
+### Changed
+- **Rooms line shows real rooms once the planner has rooms.** The competition page and the room planner show the rooms actually created (count per bed size, total, beds used, people not in a room) instead of the preference-based estimate. Before any rooms exist, the line is labelled "Rooms needed (estimate)".
+- **Group by room is on by default** and its toggle is a button in the filter row (remembered per browser when turned off).
+
 ## [0.9.112] - 2026-10-10
 
 ### Added

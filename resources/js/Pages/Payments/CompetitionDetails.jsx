@@ -7,7 +7,7 @@ import AddParticipantsModal from '../../Components/CompetitionFees/AddParticipan
 import PaymentModal from '../../Components/CompetitionFees/PaymentModal';
 import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal';
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
-import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor } from '../../Components/CompetitionFees/format';
+import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor, roomsSummary } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
     { key: 'all', label: 'All' },
@@ -27,7 +27,8 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
     const [showAdd, setShowAdd] = useState(false);
     const [showRooms, setShowRooms] = useState(false);
     const [groupByRoom, setGroupByRoomState] = useState(() => {
-        try { return localStorage.getItem('competitionGroupByRoom') === '1'; } catch { return false; }
+        // On by default; remembers if the viewer turns it off.
+        try { return localStorage.getItem('competitionGroupByRoom') !== '0'; } catch { return true; }
     });
     const setGroupByRoom = (on) => {
         setGroupByRoomState(on);
@@ -181,9 +182,24 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                         {' '}({totals.people.athletes} athletes · {totals.people.supporters} supporters · {totals.people.children} children)
                     </div>
                 )}
-                {roomPlan && (
+                {rooms.length > 0 ? (() => {
+                    // Once rooms exist in the planner, show the real rooms instead of the estimate.
+                    const rs = roomsSummary(rooms, participants);
+                    return (
+                        <div className="mb-4 text-sm text-gray-700 flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span>Rooms:</span>
+                            {rs.bySize.map((s) => (
+                                <span key={s.beds}>{s.beds}-bed <strong>{s.count}</strong></span>
+                            ))}
+                            <span>· total <strong>{rs.total}</strong></span>
+                            <span className={rs.used > rs.beds ? 'text-red-600' : 'text-gray-500'}>({rs.used}/{rs.beds} beds used)</span>
+                            {rs.unassigned > 0 && <span className="text-red-600">· {rs.unassigned} not in a room</span>}
+                            <button type="button" onClick={() => setShowRooms(true)} className="text-blue-600 hover:text-blue-800">Room planner</button>
+                        </div>
+                    );
+                })() : roomPlan && (
                     <div className="mb-4 text-sm text-gray-700 flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span>Rooms needed:</span>
+                        <span>Rooms needed (estimate):</span>
                         {roomPlan.sizes.filter((r) => r.available || r.needed > 0).map((r) => (
                             <span
                                 key={r.beds}
@@ -221,14 +237,17 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                 {f.label} <span className="opacity-70">{countFor(f.key)}</span>
                             </button>
                         ))}
+                        {rooms.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => setGroupByRoom(!groupByRoom)}
+                                className={`px-3 py-1.5 rounded-full text-sm ${groupByRoom ? 'bg-indigo-600 text-white' : 'bg-white border border-indigo-300 text-indigo-700 hover:bg-indigo-50'}`}
+                            >
+                                {groupByRoom ? '✓ ' : ''}Group by room
+                            </button>
+                        )}
                     </div>
                     <div className="flex gap-2 items-center">
-                        {rooms.length > 0 && (
-                            <label className="flex items-center gap-1.5 text-sm text-gray-700 whitespace-nowrap cursor-pointer">
-                                <input type="checkbox" checked={groupByRoom} onChange={(e) => setGroupByRoom(e.target.checked)} />
-                                Group by room
-                            </label>
-                        )}
                         <input
                             type="text"
                             placeholder="Search member…"

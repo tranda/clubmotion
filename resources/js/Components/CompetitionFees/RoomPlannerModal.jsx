@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Modal, RoleBadge, extrasLabel, inputClass, bedsFor as partySize } from './format';
+import { Modal, RoleBadge, extrasLabel, inputClass, bedsFor as partySize, roomsSummary } from './format';
 
 const SIZES = [1, 2, 3, 4, 5];
 const base = '/payments/competition-fees';
@@ -56,9 +56,16 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                         </label>
                     ))}
                 </div>
-                {roomPlan && roomPlan.total_rooms > 0 && (
+                {rooms.length > 0 ? (() => {
+                    const rs = roomsSummary(rooms, participants);
+                    return (
+                        <p className="mt-2 text-xs text-gray-500">
+                            Rooms: {rs.bySize.map((s) => `${s.count}× ${s.beds}-bed`).join(', ')} · {rs.used}/{rs.beds} beds used
+                        </p>
+                    );
+                })() : roomPlan && roomPlan.total_rooms > 0 && (
                     <p className="mt-2 text-xs text-gray-500">
-                        Plan: {roomPlan.sizes.filter((r) => r.needed > 0).map((r) => `${r.needed}× ${r.beds}-bed`).join(', ')}
+                        Estimate from preferences: {roomPlan.sizes.filter((r) => r.needed > 0).map((r) => `${r.needed}× ${r.beds}-bed`).join(', ')}
                     </p>
                 )}
             </div>

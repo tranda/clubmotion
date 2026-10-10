@@ -57,6 +57,22 @@ export const extrasLabel = (p) =>
 // Children don't take a bed (they share with their parent).
 export const bedsFor = (p) => 1 + (p.extra_athletes || 0) + (p.extra_supporters || 0);
 
+// Summary of the rooms actually created in the planner:
+// { bySize: [{ beds, count }], total, beds, used, unassigned }.
+export const roomsSummary = (rooms, participants) => {
+    const active = participants.filter((p) => p.status !== 'cancelled');
+    const bySize = [1, 2, 3, 4, 5]
+        .map((beds) => ({ beds, count: rooms.filter((r) => r.beds === beds).length }))
+        .filter((s) => s.count > 0);
+    return {
+        bySize,
+        total: rooms.length,
+        beds: rooms.reduce((n, r) => n + r.beds, 0),
+        used: active.filter((p) => rooms.some((r) => r.id === p.room_id)).reduce((n, p) => n + bedsFor(p), 0),
+        unassigned: active.filter((p) => !rooms.some((r) => r.id === p.room_id)).length,
+    };
+};
+
 // "2-bed room" for a participant's preferred room, or ''.
 export const roomLabel = (p) => (p.preferred_room ? `${p.preferred_room}-bed room` : '');
 
