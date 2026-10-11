@@ -159,6 +159,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/{competition}/room-dates', 'updateRoomDates')->name('competition-fees.room-dates');
         Route::put('/participants/{participant}/stay', 'updateStay')->name('competition-fees.participants.stay');
         Route::put('/planner-rooms/{room}/stay', 'updateRoomStay')->name('competition-fees.planner-rooms.stay');
+        Route::get('/{competition}/room-plan.pdf', 'roomPlanPdf')->name('competition-fees.room-plan.pdf');
         Route::put('/{competition}/accommodation', 'updateAccommodation')->name('competition-fees.accommodation.update');
         Route::post('/{competition}/room-snapshots', 'storeSnapshot')->name('competition-fees.room-snapshots.store');
         Route::post('/room-snapshots/{snapshot}/restore', 'restoreSnapshot')->name('competition-fees.room-snapshots.restore');

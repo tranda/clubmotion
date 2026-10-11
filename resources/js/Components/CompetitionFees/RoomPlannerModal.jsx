@@ -187,6 +187,14 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                 <button type="button" onClick={generate} className="px-3 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50">
                     Create rooms from plan
                 </button>
+                {rooms.length > 0 && (
+                    <a
+                        href={`${base}/${competition.id}/room-plan.pdf`}
+                        className="ml-auto px-3 py-2 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700"
+                    >
+                        📄 PDF
+                    </a>
+                )}
             </div>
 
             {/* Unassigned */}

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.132] - 2026-10-11
+
+### Added
+- **Room plan PDF.** "📄 PDF" button in the room planner downloads the room plan (rooms in bed colors with stay dates, list prices and occupants with extras; people not in a room listed at the end). No personal amounts, fees or notes.
+
 ## [0.9.131] - 2026-10-11
 
 ### Added

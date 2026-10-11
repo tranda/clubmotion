@@ -6,6 +6,7 @@ use App\Models\Competition;
 use App\Models\CompetitionParticipant;
 use App\Models\CompetitionRoom;
 use App\Models\CompetitionRoomSnapshot;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\CompetitionPayment;
 use App\Models\Member;
 use Illuminate\Http\Request;
@@ -365,6 +366,63 @@ class CompetitionFeeController extends Controller
         $room->participants()->where('status', '!=', 'cancelled')->update($values);
 
         return back();
+    }
+
+    /**
+     * Room plan as a PDF to send to participants: rooms with dates, list
+     * prices and occupants (no personal amounts, fees or notes).
+     */
+    public function roomPlanPdf(Competition $competition)
+    {
+        $this->authorizeRoomEditor($competition);
+
+        $participants = $competition->participants()->with('member:id,name')->where('status', '!=', 'cancelled')->get();
+        $rooms = $competition->rooms()->get();
+        $defaults = $competition->defaultRoomDates();
+        $prices = $competition->accommodationSettings()['prices'];
+        $extras = function ($p) {
+            $parts = [];
+            foreach (['extra_athletes' => ['athlete', 'athletes'], 'extra_supporters' => ['supporter', 'supporters'], 'extra_children' => ['child', 'children']] as $field => [$one, $many]) {
+                $n = (int) $p->{$field};
+                if ($n > 0) {
+                    $parts[] = '+' . $n . ' ' . ($n === 1 ? $one : $many);
+                }
+            }
+            return implode(', ', $parts);
+        };
+        $dmy = fn ($d) => $d ? date('d.m.Y', strtotime($d)) : '';
+
+        $roomInfo = [];
+        foreach ($rooms as $room) {
+            $occupants = $participants->where('competition_room_id', $room->id)
+                ->sortBy(fn ($p) => mb_strtolower($p->member->name ?? ''));
+            $range = Competition::stayRange($occupants, $defaults);
+            $roomInfo[$room->id] = [
+                'occupants' => $occupants->map(fn ($p) => ['name' => $p->member->name ?? '?', 'extras' => $extras($p)])->values(),
+                'stay' => $range['check_in'] && $range['check_out']
+                    ? $dmy($range['check_in']) . ' – ' . $dmy($range['check_out']) . ($range['nights'] !== null ? " · {$range['nights']} nights" : '')
+                    : null,
+                'price' => $prices[$room->beds] ?? null,
+            ];
+        }
+
+        $notInRoom = $participants->filter(fn ($p) => !$rooms->contains('id', $p->competition_room_id))
+            ->map(fn ($p) => $p->member->name ?? '?')->sort()->values();
+        $peopleCount = $participants->sum(fn ($p) => 1 + (int) $p->extra_athletes + (int) $p->extra_supporters + (int) $p->extra_children);
+        $bySize = $rooms->groupBy('beds')->sortKeys()->map(fn ($g, $beds) => $g->count() . '× ' . $beds . '-bed')->implode(', ');
+
+        $slug = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower(\Illuminate\Support\Str::ascii($competition->name))), '-');
+
+        return Pdf::loadView('reports.room_plan', [
+            'competition' => $competition,
+            'dateRange' => $this->dateRange($competition),
+            'defaults' => $defaults,
+            'rooms' => $rooms,
+            'roomInfo' => $roomInfo,
+            'notInRoom' => $notInRoom,
+            'peopleCount' => $peopleCount,
+            'bySize' => $bySize,
+        ])->setPaper('a4', 'portrait')->download("room-plan_{$slug}.pdf");
     }
 
     // ─── Accommodation pricing ───────────────────────────────────────────────
