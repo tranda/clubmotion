@@ -375,13 +375,10 @@ export default function Index({ members, filter, categoryStats }) {
                                     {/* Member Info */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2 min-w-0">
-                                                <h3 className="text-lg font-semibold text-gray-900 truncate">
-                                                    {member.user_id && <span className="text-green-600 mr-2">✓</span>}
-                                                    {member.name}
-                                                </h3>
-                                                {viewerIsAdmin && <span className="shrink-0"><RoleBadge name={member.user?.role?.name} /></span>}
-                                            </div>
+                                            <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                                {member.user_id && <span className="text-green-600 mr-2">✓</span>}
+                                                {member.name}
+                                            </h3>
                                             <span className="ml-2">{member.is_active ? '✅' : '❌'}</span>
                                         </div>
                                         <div className="flex items-center gap-2 flex-wrap text-sm text-gray-500">
@@ -392,8 +389,11 @@ export default function Index({ members, filter, categoryStats }) {
                                         </div>
                                         <p className="text-sm text-gray-500">{member.email}</p>
                                         <p className="text-sm text-gray-500">{member.phone}</p>
-                                        {member.registration_date && (
-                                            <p className="mt-1 text-xs text-gray-500">Registered: {member.registration_date}</p>
+                                        {(member.registration_date || viewerIsAdmin) && (
+                                            <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                                                {member.registration_date && <span>Registered: {member.registration_date}</span>}
+                                                {viewerIsAdmin && <RoleBadge name={member.user?.role?.name} />}
+                                            </div>
                                         )}
                                     </div>
                                 </div>

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.144] - 2026-10-11
+
+### Changed
+- **Members list on mobile: role badge moved to the "Registered" line**, so names use the full width and aren't cut off on smaller phones.
+
 ## [0.9.143] - 2026-10-11
 
 ### Changed
