@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.146] - 2026-10-11
+
+### Changed
+- **"View as member" moved to the profile menu** (admins only). It opens a picker with a diacritic-insensitive search (name or membership number, keyboard navigation) listing members with a login (not admins). The button on the member page is removed.
+
 ## [0.9.145] - 2026-10-11
 
 ### Changed

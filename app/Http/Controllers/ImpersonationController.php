@@ -17,6 +17,31 @@ class ImpersonationController extends Controller
 {
     public const SESSION_KEY = 'impersonator_id';
 
+    /**
+     * Members an admin can view as (have a login, not an admin, not themselves),
+     * for the "View as member" picker in the profile menu.
+     */
+    public function candidates(Request $request)
+    {
+        $adminId = $request->user()->id;
+
+        $members = Member::with('user.role')
+            ->whereNotNull('user_id')
+            ->orderBy('name')
+            ->get(['id', 'name', 'membership_number', 'is_active', 'user_id'])
+            ->filter(fn ($m) => $m->user && $m->user->id !== $adminId && !$m->user->isAdmin())
+            ->map(fn ($m) => [
+                'id' => $m->id,
+                'name' => $m->name,
+                'membership_number' => $m->membership_number,
+                'is_active' => (bool) $m->is_active,
+                'role' => $m->user->role->name ?? null,
+            ])
+            ->values();
+
+        return response()->json($members);
+    }
+
     public function start(Request $request, Member $member)
     {
         $admin = $request->user();

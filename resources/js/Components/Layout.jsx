@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
+import ViewAsMemberModal from './ViewAsMemberModal';
 
 export default function Layout({ children }) {
     const { auth, clubName, flash, pendingJoinRequests = 0, onesignalAppId, impersonating } = usePage().props;
     const [menuOpen, setMenuOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [showViewAs, setShowViewAs] = useState(false);
 
     const toggleMenu = () => {
         setMenuOpen(!menuOpen);
@@ -218,6 +220,18 @@ export default function Layout({ children }) {
                                                 <p className="text-xs text-gray-500">{auth.user?.email}</p>
                                                 <p className="text-xs text-blue-600 font-medium mt-1 capitalize">{auth.user?.role?.name}</p>
                                             </div>
+                                            {isAdmin && !impersonating && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setUserMenuOpen(false); setShowViewAs(true); }}
+                                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    View as member
+                                                </button>
+                                            )}
                                             {canManage && (
                                                 <Link
                                                     href="/settings"
@@ -411,6 +425,18 @@ export default function Layout({ children }) {
                                 <p className="text-xs text-gray-500">{auth.user?.email}</p>
                                 <p className="text-xs text-blue-600 font-medium mt-1 capitalize">{auth.user?.role?.name}</p>
                             </div>
+                            {isAdmin && !impersonating && (
+                                <button
+                                    type="button"
+                                    onClick={() => { closeMenu(); setShowViewAs(true); }}
+                                    className="flex items-center w-full px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                >
+                                    <svg className="w-5 h-5 mr-3" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    View as member
+                                </button>
+                            )}
                             {canManage && (
                                 <Link
                                     href="/settings"
@@ -444,6 +470,8 @@ export default function Layout({ children }) {
                     onClick={closeMenu}
                 />
             )}
+
+            {showViewAs && <ViewAsMemberModal onClose={() => setShowViewAs(false)} />}
 
             {/* Main Content */}
             <main className="pt-20 px-4 pb-4 mx-auto">
