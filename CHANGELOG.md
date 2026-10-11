@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.135] - 2026-10-11
+
+### Fixed
+- **Snapshots: "people placed" count.** The count now includes participants' additional athletes and supporters (children don't take a bed), matching "beds used", instead of counting participants only.
+
 ## [0.9.134] - 2026-10-11
 
 ### Fixed

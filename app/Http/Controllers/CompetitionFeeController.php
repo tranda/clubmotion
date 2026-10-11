@@ -872,13 +872,20 @@ class CompetitionFeeController extends Controller
             return [];
         }
 
+        // People placed = beds taken (participant + additional athletes/supporters,
+        // children don't take a bed), using participants' current extras.
+        $participants = $competition->participants()->where('status', '!=', 'cancelled')->get()->keyBy('id');
+        $beds = fn ($id) => ($p = $participants->get($id))
+            ? 1 + (int) $p->extra_athletes + (int) $p->extra_supporters
+            : 0;
+
         return $competition->roomSnapshots()->with('creator:id,name')->get()->map(fn ($s) => [
             'id' => $s->id,
             'name' => $s->name,
             'created_at' => $s->created_at->format('Y-m-d H:i'),
             'created_by' => $s->creator->name ?? null,
             'rooms' => count($s->data['rooms'] ?? []),
-            'placed' => collect($s->data['participants'] ?? [])->whereNotNull('room_number')->count(),
+            'placed' => collect($s->data['participants'] ?? [])->whereNotNull('room_number')->sum(fn ($sp) => $beds($sp['id'])),
         ])->values();
     }
 

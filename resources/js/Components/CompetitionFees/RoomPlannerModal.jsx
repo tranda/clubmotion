@@ -148,7 +148,7 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                                 <span>
                                     <span className="font-medium text-gray-900">{s.name}</span>
                                     <span className="text-xs text-gray-500">
-                                        {' '}· {s.rooms} rooms · {s.placed} placed · {s.created_at}{s.created_by ? ` · ${s.created_by}` : ''}
+                                        {' '}· {s.rooms} rooms · {s.placed} people placed · {s.created_at}{s.created_by ? ` · ${s.created_by}` : ''}
                                     </span>
                                 </span>
                                 <span className="flex items-center gap-3">
