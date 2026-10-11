@@ -878,11 +878,14 @@ class PaymentController extends Controller
         }])->get();
 
         $defaults = $competition->defaultRoomDates();
+        $prices = $competition->accommodationSettings()['prices'];
 
         return $rooms->map(fn ($room) => \App\Models\Competition::stayRange($room->participants, $defaults) + [
             'id' => $room->id,
             'title' => $room->name ? "Room {$room->name}" : "Room {$room->number}",
             'beds' => $room->beds,
+            // List price per person for this room type (whole stay), or null.
+            'price_per_person' => $prices[$room->beds] ?? null,
             'is_mine' => (int) $participant->competition_room_id === (int) $room->id,
             'occupants' => $room->participants
                 ->sortBy(fn ($o) => mb_strtolower($o->member->name ?? ''))

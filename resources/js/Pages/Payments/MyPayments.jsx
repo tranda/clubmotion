@@ -217,6 +217,11 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                                 <span className="text-xs text-gray-500">{room.beds}-bed</span>
                                                             </div>
                                                             {stayLabel(room) && <div className="text-xs text-gray-500 mb-1">{stayLabel(room)}</div>}
+                                                            {room.price_per_person != null && (
+                                                                <div className="text-xs text-gray-700 mb-1">
+                                                                    {formatMoney(room.price_per_person, cur)} per person · room {formatMoney(room.price_per_person * room.beds, cur)}
+                                                                </div>
+                                                            )}
                                                             {room.occupants.length === 0 ? (
                                                                 <div className="text-xs text-gray-400">Empty</div>
                                                             ) : (

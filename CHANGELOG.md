@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.131] - 2026-10-11
+
+### Added
+- **Member room plan shows room prices.** Each room card on My Payments shows the list price per person and for the whole room (when accommodation prices are set). Personal amounts and discounts are not shown.
+
 ## [0.9.130] - 2026-10-11
 
 ### Added
