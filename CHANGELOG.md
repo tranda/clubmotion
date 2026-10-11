@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.147] - 2026-10-11
+
+### Changed
+- **My Payments: tabs "Membership Fees" and "Competition Fees"**, like the admin Payments page. `?tab=competition` opens the competition tab directly.
+
 ## [0.9.146] - 2026-10-11
 
 ### Changed

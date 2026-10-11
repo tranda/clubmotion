@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel, stayLabel, bedColor, paidLabel } from '../../Components/CompetitionFees/format';
@@ -34,14 +35,45 @@ export default function MyPayments({ member, year, payments, availableYears, com
         );
     };
 
+    // Tabs like the admin Payments page; ?tab=competition opens Competition Fees.
+    const [tab, setTabState] = useState(() => {
+        try { return new URLSearchParams(window.location.search).get('tab') === 'competition' ? 'competition' : 'membership'; } catch { return 'membership'; }
+    });
+    const setTab = (value) => {
+        setTabState(value);
+        try {
+            const url = new URL(window.location.href);
+            if (value === 'competition') url.searchParams.set('tab', 'competition');
+            else url.searchParams.delete('tab');
+            window.history.replaceState(window.history.state, '', url);
+        } catch { /* ignore */ }
+    };
+    const tabButton = (key, label) => (
+        <button
+            type="button"
+            onClick={() => setTab(key)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
+                tab === key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+        >
+            {label}
+        </button>
+    );
+
     const totalPaid = payments.filter(p => p.payment_status === 'paid')
         .reduce((sum, p) => sum + parseFloat(p.paid_amount || 0), 0);
 
     return (
         <Layout>
             <div className="py-4 max-w-4xl mx-auto">
-                <h1 className="text-2xl font-bold text-gray-800 mb-6">My Payments - {year}</h1>
+                <h1 className="text-2xl font-bold text-gray-800 mb-4">My Payments</h1>
 
+                <div className="flex gap-2 border-b border-gray-200 mb-6">
+                    {tabButton('membership', 'Membership Fees')}
+                    {tabButton('competition', `Competition Fees${competitionFees.length ? ` (${competitionFees.length})` : ''}`)}
+                </div>
+
+                {tab === 'membership' && (<>
                 {/* Member Info */}
                 <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
@@ -153,11 +185,14 @@ export default function MyPayments({ member, year, payments, availableYears, com
                         </div>
                     )}
                 </div>
+                </>)}
 
                 {/* Competition Fees (all years) */}
-                {competitionFees.length > 0 && (
-                    <div className="mt-8">
-                        <h2 className="text-xl font-bold text-gray-800 mb-4">Competition Fees</h2>
+                {tab === 'competition' && competitionFees.length === 0 && (
+                    <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">No competition fees yet.</div>
+                )}
+                {tab === 'competition' && competitionFees.length > 0 && (
+                    <div>
                         <div className="space-y-4">
                             {competitionFees.map((cf) => {
                                 const cur = cf.competition.currency;
