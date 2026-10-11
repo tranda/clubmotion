@@ -73,6 +73,7 @@ class LedgerEntry extends Model
         if (!$this->wasChanged(['amount', 'entry_date', 'bucket'])) return;
 
         $this->syncToLinkedCompetitionPayment();
+        $this->syncToLinkedOrganizerPayment();
 
         $payment = MembershipPayment::where('ledger_entry_id', $this->id)->first();
         if (!$payment) return;
@@ -105,6 +106,7 @@ class LedgerEntry extends Model
     public function deleteLinkedPayment(): void
     {
         $this->deleteLinkedCompetitionPayment();
+        $this->deleteLinkedOrganizerPayment();
 
         $payment = MembershipPayment::where('ledger_entry_id', $this->id)->first();
         if (!$payment) return;
@@ -136,6 +138,34 @@ class LedgerEntry extends Model
     private function deleteLinkedCompetitionPayment(): void
     {
         $payment = CompetitionPayment::where('ledger_entry_id', $this->id)->first();
+        if (!$payment) return;
+
+        $payment->ledger_entry_id = null;
+        $payment->saveQuietly();
+        $payment->delete();
+    }
+
+    /**
+     * Same two-way sync for payments to a competition organizer.
+     */
+    private function syncToLinkedOrganizerPayment(): void
+    {
+        $payment = CompetitionOrganizerPayment::where('ledger_entry_id', $this->id)->first();
+        if (!$payment) return;
+
+        $payment->fill([
+            'amount' => $this->amount,
+            'paid_at' => $this->entry_date instanceof \DateTimeInterface
+                ? $this->entry_date->format('Y-m-d')
+                : $this->entry_date,
+            'payment_method' => in_array($this->bucket, ['cash', 'cash_eur'], true) ? 'cash' : 'bank_transfer',
+        ]);
+        $payment->saveQuietly();
+    }
+
+    private function deleteLinkedOrganizerPayment(): void
+    {
+        $payment = CompetitionOrganizerPayment::where('ledger_entry_id', $this->id)->first();
         if (!$payment) return;
 
         $payment->ledger_entry_id = null;

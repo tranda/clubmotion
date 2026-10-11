@@ -8,6 +8,7 @@ import PaymentModal from '../../Components/CompetitionFees/PaymentModal';
 import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal';
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
 import ApplyAccommodationModal from '../../Components/CompetitionFees/ApplyAccommodationModal';
+import OrganizerPaymentModal from '../../Components/CompetitionFees/OrganizerPaymentModal';
 import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor, roomsSummary, stayRange, stayLabel, effectiveStay, hasOwnStay } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
@@ -19,7 +20,7 @@ const FILTERS = [
     { key: 'cancelled', label: 'Cancelled' },
 ];
 
-export default function CompetitionDetails({ competition, totals, roomPlan, rooms = [], accommodation, participants, availableMembers, currencies, paymentMethods }) {
+export default function CompetitionDetails({ competition, totals, roomPlan, rooms = [], accommodation, participants, availableMembers, currencies, paymentMethods, organizerPayments = [], ledgerExpenseCategories = [] }) {
     const cur = competition.currency;
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
@@ -41,6 +42,9 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
     // { participantId, payment|null } for the add/edit payment modal
     const [paymentTarget, setPaymentTarget] = useState(null);
     const [confirm, setConfirm] = useState(null); // { title, message, label, action }
+    // undefined = closed, null = new, object = editing
+    const [organizerTarget, setOrganizerTarget] = useState(undefined);
+    const paidToOrganizer = organizerPayments.reduce((n, p) => n + p.amount, 0);
 
     // Always read participants from the latest props so modals refresh after saves.
     const byId = (id) => participants.find((p) => p.id === id);
@@ -124,6 +128,14 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
             message: `${formatDate(payment.paid_at)} · ${formatMoney(payment.amount, cur)}. The matching Ledger entry is deleted too. This cannot be undone.`,
             label: 'Delete',
             action: () => router.delete(`/payments/competition-fees/payments/${payment.id}`, { preserveScroll: true }),
+        });
+
+    const deleteOrganizerPayment = (payment) =>
+        setConfirm({
+            title: 'Delete payment to organizer?',
+            message: `${formatDate(payment.paid_at)} · ${formatMoney(payment.amount, cur)}. The matching Ledger entry is deleted too. This cannot be undone.`,
+            label: 'Delete',
+            action: () => router.delete(`/payments/competition-fees/organizer-payments/${payment.id}`, { preserveScroll: true }),
         });
 
     const deleteCompetition = () =>
@@ -240,6 +252,47 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                         Overpaid in total: {formatMoney(totals.overpaid, cur)} ({totals.overpaid_count} participant{totals.overpaid_count === 1 ? '' : 's'})
                     </div>
                 )}
+
+                {/* Payments to the organizer */}
+                <details className="mb-4 bg-white rounded-lg shadow" open={organizerPayments.length > 0}>
+                    <summary className="cursor-pointer px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                        <span className="font-semibold text-gray-800">Organizer</span>
+                        <span>Paid to organizer: <strong>{formatMoney(paidToOrganizer, cur)}</strong></span>
+                        <span className={totals.collected - paidToOrganizer < 0 ? 'text-red-600' : 'text-gray-600'}>
+                            Collected − paid: <strong>{formatMoney(totals.collected - paidToOrganizer, cur)}</strong>
+                        </span>
+                        <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); setOrganizerTarget(null); }}
+                            className="ml-auto px-3 py-1.5 bg-orange-600 text-white text-sm rounded-md hover:bg-orange-700"
+                        >
+                            + Payment to organizer
+                        </button>
+                    </summary>
+                    {organizerPayments.length === 0 ? (
+                        <p className="px-4 pb-3 text-sm text-gray-500">No payments to the organizer yet.</p>
+                    ) : (
+                        <ul className="divide-y divide-gray-100 border-t border-gray-100 text-sm">
+                            {organizerPayments.map((pay) => (
+                                <li key={pay.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2">
+                                    <span>
+                                        {formatDate(pay.paid_at)} · {{ cash: 'Cash', bank_transfer: 'Bank transfer', other: 'Other' }[pay.payment_method]}
+                                        {pay.description && <span className="text-gray-700"> · {pay.description}</span>}
+                                        {pay.ledger_category && <span className="text-xs text-gray-500"> · {pay.ledger_category}</span>}
+                                        {pay.in_ledger && <span className="ml-1 text-xs text-green-700">✓ Ledger</span>}
+                                        {!pay.post_to_ledger && <span className="ml-1 text-xs text-gray-500">not from club account</span>}
+                                        {pay.note && <span className="block text-xs text-gray-500">{pay.note}</span>}
+                                    </span>
+                                    <span className="flex items-center gap-3">
+                                        <strong className="tabular-nums">{formatMoney(pay.amount, cur)}</strong>
+                                        <button type="button" onClick={() => setOrganizerTarget(pay)} className="text-blue-600 hover:text-blue-800 text-xs">Edit</button>
+                                        <button type="button" onClick={() => deleteOrganizerPayment(pay)} className="text-gray-400 hover:text-red-600" aria-label="Delete">✕</button>
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </details>
 
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -380,6 +433,15 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
             )}
             {showApplyAcc && (
                 <ApplyAccommodationModal competition={competition} participants={participants} accommodation={accommodation} onClose={() => setShowApplyAcc(false)} />
+            )}
+            {organizerTarget !== undefined && (
+                <OrganizerPaymentModal
+                    competition={competition}
+                    payment={organizerTarget}
+                    ledgerCategories={ledgerExpenseCategories}
+                    defaultCategoryId={organizerPayments[0]?.ledger_category_id}
+                    onClose={() => setOrganizerTarget(undefined)}
+                />
             )}
             {showAdd && <AddParticipantsModal competition={competition} members={availableMembers} onClose={() => setShowAdd(false)} />}
             {detailsParticipant && (

@@ -188,7 +188,10 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                                 <tr key={p.id}>
                                     <td className="py-2 pr-3 whitespace-nowrap">{formatDate(p.paid_at)}</td>
                                     <td className="py-2 pr-3 text-right whitespace-nowrap">{formatMoney(p.amount, cur)}</td>
-                                    <td className="py-2 pr-3 whitespace-nowrap">{METHOD_LABELS[p.payment_method] || '—'}</td>
+                                    <td className="py-2 pr-3 whitespace-nowrap">
+                                        {METHOD_LABELS[p.payment_method] || '—'}
+                                        {p.post_to_ledger === false && <span className="block text-xs text-gray-500">not in Ledger</span>}
+                                    </td>
                                     <td className="py-2 pr-3 text-gray-600">{p.note}</td>
                                     <td className="py-2 whitespace-nowrap text-right">
                                         <button onClick={() => onEditPayment(p)} className="text-blue-600 hover:text-blue-800 mr-3">Edit</button>

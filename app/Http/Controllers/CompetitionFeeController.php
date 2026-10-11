@@ -6,6 +6,8 @@ use App\Models\Competition;
 use App\Models\CompetitionParticipant;
 use App\Models\CompetitionRoom;
 use App\Models\CompetitionRoomSnapshot;
+use App\Models\CompetitionOrganizerPayment;
+use App\Models\LedgerCategory;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\CompetitionPayment;
 use App\Models\Member;
@@ -161,6 +163,7 @@ class CompetitionFeeController extends Controller
                         'paid_at' => $pay->paid_at->format('Y-m-d'),
                         'payment_method' => $pay->payment_method,
                         'note' => $pay->note,
+                        'post_to_ledger' => $pay->post_to_ledger !== false,
                         'in_ledger' => (bool) $pay->ledger_entry_id,
                     ])->values(),
                 ];
@@ -168,6 +171,11 @@ class CompetitionFeeController extends Controller
             'availableMembers' => $members,
             'currencies' => Competition::CURRENCIES,
             'paymentMethods' => CompetitionPayment::METHODS,
+            'organizerPayments' => $this->organizerPaymentsArray($competition),
+            'ledgerExpenseCategories' => LedgerCategory::where('is_active', true)
+                ->whereIn('kind', ['expense', 'both'])
+                ->orderBy('sort_order')->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 
@@ -434,6 +442,67 @@ class CompetitionFeeController extends Controller
                 ? (int) round((strtotime($defaults['check_out']) - strtotime($defaults['check_in'])) / 86400)
                 : null,
         ])->setPaper('a4', 'portrait')->download("room-plan_{$slug}.pdf");
+    }
+
+    // ─── Payments to the organizer ───────────────────────────────────────────
+
+    public function storeOrganizerPayment(Request $request, Competition $competition)
+    {
+        $competition->organizerPayments()->create($this->validateOrganizerPayment($request) + [
+            'created_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Payment to organizer recorded');
+    }
+
+    public function updateOrganizerPayment(Request $request, CompetitionOrganizerPayment $payment)
+    {
+        $payment->update($this->validateOrganizerPayment($request));
+
+        return back()->with('success', 'Payment to organizer updated');
+    }
+
+    public function destroyOrganizerPayment(CompetitionOrganizerPayment $payment)
+    {
+        $payment->delete();
+
+        return back()->with('success', 'Payment to organizer deleted');
+    }
+
+    private function validateOrganizerPayment(Request $request)
+    {
+        return $request->validate([
+            'amount' => 'required|numeric|gt:0',
+            'paid_at' => 'required|date',
+            'payment_method' => ['required', Rule::in(CompetitionOrganizerPayment::METHODS)],
+            'description' => 'nullable|string|max:255',
+            'note' => 'nullable|string|max:1000',
+            'ledger_category_id' => 'nullable|integer|exists:ledger_categories,id',
+            'post_to_ledger' => 'boolean',
+        ]);
+    }
+
+    private function organizerPaymentsArray(Competition $competition)
+    {
+        // Until /migrate has run, the page still works without this list.
+        if (!\Illuminate\Support\Facades\Schema::hasTable('competition_organizer_payments')) {
+            return [];
+        }
+
+        $categories = LedgerCategory::pluck('name', 'id');
+
+        return $competition->organizerPayments()->get()->map(fn ($pay) => [
+            'id' => $pay->id,
+            'amount' => (float) $pay->amount,
+            'paid_at' => $pay->paid_at->format('Y-m-d'),
+            'payment_method' => $pay->payment_method,
+            'description' => $pay->description,
+            'note' => $pay->note,
+            'ledger_category_id' => $pay->ledger_category_id,
+            'ledger_category' => $categories[$pay->ledger_category_id] ?? null,
+            'post_to_ledger' => $pay->post_to_ledger !== false,
+            'in_ledger' => (bool) $pay->ledger_entry_id,
+        ])->values()->all();
     }
 
     // ─── Accommodation pricing ───────────────────────────────────────────────
@@ -772,6 +841,32 @@ class CompetitionFeeController extends Controller
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
+        $organizer = $this->organizerPaymentsArray($competition);
+        if (count($organizer) > 0) {
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle('Organizer');
+            $sheet->fromArray(['Payment date', "Amount ({$cur})", 'Method', 'For', 'Ledger category', 'Note'], null, 'A1');
+            $this->headerStyle($sheet, 'A1:F1');
+            $r = 2;
+            foreach (collect($organizer)->sortBy('paid_at') as $pay) {
+                $sheet->fromArray([
+                    date('d.m.Y', strtotime($pay['paid_at'])),
+                    $pay['amount'],
+                    $this->methodLabel($pay['payment_method']),
+                    $pay['description'],
+                    $pay['ledger_category'],
+                    $pay['note'],
+                ], null, "A{$r}", true);
+                $r++;
+            }
+            $sheet->fromArray(['Total', collect($organizer)->sum('amount')], null, "A{$r}", true);
+            $sheet->getStyle("A{$r}:B{$r}")->getFont()->setBold(true);
+            $sheet->getStyle("B2:B{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
+            foreach (range('A', 'F') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+        }
+
         if ($rooms->isNotEmpty()) {
             $this->roomsSheet($spreadsheet->createSheet(), $competition, $rooms, $participants);
         }
@@ -942,6 +1037,7 @@ class CompetitionFeeController extends Controller
             'amount' => 'required|numeric|gt:0',
             'paid_at' => 'required|date',
             'payment_method' => ['required', Rule::in(CompetitionPayment::METHODS)],
+            'post_to_ledger' => 'boolean',
             'note' => 'nullable|string|max:255',
         ]);
     }

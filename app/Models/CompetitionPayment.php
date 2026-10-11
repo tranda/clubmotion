@@ -9,13 +9,14 @@ class CompetitionPayment extends Model
     public const METHODS = ['cash', 'bank_transfer', 'other'];
 
     protected $fillable = [
-        'competition_participant_id', 'amount', 'paid_at', 'payment_method',
+        'competition_participant_id', 'amount', 'paid_at', 'payment_method', 'post_to_ledger',
         'note', 'ledger_entry_id', 'created_by',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'paid_at' => 'date:Y-m-d',
+        'post_to_ledger' => 'boolean',
     ];
 
     public function participant()
@@ -62,7 +63,8 @@ class CompetitionPayment extends Model
      */
     public function syncLedgerEntry()
     {
-        $bucket = $this->ledgerBucket();
+        // Not posted when the money didn't go to the club's cash or account.
+        $bucket = $this->post_to_ledger === false ? null : $this->ledgerBucket();
         if (!$bucket || (float) $this->amount <= 0 || !$this->paid_at) {
             $this->removeLedgerEntry();
             return;

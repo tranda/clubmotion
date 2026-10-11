@@ -190,6 +190,9 @@ Route::middleware('auth')->group(function () {
             Route::put('/{competition}', 'update')->name('competition-fees.update');
             Route::delete('/{competition}', 'destroy')->name('competition-fees.destroy');
             Route::get('/{competition}/export', 'export')->name('competition-fees.export');
+            Route::post('/{competition}/organizer-payments', 'storeOrganizerPayment')->name('competition-fees.organizer-payments.store');
+            Route::put('/organizer-payments/{payment}', 'updateOrganizerPayment')->name('competition-fees.organizer-payments.update');
+            Route::delete('/organizer-payments/{payment}', 'destroyOrganizerPayment')->name('competition-fees.organizer-payments.destroy');
             Route::post('/{competition}/apply-accommodation', 'applyAccommodation')->name('competition-fees.accommodation.apply');
             Route::post('/{competition}/participants', 'addParticipants')->name('competition-fees.participants.store');
             Route::put('/participants/{participant}', 'updateParticipant')->name('competition-fees.participants.update');

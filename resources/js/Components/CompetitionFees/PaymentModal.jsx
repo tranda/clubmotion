@@ -8,6 +8,7 @@ export default function PaymentModal({ competition, participant, payment = null,
         paid_at: payment?.paid_at || todayIso(),
         payment_method: payment?.payment_method || 'cash',
         note: payment?.note || '',
+        post_to_ledger: payment?.post_to_ledger ?? true,
     });
 
     const submit = (e) => {
@@ -43,8 +44,12 @@ export default function PaymentModal({ competition, participant, payment = null,
                     <select value={data.payment_method} onChange={(e) => setData('payment_method', e.target.value)} className={inputClass}>
                         {paymentMethods.map((m) => <option key={m} value={m}>{METHOD_LABELS[m]}</option>)}
                     </select>
+                    <label className="mt-2 flex items-center gap-2 text-sm">
+                        <input type="checkbox" checked={data.post_to_ledger} onChange={(e) => setData('post_to_ledger', e.target.checked)} />
+                        Post to Ledger (paid into the club's cash or account)
+                    </label>
                     <p className="mt-1 text-xs text-gray-500">
-                        {data.payment_method === 'other'
+                        {!data.post_to_ledger || data.payment_method === 'other'
                             ? 'Not posted to the Ledger.'
                             : `Posted to the Ledger (${data.payment_method === 'cash' ? 'cash' : 'bank'}, ${competition.currency}).`}
                     </p>

@@ -43,6 +43,11 @@ class Competition extends Model
         return $this->hasMany(CompetitionRoomSnapshot::class)->latest();
     }
 
+    public function organizerPayments()
+    {
+        return $this->hasMany(CompetitionOrganizerPayment::class)->orderByDesc('paid_at')->orderByDesc('id');
+    }
+
     public function payments()
     {
         return $this->hasManyThrough(CompetitionPayment::class, CompetitionParticipant::class);

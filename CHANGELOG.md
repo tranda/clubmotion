@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.136] - 2026-10-11
+
+### Added
+- **Payments to the competition organizer.** New "Organizer" section on the competition page: paid to organizer, collected − paid, and a list of payments (amount, date, method, purpose, ledger category, note) with add/edit/delete. Cash and bank payments are posted to the Ledger as expenses (bucket by method and currency) with two-way sync. Included as an "Organizer" sheet in the XLSX export.
+- **"Post to Ledger" per payment** (default on) for both organizer payments and participants' competition payments, for money that didn't go through the club's cash or account. Toggling it adds or removes the Ledger entry.
+
+### Note
+- Requires running `/migrate` right after deploy (creates `competition_organizer_payments`, adds `competition_payments.post_to_ledger`). Recording competition payments fails until it runs.
+
 ## [0.9.135] - 2026-10-11
 
 ### Fixed
