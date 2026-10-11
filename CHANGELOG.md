@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.143] - 2026-10-11
+
+### Changed
+- **Members list on mobile: more compact cards.** The role badge is next to the name and the category badge is on the ID line, removing the separate badge row.
+
 ## [0.9.142] - 2026-10-11
 
 ### Changed

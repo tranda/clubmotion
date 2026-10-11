@@ -375,21 +375,23 @@ export default function Index({ members, filter, categoryStats }) {
                                     {/* Member Info */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between">
-                                            <h3 className="text-lg font-semibold text-gray-900 truncate">
-                                                {member.user_id && <span className="text-green-600 mr-2">✓</span>}
-                                                {member.name}
-                                            </h3>
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                                    {member.user_id && <span className="text-green-600 mr-2">✓</span>}
+                                                    {member.name}
+                                                </h3>
+                                                {viewerIsAdmin && <span className="shrink-0"><RoleBadge name={member.user?.role?.name} /></span>}
+                                            </div>
                                             <span className="ml-2">{member.is_active ? '✅' : '❌'}</span>
                                         </div>
-                                        <p className="text-sm text-gray-500">ID: {member.membership_number}{member.gender && ` · ${member.gender === 'M' ? 'Male' : 'Female'}`}</p>
-                                        <p className="text-sm text-gray-500">{member.email}</p>
-                                        <p className="text-sm text-gray-500">{member.phone}</p>
-                                        <div className="mt-2 flex items-center gap-2 flex-wrap">
+                                        <div className="flex items-center gap-2 flex-wrap text-sm text-gray-500">
+                                            <span>ID: {member.membership_number}{member.gender && ` · ${member.gender === 'M' ? 'Male' : 'Female'}`}</span>
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                 {member.category?.category_name || 'N/A'}
                                             </span>
-                                            {viewerIsAdmin && <RoleBadge name={member.user?.role?.name} />}
                                         </div>
+                                        <p className="text-sm text-gray-500">{member.email}</p>
+                                        <p className="text-sm text-gray-500">{member.phone}</p>
                                         {member.registration_date && (
                                             <p className="mt-1 text-xs text-gray-500">Registered: {member.registration_date}</p>
                                         )}
