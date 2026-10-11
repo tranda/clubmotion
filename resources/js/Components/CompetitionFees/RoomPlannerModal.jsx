@@ -224,9 +224,10 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                         const occupants = people.filter((p) => p.room_id === room.id);
                         const used = occupants.reduce((n, p) => n + partySize(p), 0);
                         const over = used > room.beds;
+                        const free = Math.max(0, room.beds - used);
                         const range = stayRange(occupants, defaults);
                         return (
-                            <div key={room.id} className={`border rounded-lg p-3 ${bedColor(room.beds)} ${over ? '!border-red-400 border-2' : ''}`}>
+                            <div key={room.id} className={`border rounded-lg p-3 ${bedColor(room.beds)} ${over ? '!border-red-400 border-2' : free > 0 ? '!border-orange-400 border-2 border-dashed' : ''}`}>
                                 <div className="flex items-center justify-between gap-2 mb-2">
                                     <input
                                         key={room.name || ''}
@@ -257,8 +258,8 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                                         </button>
                                     </div>
                                 </div>
-                                <div className={`text-xs mb-2 ${over ? 'text-red-600 font-medium' : used === room.beds ? 'text-green-700' : 'text-gray-500'}`}>
-                                    {used}/{room.beds} beds{over && ' — over capacity'}
+                                <div className={`text-xs mb-2 ${over ? 'text-red-600 font-medium' : free > 0 ? 'text-orange-600 font-medium' : 'text-green-700'}`}>
+                                    {used}/{room.beds} beds{over && ' — over capacity'}{free > 0 && ` — ${free} bed${free === 1 ? '' : 's'} free`}
                                     {accommodation?.rooms?.[room.id]?.total > 0 && (
                                         <span className="ml-2 text-gray-700 font-medium">· {formatMoney(accommodation.rooms[room.id].total, cur)}</span>
                                     )}

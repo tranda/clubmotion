@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.130] - 2026-10-11
+
+### Added
+- **Room planner: under-capacity marking.** Rooms with free beds (including empty rooms) get a dashed orange border and "N beds free", alongside the red over-capacity marking.
+
 ## [0.9.129] - 2026-10-10
 
 ### Added
