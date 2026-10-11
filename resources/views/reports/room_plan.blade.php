@@ -22,6 +22,11 @@
         li { margin: 1px 0; }
         .extras { color: #666; font-size: 8px; }
         h2 { font-size: 11px; margin: 12px 0 4px; border-bottom: 1px solid #999; padding-bottom: 2px; }
+        table.prices { border-collapse: collapse; margin: 0 0 8px; }
+        table.prices th, table.prices td { padding: 3px 10px 3px 0; border-bottom: 1px solid #e5e7eb; text-align: left; }
+        table.prices th { font-size: 8px; text-transform: uppercase; color: #555; }
+        table.prices td.r, table.prices th.r { text-align: right; }
+        .note { color: #555; font-size: 8px; margin-bottom: 8px; }
         .footer { margin-top: 10px; color: #999; font-size: 8px; text-align: center; }
     </style>
 </head>
@@ -37,6 +42,24 @@
     {{ $rooms->count() }} rooms ({{ $bySize }}) · {{ $peopleCount }} people
 </div>
 
+@if ($priceRows->isNotEmpty())
+    <table class="prices">
+        <tr><th>Room</th><th class="r">Per person</th><th class="r">Whole room</th></tr>
+        @foreach ($priceRows as $row)
+            <tr>
+                <td>{{ $row['label'] }}</td>
+                <td class="r"><strong>{{ number_format($row['price'], 2) }} {{ $competition->currency }}</strong></td>
+                <td class="r">{{ number_format($row['price'] * $row['beds'], 2) }} {{ $competition->currency }}</td>
+            </tr>
+        @endforeach
+    </table>
+    <div class="note">
+        Price per person for the whole stay{{ $packageNights ? " ({$packageNights} nights)" : '' }}.
+        @if ($supporterDiscount > 0) Supporters: {{ number_format($supporterDiscount, 2) }} {{ $competition->currency }} discount. @endif
+        Children are free and do not take a bed.
+    </div>
+@endif
+
 <table class="grid">
     @foreach ($rooms->chunk(3) as $row)
         <tr>
@@ -48,9 +71,6 @@
                         <span class="sub">&nbsp;{{ $room->beds }}-bed</span>
                         @if ($info['stay'])
                             <div class="sub">{{ $info['stay'] }}</div>
-                        @endif
-                        @if ($info['price'] !== null)
-                            <div class="sub">{{ number_format($info['price'], 2) }} {{ $competition->currency }} per person · room {{ number_format($info['price'] * $room->beds, 2) }} {{ $competition->currency }}</div>
                         @endif
                         @if ($info['occupants']->isEmpty())
                             <div class="sub">Empty</div>

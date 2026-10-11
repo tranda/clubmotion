@@ -379,7 +379,13 @@ class CompetitionFeeController extends Controller
         $participants = $competition->participants()->with('member:id,name')->where('status', '!=', 'cancelled')->get();
         $rooms = $competition->rooms()->get();
         $defaults = $competition->defaultRoomDates();
-        $prices = $competition->accommodationSettings()['prices'];
+        $settings = $competition->accommodationSettings();
+        $prices = $settings['prices'];
+        $labels = [1 => 'Single', 2 => 'Double', 3 => 'Triple', 4 => 'Quad (4 beds)', 5 => '5 beds'];
+        // Price table for the room types used (or offered), with a price set.
+        $types = $rooms->pluck('beds')->merge($competition->roomTypes())->unique()->sort();
+        $priceRows = $types->filter(fn ($b) => ($prices[$b] ?? null) !== null)
+            ->map(fn ($b) => ['beds' => $b, 'label' => $labels[$b] ?? "{$b} beds", 'price' => $prices[$b]])->values();
         $extras = function ($p) {
             $parts = [];
             foreach (['extra_athletes' => ['athlete', 'athletes'], 'extra_supporters' => ['supporter', 'supporters'], 'extra_children' => ['child', 'children']] as $field => [$one, $many]) {
@@ -422,6 +428,11 @@ class CompetitionFeeController extends Controller
             'notInRoom' => $notInRoom,
             'peopleCount' => $peopleCount,
             'bySize' => $bySize,
+            'priceRows' => $priceRows,
+            'supporterDiscount' => $settings['supporter_discount'],
+            'packageNights' => $defaults['check_in'] && $defaults['check_out']
+                ? (int) round((strtotime($defaults['check_out']) - strtotime($defaults['check_in'])) / 86400)
+                : null,
         ])->setPaper('a4', 'portrait')->download("room-plan_{$slug}.pdf");
     }
 

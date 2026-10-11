@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.133] - 2026-10-11
+
+### Changed
+- **Room plan PDF: price table on top.** Per-person and whole-room prices for each room type, with a note on stay length, supporter discount and children; prices removed from individual room cards.
+
 ## [0.9.132] - 2026-10-11
 
 ### Added
