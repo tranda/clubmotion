@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.139] - 2026-10-11
+
+### Changed
+- **Organizer section: "Collected − paid" renamed to "Remaining"** (tooltip: collected from participants minus paid to the organizer).
+
 ## [0.9.138] - 2026-10-11
 
 ### Changed

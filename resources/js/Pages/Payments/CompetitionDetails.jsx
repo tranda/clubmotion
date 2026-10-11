@@ -258,8 +258,11 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                     <summary className="cursor-pointer px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                         <span className="font-semibold text-gray-800">Organizer</span>
                         <span>Paid to organizer: <strong>{formatMoney(paidToOrganizer, cur)}</strong></span>
-                        <span className={totals.collected - paidToOrganizer < 0 ? 'text-red-600' : 'text-gray-600'}>
-                            Collected − paid: <strong>{formatMoney(totals.collected - paidToOrganizer, cur)}</strong>
+                        <span
+                            className={totals.collected - paidToOrganizer < 0 ? 'text-red-600' : 'text-gray-600'}
+                            title="Collected from participants minus paid to the organizer"
+                        >
+                            Remaining: <strong>{formatMoney(totals.collected - paidToOrganizer, cur)}</strong>
                         </span>
                         <button
                             type="button"
