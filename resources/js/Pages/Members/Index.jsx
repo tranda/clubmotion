@@ -296,13 +296,13 @@ export default function Index({ members, filter, categoryStats }) {
                                         onClick={() => navigateToMember(member.id)}
                                         className="hover:bg-gray-50 cursor-pointer transition-colors"
                                     >
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {member.user_id && <span className="text-green-600 mr-2">✓</span>}
                                             {member.name}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.membership_number}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-500">{member.membership_number}</td>
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-500">
                                             {member.image ? (
                                                 <img
                                                     src={`/storage/${member.image}`}
@@ -315,20 +315,20 @@ export default function Index({ members, filter, categoryStats }) {
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.date_of_birth}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.gender || '−'}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.phone}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.email}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-500">{member.date_of_birth}</td>
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-500">{member.gender || '−'}</td>
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-500">{member.phone}</td>
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-500">{member.email}</td>
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-500">
                                             {member.category?.category_name || 'N/A'}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.registration_date}</td>
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-500">{member.registration_date}</td>
                                         {viewerIsAdmin && (
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <td className="px-6 py-2 whitespace-nowrap text-sm">
                                                 <RoleBadge name={member.user?.role?.name} />
                                             </td>
                                         )}
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td className="px-6 py-2 whitespace-nowrap text-sm">
                                             {member.is_active ? '✅' : '❌'}
                                         </td>
                                     </tr>

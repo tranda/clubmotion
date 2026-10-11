@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.142] - 2026-10-11
+
+### Changed
+- **Members list: more compact rows.** Table cell padding reduced from 16px to 8px (rows about 57px instead of 73px).
+
 ## [0.9.141] - 2026-10-11
 
 ### Fixed
