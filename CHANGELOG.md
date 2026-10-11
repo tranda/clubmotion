@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.138] - 2026-10-11
+
+### Changed
+- **Update fees with accommodation: "Fee = accommodation" by default.** The new fee is the calculated accommodation (an existing fee such as a deposit is included in it). "Fee + accommodation" remains available to keep the current fee and add accommodation on top.
+
 ## [0.9.137] - 2026-10-11
 
 ### Added

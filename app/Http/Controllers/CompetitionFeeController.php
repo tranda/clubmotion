@@ -565,31 +565,35 @@ class CompetitionFeeController extends Controller
     }
 
     /**
-     * Put the calculated accommodation into participants' fees. The amount
-     * applied before is replaced, so applying again never double-counts:
-     * fee = fee − previously applied + new accommodation.
+     * Put the calculated accommodation into participants' fees.
+     * mode "replace" (default): fee = accommodation (the existing fee, e.g. a
+     * deposit, is included in it). mode "add": fee = fee − accommodation applied
+     * before + new accommodation, so re-applying never double-counts.
      */
     public function applyAccommodation(Request $request, Competition $competition)
     {
         $data = $request->validate([
             'participant_ids' => 'required|array',
             'participant_ids.*' => 'integer',
+            'mode' => 'nullable|in:replace,add',
         ]);
+        $replace = ($data['mode'] ?? 'replace') === 'replace';
 
         $participants = $competition->participants()->get();
         $costs = $competition->accommodationCosts($participants, $competition->rooms()->get());
         $amounts = (array) $costs['participants'];
         $updated = 0;
 
-        DB::transaction(function () use ($participants, $data, $amounts, &$updated) {
+        DB::transaction(function () use ($participants, $data, $amounts, $replace, &$updated) {
             foreach ($participants->whereIn('id', $data['participant_ids']) as $p) {
                 $new = (float) ($amounts[$p->id] ?? 0);
                 $old = (float) $p->accommodation_applied;
-                if (round($new - $old, 2) == 0) {
+                $fee = $replace ? $new : max(0, (float) $p->fee_amount - $old + $new);
+                if (round($fee - (float) $p->fee_amount, 2) == 0 && round($new - $old, 2) == 0) {
                     continue;
                 }
                 $p->update([
-                    'fee_amount' => round(max(0, (float) $p->fee_amount - $old + $new), 2),
+                    'fee_amount' => round($fee, 2),
                     'accommodation_applied' => $new,
                 ]);
                 $updated++;
