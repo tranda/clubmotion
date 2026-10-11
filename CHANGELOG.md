@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.148] - 2026-10-11
+
+### Added
+- **My Payments → Competition Fees: year filter** (All years / each year with competitions), shown when competitions span more than one year; remembered in the browser.
+
 ## [0.9.147] - 2026-10-11
 
 ### Changed

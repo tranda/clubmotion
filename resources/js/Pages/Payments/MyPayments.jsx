@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel, stayLabel, bedColor, paidLabel } from '../../Components/CompetitionFees/format';
@@ -58,6 +58,22 @@ export default function MyPayments({ member, year, payments, availableYears, com
         >
             {label}
         </button>
+    );
+
+    // Competition year filter (like the admin list): '' = all years.
+    const competitionYears = useMemo(
+        () => [...new Set(competitionFees.map((cf) => cf.competition.start_date?.slice(0, 4)).filter(Boolean))].sort().reverse(),
+        [competitionFees],
+    );
+    const [compYear, setCompYearState] = useState(() => {
+        try { return localStorage.getItem('myCompetitionYear') || ''; } catch { return ''; }
+    });
+    const setCompYear = (value) => {
+        setCompYearState(value);
+        try { localStorage.setItem('myCompetitionYear', value); } catch { /* ignore */ }
+    };
+    const visibleCompetitions = competitionFees.filter(
+        (cf) => !compYear || !competitionYears.includes(compYear) || cf.competition.start_date?.startsWith(compYear),
     );
 
     const totalPaid = payments.filter(p => p.payment_status === 'paid')
@@ -193,8 +209,20 @@ export default function MyPayments({ member, year, payments, availableYears, com
                 )}
                 {tab === 'competition' && competitionFees.length > 0 && (
                     <div>
+                        {competitionYears.length > 1 && (
+                            <div className="mb-4">
+                                <select
+                                    value={competitionYears.includes(compYear) ? compYear : ''}
+                                    onChange={(e) => setCompYear(e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                                >
+                                    <option value="">All years</option>
+                                    {competitionYears.map((y) => <option key={y} value={y}>{y}</option>)}
+                                </select>
+                            </div>
+                        )}
                         <div className="space-y-4">
-                            {competitionFees.map((cf) => {
+                            {visibleCompetitions.map((cf) => {
                                 const cur = cf.competition.currency;
                                 return (
                                     <div key={cf.id} className="bg-white rounded-lg shadow p-4 sm:p-6">
