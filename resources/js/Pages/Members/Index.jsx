@@ -390,8 +390,8 @@ export default function Index({ members, filter, categoryStats }) {
                                         <p className="text-sm text-gray-500">{member.email}</p>
                                         <p className="text-sm text-gray-500">{member.phone}</p>
                                         {(member.registration_date || viewerIsAdmin) && (
-                                            <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
-                                                {member.registration_date && <span>Registered: {member.registration_date}</span>}
+                                            <div className="mt-1 flex items-center justify-between gap-2 text-xs text-gray-500">
+                                                <span>{member.registration_date && `Registered: ${member.registration_date}`}</span>
                                                 {viewerIsAdmin && <RoleBadge name={member.user?.role?.name} />}
                                             </div>
                                         )}

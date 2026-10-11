@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.145] - 2026-10-11
+
+### Changed
+- **Members list on mobile: role badge aligned to the right** of the "Registered" line.
+
 ## [0.9.144] - 2026-10-11
 
 ### Changed
