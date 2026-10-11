@@ -158,23 +158,7 @@ class PaymentController extends Controller
             ->get()
             ->keyBy('payment_month');
 
-        // Build full 12-month array, filling missing months
-        $payments = [];
-        for ($month = 1; $month <= 12; $month++) {
-            if ($existingPayments->has($month)) {
-                $payments[] = $existingPayments->get($month);
-            } else {
-                $payments[] = (object) [
-                    'id' => 'pending-' . $month,
-                    'payment_month' => $month,
-                    'paid_amount' => null,
-                    'expected_amount' => null,
-                    'payment_status' => 'pending',
-                    'payment_date' => null,
-                    'payment_method' => null,
-                ];
-            }
-        }
+        $payments = $this->fillMonths($existingPayments, (int) $year, $user->member);
 
         // Get available years from member's payment data
         $yearsInDb = MembershipPayment::where('member_id', $user->member->id)
@@ -652,23 +636,7 @@ class PaymentController extends Controller
             ->get()
             ->keyBy('payment_month');
 
-        // Build full 12-month array, filling missing months
-        $payments = [];
-        for ($month = 1; $month <= 12; $month++) {
-            if ($existingPayments->has($month)) {
-                $payments[] = $existingPayments->get($month);
-            } else {
-                $payments[] = (object) [
-                    'id' => 'pending-' . $month,
-                    'payment_month' => $month,
-                    'paid_amount' => null,
-                    'expected_amount' => null,
-                    'payment_status' => 'pending',
-                    'payment_date' => null,
-                    'payment_method' => null,
-                ];
-            }
-        }
+        $payments = $this->fillMonths($existingPayments, (int) $year, $member);
 
         return Inertia::render('Payments/MemberHistory', [
             'member' => $member,
@@ -899,5 +867,31 @@ class PaymentController extends Controller
                     'extra_children' => (int) $o->extra_children,
                 ])->values(),
         ])->values();
+    }
+
+    /**
+     * 12 months for a member's year: recorded payments, and months without a
+     * record left empty (no status), as on the admin grid.
+     */
+    private function fillMonths($existingPayments, int $year, Member $member)
+    {
+        $payments = [];
+        for ($month = 1; $month <= 12; $month++) {
+            if ($existingPayments->has($month)) {
+                $payments[] = $existingPayments->get($month);
+                continue;
+            }
+            $payments[] = (object) [
+                'id' => 'none-' . $month,
+                'payment_month' => $month,
+                'paid_amount' => null,
+                'expected_amount' => null,
+                'payment_status' => null,
+                'payment_date' => null,
+                'payment_method' => null,
+            ];
+        }
+
+        return $payments;
     }
 }

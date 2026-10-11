@@ -9,6 +9,9 @@ export default function MemberHistory({ member, year, payments, availableYears }
     };
 
     const getStatusBadge = (status) => {
+        // Months without a recorded status show a dash, not an empty badge.
+        if (!status) return <span className="text-gray-400">−</span>;
+
         const styles = {
             paid: 'bg-green-100 text-green-800',
             pending: 'bg-yellow-100 text-yellow-800',

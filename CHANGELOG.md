@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.141] - 2026-10-11
+
+### Fixed
+- **My Payments / member payment history: months without a record are empty.** They showed "Pending" although nothing was recorded; they now show "−", matching the admin payments grid.
+
 ## [0.9.140] - 2026-10-11
 
 ### Removed
