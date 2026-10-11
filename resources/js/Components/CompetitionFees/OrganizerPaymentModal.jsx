@@ -6,6 +6,8 @@ export default function OrganizerPaymentModal({ competition, payment, ledgerCate
     const { data, setData, post, put, processing, errors } = useForm({
         amount: payment?.amount ?? '',
         paid_at: payment?.paid_at ?? todayIso(),
+        currency: payment?.currency || competition.currency,
+        currency_amount: payment?.currency_amount ?? '',
         payment_method: payment?.payment_method ?? 'bank_transfer',
         description: payment?.description ?? '',
         ledger_category_id: payment?.ledger_category_id ?? defaultCategoryId ?? '',
@@ -25,17 +27,38 @@ export default function OrganizerPaymentModal({ competition, payment, ledgerCate
     return (
         <Modal title={payment ? 'Edit payment to organizer' : 'Payment to organizer'} onClose={onClose}>
             <form onSubmit={submit} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount ({competition.currency})</label>
-                        <input type="number" min="0.01" step="0.01" required value={data.amount} onChange={(e) => setData('amount', e.target.value)} className={inputClass} />
-                        {error('amount')}
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <select value={data.currency} onChange={(e) => setData('currency', e.target.value)} className={inputClass}>
+                            {['EUR', 'RSD'].map((c) => <option key={c} value={c}>{c}</option>)}
+                        </select>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                        <input type="date" required value={data.paid_at} onChange={(e) => setData('paid_at', e.target.value)} className={inputClass} />
-                        {error('paid_at')}
-                    </div>
+                    {data.currency !== competition.currency ? (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Paid ({data.currency})</label>
+                                <input type="number" min="0.01" step="0.01" required value={data.currency_amount} onChange={(e) => setData('currency_amount', e.target.value)} className={inputClass} />
+                                {errors.currency_amount && <p className="mt-1 text-sm text-red-600">{errors.currency_amount}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Counts as ({competition.currency})</label>
+                                <input type="number" min="0.01" step="0.01" required value={data.amount} onChange={(e) => setData('amount', e.target.value)} className={inputClass} />
+                                {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Amount ({competition.currency})</label>
+                            <input type="number" min="0.01" step="0.01" required value={data.amount} onChange={(e) => setData('amount', e.target.value)} className={inputClass} />
+                            {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
+                        </div>
+                    )}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input type="date" required value={data.paid_at} onChange={(e) => setData('paid_at', e.target.value)} className={inputClass} />
+                    {error('paid_at')}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                     <div>

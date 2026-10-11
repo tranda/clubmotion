@@ -4,7 +4,7 @@ import Layout from '../../Components/Layout';
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
 import {
     formatDate, formatMoney, METHOD_LABELS, StatusBadge, SummaryCard, RoleBadge,
-    extrasLabel, roomLabel, roomsSummary, effectiveStay, hasOwnStay, stayLabel,
+    extrasLabel, roomLabel, roomsSummary, effectiveStay, hasOwnStay, stayLabel, paidLabel,
 } from '../../Components/CompetitionFees/format';
 
 // Trip overview for participants marked as room editors: room planner plus
@@ -105,7 +105,7 @@ export default function RoomPlanner({ competition, totals, rooms, roomPlan, part
                                                         {formatDate(pay.paid_at)} • {METHOD_LABELS[pay.payment_method] || pay.payment_method}
                                                         {pay.note && <span className="text-gray-500"> · {pay.note}</span>}
                                                     </span>
-                                                    <span className="font-medium text-gray-900">{formatMoney(pay.amount, cur)}</span>
+                                                    <span className="font-medium text-gray-900">{paidLabel(pay, cur)}</span>
                                                 </li>
                                             ))}
                                         </ul>

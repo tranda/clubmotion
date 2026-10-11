@@ -9,7 +9,7 @@ import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal'
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
 import ApplyAccommodationModal from '../../Components/CompetitionFees/ApplyAccommodationModal';
 import OrganizerPaymentModal from '../../Components/CompetitionFees/OrganizerPaymentModal';
-import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor, roomsSummary, stayRange, stayLabel, effectiveStay, hasOwnStay } from '../../Components/CompetitionFees/format';
+import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor, roomsSummary, stayRange, stayLabel, effectiveStay, hasOwnStay, paidLabel } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
     { key: 'all', label: 'All' },
@@ -284,7 +284,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                         {pay.note && <span className="block text-xs text-gray-500">{pay.note}</span>}
                                     </span>
                                     <span className="flex items-center gap-3">
-                                        <strong className="tabular-nums">{formatMoney(pay.amount, cur)}</strong>
+                                        <strong className="tabular-nums">{paidLabel(pay, cur)}</strong>
                                         <button type="button" onClick={() => setOrganizerTarget(pay)} className="text-blue-600 hover:text-blue-800 text-xs">Edit</button>
                                         <button type="button" onClick={() => deleteOrganizerPayment(pay)} className="text-gray-400 hover:text-red-600" aria-label="Delete">✕</button>
                                     </span>

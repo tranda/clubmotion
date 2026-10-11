@@ -50,6 +50,12 @@ export const stayRange = (people, defaults = {}) => {
 // Own dates differ from the default?
 export const hasOwnStay = (p) => !!(p.check_in || p.check_out);
 
+// "11,700.00 RSD (= 100.00 EUR)" when paid in another currency, else "100.00 EUR".
+export const paidLabel = (pay, competitionCurrency) =>
+    pay.currency && pay.currency !== competitionCurrency && pay.currency_amount != null
+        ? `${formatMoney(pay.currency_amount, pay.currency)} (= ${formatMoney(pay.amount, competitionCurrency)})`
+        : formatMoney(pay.amount, competitionCurrency);
+
 export const METHOD_LABELS = { cash: 'Cash', bank_transfer: 'Bank transfer', other: 'Other' };
 
 const STATUS_STYLES = {

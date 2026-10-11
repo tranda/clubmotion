@@ -161,6 +161,8 @@ class CompetitionFeeController extends Controller
                         'id' => $pay->id,
                         'amount' => (float) $pay->amount,
                         'paid_at' => $pay->paid_at->format('Y-m-d'),
+                        'currency' => $pay->currency,
+                        'currency_amount' => $pay->currency_amount !== null ? (float) $pay->currency_amount : null,
                         'payment_method' => $pay->payment_method,
                         'note' => $pay->note,
                         'post_to_ledger' => $pay->post_to_ledger !== false,
@@ -260,6 +262,8 @@ class CompetitionFeeController extends Controller
                     'id' => $pay->id,
                     'amount' => (float) $pay->amount,
                     'paid_at' => $pay->paid_at->format('Y-m-d'),
+                    'currency' => $pay->currency,
+                    'currency_amount' => $pay->currency_amount !== null ? (float) $pay->currency_amount : null,
                     'payment_method' => $pay->payment_method,
                     'note' => $pay->note,
                 ])->values(),
@@ -448,7 +452,7 @@ class CompetitionFeeController extends Controller
 
     public function storeOrganizerPayment(Request $request, Competition $competition)
     {
-        $competition->organizerPayments()->create($this->validateOrganizerPayment($request) + [
+        $competition->organizerPayments()->create($this->validateOrganizerPayment($request, $competition) + [
             'created_by' => auth()->id(),
         ]);
 
@@ -457,7 +461,7 @@ class CompetitionFeeController extends Controller
 
     public function updateOrganizerPayment(Request $request, CompetitionOrganizerPayment $payment)
     {
-        $payment->update($this->validateOrganizerPayment($request));
+        $payment->update($this->validateOrganizerPayment($request, $payment->competition));
 
         return back()->with('success', 'Payment to organizer updated');
     }
@@ -469,9 +473,9 @@ class CompetitionFeeController extends Controller
         return back()->with('success', 'Payment to organizer deleted');
     }
 
-    private function validateOrganizerPayment(Request $request)
+    private function validateOrganizerPayment(Request $request, Competition $competition)
     {
-        return $request->validate([
+        return $this->withPaymentCurrency($request, $competition, [
             'amount' => 'required|numeric|gt:0',
             'paid_at' => 'required|date',
             'payment_method' => ['required', Rule::in(CompetitionOrganizerPayment::METHODS)],
@@ -480,6 +484,30 @@ class CompetitionFeeController extends Controller
             'ledger_category_id' => 'nullable|integer|exists:ledger_categories,id',
             'post_to_ledger' => 'boolean',
         ]);
+    }
+
+    /**
+     * Validate a payment with its currency. `amount` is always in the
+     * competition's currency; when paid in another currency, `currency` and
+     * `currency_amount` (required) hold what was actually paid.
+     */
+    private function withPaymentCurrency(Request $request, Competition $competition, array $rules)
+    {
+        $data = $request->validate($rules + [
+            'currency' => ['nullable', Rule::in(Competition::CURRENCIES)],
+            'currency_amount' => 'nullable|numeric|gt:0',
+        ]);
+
+        if (empty($data['currency']) || $data['currency'] === $competition->currency) {
+            $data['currency'] = null;
+            $data['currency_amount'] = null;
+        } elseif (empty($data['currency_amount'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'currency_amount' => "Enter the amount paid in {$data['currency']}.",
+            ]);
+        }
+
+        return $data;
     }
 
     private function organizerPaymentsArray(Competition $competition)
@@ -495,6 +523,8 @@ class CompetitionFeeController extends Controller
             'id' => $pay->id,
             'amount' => (float) $pay->amount,
             'paid_at' => $pay->paid_at->format('Y-m-d'),
+            'currency' => $pay->currency,
+            'currency_amount' => $pay->currency_amount !== null ? (float) $pay->currency_amount : null,
             'payment_method' => $pay->payment_method,
             'description' => $pay->description,
             'note' => $pay->note,
@@ -727,7 +757,7 @@ class CompetitionFeeController extends Controller
 
     public function storePayment(Request $request, CompetitionParticipant $participant)
     {
-        $participant->payments()->create($this->validatePayment($request) + [
+        $participant->payments()->create($this->validatePayment($request, $participant->competition) + [
             'created_by' => auth()->id(),
         ]);
 
@@ -736,7 +766,7 @@ class CompetitionFeeController extends Controller
 
     public function updatePayment(Request $request, CompetitionPayment $payment)
     {
-        $payment->update($this->validatePayment($request));
+        $payment->update($this->validatePayment($request, $payment->participant->competition));
 
         return back()->with('success', 'Payment updated');
     }
@@ -1031,9 +1061,9 @@ class CompetitionFeeController extends Controller
         ]);
     }
 
-    private function validatePayment(Request $request)
+    private function validatePayment(Request $request, Competition $competition)
     {
-        return $request->validate([
+        return $this->withPaymentCurrency($request, $competition, [
             'amount' => 'required|numeric|gt:0',
             'paid_at' => 'required|date',
             'payment_method' => ['required', Rule::in(CompetitionPayment::METHODS)],

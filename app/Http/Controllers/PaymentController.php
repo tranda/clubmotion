@@ -216,6 +216,8 @@ class PaymentController extends Controller
                     'id' => $pay->id,
                     'amount' => (float) $pay->amount,
                     'paid_at' => optional($pay->paid_at)->format('Y-m-d'),
+                    'currency' => $pay->currency,
+                    'currency_amount' => $pay->currency_amount !== null ? (float) $pay->currency_amount : null,
                     'payment_method' => $pay->payment_method,
                 ])->values(),
                 'rooms' => $this->memberRoomPlan($p),

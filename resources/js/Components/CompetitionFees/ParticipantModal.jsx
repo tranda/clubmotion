@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { useLayoutEffect, useRef } from 'react';
-import { Modal, StatusBadge, METHOD_LABELS, formatDate, formatMoney, inputClass, effectiveStay, stayLabel } from './format';
+import { Modal, StatusBadge, METHOD_LABELS, formatDate, formatMoney, inputClass, effectiveStay, stayLabel, paidLabel } from './format';
 
 // Participant details: amounts, fee/status editing and payment history.
 export default function ParticipantModal({ competition, participant, onAddPayment, onEditPayment, onDeletePayment, onRemove, onClose }) {
@@ -187,7 +187,7 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                             {participant.payments.map((p) => (
                                 <tr key={p.id}>
                                     <td className="py-2 pr-3 whitespace-nowrap">{formatDate(p.paid_at)}</td>
-                                    <td className="py-2 pr-3 text-right whitespace-nowrap">{formatMoney(p.amount, cur)}</td>
+                                    <td className="py-2 pr-3 text-right whitespace-nowrap">{paidLabel(p, cur)}</td>
                                     <td className="py-2 pr-3 whitespace-nowrap">
                                         {METHOD_LABELS[p.payment_method] || '—'}
                                         {p.post_to_ledger === false && <span className="block text-xs text-gray-500">not in Ledger</span>}

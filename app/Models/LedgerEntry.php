@@ -125,8 +125,7 @@ class LedgerEntry extends Model
         $payment = CompetitionPayment::where('ledger_entry_id', $this->id)->first();
         if (!$payment) return;
 
-        $payment->fill([
-            'amount' => $this->amount,
+        $payment->fill($payment->ledgerAmountAttributes($this->amount) + [
             'paid_at' => $this->entry_date instanceof \DateTimeInterface
                 ? $this->entry_date->format('Y-m-d')
                 : $this->entry_date,
@@ -153,8 +152,7 @@ class LedgerEntry extends Model
         $payment = CompetitionOrganizerPayment::where('ledger_entry_id', $this->id)->first();
         if (!$payment) return;
 
-        $payment->fill([
-            'amount' => $this->amount,
+        $payment->fill($payment->ledgerAmountAttributes($this->amount) + [
             'paid_at' => $this->entry_date instanceof \DateTimeInterface
                 ? $this->entry_date->format('Y-m-d')
                 : $this->entry_date,

@@ -6,6 +6,8 @@ export default function PaymentModal({ competition, participant, payment = null,
     const { data, setData, post, put, processing, errors } = useForm({
         amount: payment?.amount ?? (participant.remaining_amount > 0 ? participant.remaining_amount : ''),
         paid_at: payment?.paid_at || todayIso(),
+        currency: payment?.currency || competition.currency,
+        currency_amount: payment?.currency_amount ?? '',
         payment_method: payment?.payment_method || 'cash',
         note: payment?.note || '',
         post_to_ledger: payment?.post_to_ledger ?? true,
@@ -29,10 +31,33 @@ export default function PaymentModal({ competition, participant, payment = null,
                     <div><span className="text-gray-500">Competition:</span> <span className="font-medium">{competition.name}</span></div>
                     <div><span className="text-gray-500">Remaining:</span> {formatMoney(participant.remaining_amount, competition.currency)}</div>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount ({competition.currency})</label>
-                    <input type="number" min="0.01" step="0.01" required autoFocus value={data.amount} onChange={(e) => setData('amount', e.target.value)} className={inputClass} />
-                    {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
+                <div className="grid grid-cols-3 gap-3">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <select value={data.currency} onChange={(e) => setData('currency', e.target.value)} className={inputClass}>
+                            {['EUR', 'RSD'].map((c) => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
+                    {data.currency !== competition.currency ? (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Paid ({data.currency})</label>
+                                <input type="number" min="0.01" step="0.01" required value={data.currency_amount} onChange={(e) => setData('currency_amount', e.target.value)} className={inputClass} />
+                                {errors.currency_amount && <p className="mt-1 text-sm text-red-600">{errors.currency_amount}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Counts as ({competition.currency})</label>
+                                <input type="number" min="0.01" step="0.01" required value={data.amount} onChange={(e) => setData('amount', e.target.value)} className={inputClass} />
+                                {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Amount ({competition.currency})</label>
+                            <input type="number" min="0.01" step="0.01" required value={data.amount} onChange={(e) => setData('amount', e.target.value)} className={inputClass} />
+                            {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount}</p>}
+                        </div>
+                    )}
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
@@ -51,7 +76,7 @@ export default function PaymentModal({ competition, participant, payment = null,
                     <p className="mt-1 text-xs text-gray-500">
                         {!data.post_to_ledger || data.payment_method === 'other'
                             ? 'Not posted to the Ledger.'
-                            : `Posted to the Ledger (${data.payment_method === 'cash' ? 'cash' : 'bank'}, ${competition.currency}).`}
+                            : `Posted to the Ledger (${data.payment_method === 'cash' ? 'cash' : 'bank'}, ${data.currency}).`}
                     </p>
                 </div>
                 <div>

@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
-import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel, stayLabel, bedColor } from '../../Components/CompetitionFees/format';
+import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel, stayLabel, bedColor, paidLabel } from '../../Components/CompetitionFees/format';
 
 export default function MyPayments({ member, year, payments, availableYears, competitionFees = [] }) {
     const monthNames = {
@@ -201,7 +201,7 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                 {cf.payments.map((pay) => (
                                                     <li key={pay.id} className="flex justify-between">
                                                         <span>{formatDate(pay.paid_at)} • {METHOD_LABELS[pay.payment_method] || pay.payment_method}</span>
-                                                        <span className="font-medium text-gray-900">{formatMoney(pay.amount, cur)}</span>
+                                                        <span className="font-medium text-gray-900">{paidLabel(pay, cur)}</span>
                                                     </li>
                                                 ))}
                                             </ul>

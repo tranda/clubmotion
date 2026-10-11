@@ -15,12 +15,13 @@ class CompetitionOrganizerPayment extends Model
     public const METHODS = ['cash', 'bank_transfer', 'other'];
 
     protected $fillable = [
-        'competition_id', 'amount', 'paid_at', 'payment_method', 'description',
+        'competition_id', 'amount', 'currency', 'currency_amount', 'paid_at', 'payment_method', 'description',
         'note', 'post_to_ledger', 'ledger_category_id', 'ledger_entry_id', 'created_by',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'currency_amount' => 'decimal:2',
         'paid_at' => 'date:Y-m-d',
         'post_to_ledger' => 'boolean',
     ];
@@ -50,7 +51,7 @@ class CompetitionOrganizerPayment extends Model
      */
     public function ledgerBucket()
     {
-        $currency = $this->competition->currency ?? 'EUR';
+        $currency = $this->paymentCurrency();
         if ($this->payment_method === 'cash') {
             return $currency === 'RSD' ? 'cash' : 'cash_eur';
         }
@@ -60,10 +61,42 @@ class CompetitionOrganizerPayment extends Model
         return null;
     }
 
+    /**
+     * Currency actually paid in (defaults to the competition's currency).
+     */
+    public function paymentCurrency()
+    {
+        return $this->currency ?: ($this->competition->currency ?? 'EUR');
+    }
+
+    /**
+     * True when paid in a currency other than the competition's.
+     */
+    public function isForeignCurrency()
+    {
+        return $this->currency && $this->currency !== ($this->competition->currency ?? 'EUR') && $this->currency_amount !== null;
+    }
+
+    /**
+     * Amount for the Ledger: what was actually paid, in the payment's currency.
+     */
+    public function ledgerAmount()
+    {
+        return $this->isForeignCurrency() ? $this->currency_amount : $this->amount;
+    }
+
+    /**
+     * Ledger → payment sync: a changed Ledger amount is what was actually paid.
+     */
+    public function ledgerAmountAttributes($amount)
+    {
+        return $this->isForeignCurrency() ? ['currency_amount' => $amount] : ['amount' => $amount];
+    }
+
     public function syncLedgerEntry()
     {
         $bucket = $this->post_to_ledger === false ? null : $this->ledgerBucket();
-        if (!$bucket || (float) $this->amount <= 0 || !$this->paid_at) {
+        if (!$bucket || (float) $this->ledgerAmount() <= 0 || !$this->paid_at) {
             $this->removeLedgerEntry();
             return;
         }
@@ -72,7 +105,7 @@ class CompetitionOrganizerPayment extends Model
             'entry_date' => $this->paid_at,
             'type' => 'expense',
             'bucket' => $bucket,
-            'amount' => $this->amount,
+            'amount' => $this->ledgerAmount(),
             'description' => trim('Organizer: ' . ($this->competition->name ?? '') . ($this->description ? ' — ' . $this->description : '')),
             'ledger_category_id' => $this->ledger_category_id,
             'member_id' => null,

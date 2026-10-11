@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.137] - 2026-10-11
+
+### Added
+- **Currency per competition payment** (participant payments and payments to the organizer). Defaults to the competition's currency; when paid in the other currency, the form asks for the amount actually paid and what it counts as in the competition's currency. Fees and totals use the counted amount; the Ledger records the actual amount in that currency's bucket (two-way sync updates the actual amount). Shown as "11,700.00 RSD (= 100.00 EUR)".
+
+### Note
+- Requires running `/migrate` right after deploy (adds `currency` and `currency_amount` to competition payments and organizer payments). Recording competition payments fails until it runs.
+
 ## [0.9.136] - 2026-10-11
 
 ### Added
