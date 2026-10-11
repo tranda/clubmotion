@@ -209,7 +209,7 @@ export default function MyPayments({ member, year, payments, availableYears, com
                 )}
                 {tab === 'competition' && competitionFees.length > 0 && (
                     <div>
-                        {competitionYears.length > 1 && (
+                        {competitionYears.length > 0 && (
                             <div className="mb-4">
                                 <select
                                     value={competitionYears.includes(compYear) ? compYear : ''}
