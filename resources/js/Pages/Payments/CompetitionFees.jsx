@@ -3,7 +3,7 @@ import { router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import PaymentsTabs from '../../Components/CompetitionFees/PaymentsTabs';
 import CompetitionFormModal from '../../Components/CompetitionFees/CompetitionFormModal';
-import { formatMoney, CompetitionStatusBadge, SummaryCard } from '../../Components/CompetitionFees/format';
+import { formatMoney, CompetitionStatusBadge } from '../../Components/CompetitionFees/format';
 
 export default function CompetitionFees({ year, status, availableYears, competitions, summary, counts, currencies }) {
     const [showForm, setShowForm] = useState(false);
@@ -14,14 +14,6 @@ export default function CompetitionFees({ year, status, availableYears, competit
     };
 
     const open = (id) => router.get(`/payments/competition-fees/${id}`);
-
-    // One line per currency (EUR and RSD are never added together).
-    const moneyCard = (key) =>
-        summary.length === 0 ? '—' : (
-            <div className="space-y-0.5">
-                {summary.map((s) => <div key={s.currency}>{formatMoney(s[key], s.currency)}</div>)}
-            </div>
-        );
 
     return (
         <Layout>
@@ -59,15 +51,6 @@ export default function CompetitionFees({ year, status, availableYears, competit
                             + Add Competition
                         </button>
                     </div>
-                </div>
-
-                {/* Summary */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-6">
-                    <SummaryCard label="Expected" value={moneyCard('expected')} className="text-gray-900 text-base sm:text-lg" />
-                    <SummaryCard label="Collected" value={moneyCard('collected')} className="text-green-600 text-base sm:text-lg" />
-                    <SummaryCard label="Remaining" value={moneyCard('remaining')} className="text-red-600 text-base sm:text-lg" />
-                    <SummaryCard label="Competitions" value={counts.competitions} />
-                    <SummaryCard label="Participants" value={counts.participants} />
                 </div>
 
                 {competitions.length === 0 ? (

@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.140] - 2026-10-11
+
+### Removed
+- **Competition Fees list: total cards** (Expected / Collected / Remaining / Competitions / Participants across all competitions). Figures are per competition in the table.
+- **Organizer section: "Remaining"** (collected − paid to organizer); only "Paid to organizer" is shown.
+
 ## [0.9.139] - 2026-10-11
 
 ### Changed
