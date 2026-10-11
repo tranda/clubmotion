@@ -29,6 +29,9 @@ Route::get('/csrf-token', function () {
     return response()->json(['token' => csrf_token()]);
 });
 
+// Old app link (club.motion.rs/home) that was sent around: send it to the home page.
+Route::redirect('/home', '/');
+
 // Clear cache endpoint (for debugging on shared hosting)
 Route::get('/clear-cache', function () {
     \Illuminate\Support\Facades\Artisan::call('route:clear');

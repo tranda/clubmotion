@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.134] - 2026-10-11
+
+### Fixed
+- **Wrong app link `club.motion.rs/home`.** Signed-in users opening the login page were redirected to `/home` (which doesn't exist). They now go to the home page, and old `/home` links redirect to `/`.
+
+### Security
+- **Removed `public/db_test.php`**, a database connection test page that contained the production database credentials. The database password must be changed on the host (it remains in git history).
+
 ## [0.9.133] - 2026-10-11
 
 ### Changed
