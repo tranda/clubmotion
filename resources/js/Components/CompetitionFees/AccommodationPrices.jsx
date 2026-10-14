@@ -55,19 +55,23 @@ export default function AccommodationPrices({ competition, accommodation }) {
                 </div>
                 <div>
                     <div className="text-xs text-gray-500 mb-1">Children by age at check-in (price per child for the whole stay; empty = same as an adult bed)</div>
-                    <div className="space-y-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         {data.child_bands.map((b, i) => (
-                            <div key={i} className="flex flex-wrap items-center gap-2 text-sm">
-                                <input value={b.label} onChange={(e) => setBand(i, 'label', e.target.value)} className={`${input} w-28`} aria-label="Band name" />
-                                <span className="text-xs text-gray-500">{i === 0 ? 0 : (data.child_bands[i - 1].max_age ?? 0) + 1} to</span>
-                                <input type="number" min="0" max="25" value={b.max_age} onChange={(e) => setBand(i, 'max_age', e.target.value)} className={`${input} w-16`} aria-label="Up to age" />
-                                <span className="text-xs text-gray-500">years</span>
-                                <input type="number" min="0" step="0.01" value={b.price} placeholder="adult" onChange={(e) => setBand(i, 'price', e.target.value)} className={`${input} w-28`} aria-label={`Price (${cur})`} />
-                                <span className="text-xs text-gray-500">{cur}</span>
-                                <label className="flex items-center gap-1 text-xs text-gray-600">
-                                    <input type="checkbox" checked={!!b.takes_bed} onChange={(e) => setBand(i, 'takes_bed', e.target.checked)} />
-                                    takes a bed
-                                </label>
+                            <div key={i} className="rounded border border-gray-200 p-2 space-y-1">
+                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                    <input value={b.label} onChange={(e) => setBand(i, 'label', e.target.value)} className={`${input} !py-0.5 font-medium text-gray-700`} aria-label="Band name" />
+                                    <span className="whitespace-nowrap">{i === 0 ? 0 : (Number(data.child_bands[i - 1].max_age) || 0) + 1}–</span>
+                                    <input type="number" min="0" max="25" value={b.max_age} onChange={(e) => setBand(i, 'max_age', e.target.value)} className={`${input} !py-0.5 !w-12`} aria-label="Up to age" />
+                                    <span>y</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                    <input type="number" min="0" step="0.01" value={b.price} placeholder="adult" onChange={(e) => setBand(i, 'price', e.target.value)} className={`${input} !py-0.5`} aria-label={`Price (${cur})`} />
+                                    <span>{cur}</span>
+                                    <label className="flex items-center gap-1 whitespace-nowrap ml-1">
+                                        <input type="checkbox" checked={!!b.takes_bed} onChange={(e) => setBand(i, 'takes_bed', e.target.checked)} />
+                                        bed
+                                    </label>
+                                </div>
                             </div>
                         ))}
                     </div>

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.151] - 2026-10-14
+
+### Changed
+- **Room planner → Prices: compact child age bands**, shown as three small boxes side by side (name and age range; price and "bed").
+
 ## [0.9.150] - 2026-10-14
 
 ### Added
