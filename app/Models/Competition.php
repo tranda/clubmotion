@@ -118,11 +118,80 @@ class Competition extends Model
             $prices[$size] = $v === null || $v === '' ? null : (float) $v;
         }
 
+        $bands = [];
+        foreach ($a['child_bands'] ?? self::DEFAULT_CHILD_BANDS as $band) {
+            $price = $band['price'] ?? null;
+            $bands[] = [
+                'label' => (string) ($band['label'] ?? ''),
+                'max_age' => (int) ($band['max_age'] ?? 0),
+                'price' => $price === null || $price === '' ? null : (float) $price,
+                'takes_bed' => (bool) ($band['takes_bed'] ?? true),
+            ];
+        }
+        usort($bands, fn ($x, $y) => $x['max_age'] <=> $y['max_age']);
+
         return [
             'prices' => $prices,
             'supporter_discount' => (float) ($a['supporter_discount'] ?? 0),
             'charge_empty_beds' => (bool) ($a['charge_empty_beds'] ?? true),
+            'child_bands' => $bands,
         ];
+    }
+
+    // Age bands for children (age at check-in). price = per child for the
+    // whole stay (null = same as an adult bed), takes_bed = counts as a bed.
+    public const DEFAULT_CHILD_BANDS = [
+        ['label' => 'Babies', 'max_age' => 1, 'price' => 0, 'takes_bed' => false],
+        ['label' => 'Children', 'max_age' => 6, 'price' => null, 'takes_bed' => true],
+        ['label' => 'Teens', 'max_age' => 17, 'price' => null, 'takes_bed' => true],
+    ];
+
+    /**
+     * Each child of a participant with age (at their check-in) and band:
+     * [['dob', 'age', 'band' (array|null = adult), 'takes_bed', 'price']].
+     * Unknown DOB → treated as before (free, no bed), band 'unknown'.
+     */
+    public function childrenOf($p, ?array $settings = null, ?array $defaults = null)
+    {
+        $settings = $settings ?? $this->accommodationSettings();
+        $defaults = $defaults ?? $this->defaultRoomDates();
+        $at = $p->stay($defaults)['check_in'] ?? null;
+        $at = $at ?: ($this->start_date ? $this->start_date->format('Y-m-d') : date('Y-m-d'));
+
+        $children = [];
+        foreach ($p->childrenDobs() as $dob) {
+            if (!$dob) {
+                $children[] = ['dob' => null, 'age' => null, 'band' => 'unknown', 'takes_bed' => false, 'price' => 0.0];
+                continue;
+            }
+            $age = \Carbon\Carbon::parse($dob)->diffInYears(\Carbon\Carbon::parse($at));
+            $band = null;
+            foreach ($settings['child_bands'] as $b) {
+                if ($age <= $b['max_age']) {
+                    $band = $b;
+                    break;
+                }
+            }
+            // Older than every band → priced and counted like an adult.
+            $children[] = [
+                'dob' => $dob,
+                'age' => $age,
+                'band' => $band ? $band['label'] : null,
+                'takes_bed' => $band ? $band['takes_bed'] : true,
+                'price' => $band ? $band['price'] : null,
+            ];
+        }
+        return $children;
+    }
+
+    /**
+     * Beds a participant's party takes: participant + additional athletes and
+     * supporters + children whose age band takes a bed.
+     */
+    public function bedsFor($p, ?array $settings = null, ?array $defaults = null)
+    {
+        $kids = collect($this->childrenOf($p, $settings, $defaults))->where('takes_bed', true)->count();
+        return 1 + (int) $p->extra_athletes + (int) $p->extra_supporters + $kids;
     }
 
     /**
@@ -130,9 +199,9 @@ class Competition extends Model
      *
      * Per-person price is for the package (default stay). A room costs
      * price × beds when empty beds are charged (split among the people in it),
-     * else price per person. A participant pays for their party's beds
-     * (children are free and take no bed), minus the supporter discount per
-     * supporter, pro-rated by their nights ÷ package nights.
+     * else price per person. A participant pays a bed share for each adult in
+     * their party, plus each child's band price (null = a bed share), minus the
+     * supporter discount per supporter, pro-rated by nights ÷ package nights.
      * Cancelled participants and people not in a room cost nothing.
      */
     public function accommodationCosts($participants, $rooms)
@@ -142,7 +211,7 @@ class Competition extends Model
         $packageNights = $defaults['check_in'] && $defaults['check_out']
             ? max(0, (int) round((strtotime($defaults['check_out']) - strtotime($defaults['check_in'])) / 86400))
             : null;
-        $beds = fn ($p) => 1 + (int) $p->extra_athletes + (int) $p->extra_supporters;
+        $beds = fn ($p) => $this->bedsFor($p, $settings, $defaults);
         $active = collect($participants)->where('status', '!=', 'cancelled');
 
         $perParticipant = [];
@@ -163,7 +232,12 @@ class Competition extends Model
             $roomTotal = 0.0;
             foreach ($occupants as $p) {
                 $supporters = ($p->role === 'supporter' ? 1 : 0) + (int) $p->extra_supporters;
-                $amount = max(0, $share * $beds($p) - $settings['supporter_discount'] * $supporters);
+                $adults = 1 + (int) $p->extra_athletes + (int) $p->extra_supporters;
+                $childCost = 0.0;
+                foreach ($this->childrenOf($p, $settings, $defaults) as $child) {
+                    $childCost += $child['price'] === null ? $share : (float) $child['price'];
+                }
+                $amount = max(0, $share * $adults + $childCost - $settings['supporter_discount'] * $supporters);
                 $stay = $p->stay($defaults);
                 if ($packageNights && $stay['check_in'] && $stay['check_out']) {
                     $nights = max(0, (int) round((strtotime($stay['check_out']) - strtotime($stay['check_in'])) / 86400));
@@ -218,8 +292,8 @@ class Competition extends Model
             if ($p->status === 'cancelled') {
                 continue;
             }
-            // Children don't take a bed (they share with their parent).
-            $party = 1 + (int) $p->extra_athletes + (int) $p->extra_supporters;
+            // Children take a bed depending on their age band.
+            $party = $this->bedsFor($p);
             if ($p->preferred_room && isset($people[$p->preferred_room])) {
                 $people[$p->preferred_room] += $party;
             } else {

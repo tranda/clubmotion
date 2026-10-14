@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.150] - 2026-10-14
+
+### Added
+- **Children's dates of birth and age-based child pricing.** In the participant window, children are entered as a list of dates of birth (showing age and band). Room planner → Prices has editable age bands (default Babies 0–1 free, no bed; Children 2–6 and Teens 7–17 at adult price, taking a bed) with a price per child for the stay (empty = adult bed share) and a "takes a bed" option. Age is counted at check-in. Children who take a bed count in beds used, rooms needed, snapshots and the export; children without a DOB stay free with no bed. Labels show children's ages; the room plan PDF lists the bands.
+
+### Note
+- Requires running `/migrate` after deploy (adds `competition_participants.children_dobs`). Saving a participant fails until it runs.
+
 ## [0.9.149] - 2026-10-11
 
 ### Changed

@@ -83,20 +83,23 @@ export function StatusBadge({ status }) {
     );
 }
 
-// "+1 athlete, +2 supporters" for a participant's additional people, or ''.
-export const extrasLabel = (p) =>
-    [
-        [p.extra_athletes, 'athlete', 'athletes'],
-        [p.extra_supporters, 'supporter', 'supporters'],
-        [p.extra_children, 'child', 'children'],
+// "+1 athlete, +2 children (4, 9)" for a participant's additional people, or ''.
+// Children's ages come from the server (p.children) when known.
+export const extrasLabel = (p) => {
+    const ages = (p.children || []).map((c) => (c.age == null ? '?' : c.age));
+    return [
+        [p.extra_athletes, 'athlete', 'athletes', ''],
+        [p.extra_supporters, 'supporter', 'supporters', ''],
+        [p.extra_children, 'child', 'children', ages.length ? ` (${ages.join(', ')})` : ''],
     ]
         .filter(([n]) => n > 0)
-        .map(([n, one, many]) => `+${n} ${n === 1 ? one : many}`)
+        .map(([n, one, many, suffix]) => `+${n} ${n === 1 ? one : many}${suffix}`)
         .join(', ');
+};
 
-// Beds a participant takes: themselves + additional athletes/supporters.
-// Children don't take a bed (they share with their parent).
-export const bedsFor = (p) => 1 + (p.extra_athletes || 0) + (p.extra_supporters || 0);
+// Beds a participant's party takes. The server sends `beds` (children count
+// depending on their age band); fallback: themselves + additional adults.
+export const bedsFor = (p) => (p.beds != null ? p.beds : 1 + (p.extra_athletes || 0) + (p.extra_supporters || 0));
 
 // Summary of the rooms actually created in the planner:
 // { bySize: [{ beds, count }], total, beds, used, unassigned }.

@@ -155,8 +155,8 @@ class CompetitionFeeController extends Controller
             'rooms' => $this->roomsArray($competition),
             'roomSnapshots' => $this->snapshotsArray($competition),
             'accommodation' => $competition->accommodationCosts($participants, $competition->rooms()->get()),
-            'participants' => $participants->map(function ($p) {
-                return $p->toSummaryArray() + [
+            'participants' => $participants->map(function ($p) use ($competition) {
+                return $p->toSummaryArray() + $this->bedsInfo($competition, $p) + [
                     'payments' => $p->payments->map(fn ($pay) => [
                         'id' => $pay->id,
                         'amount' => (float) $pay->amount,
@@ -257,7 +257,7 @@ class CompetitionFeeController extends Controller
             'roomSnapshots' => $this->snapshotsArray($competition),
             'accommodation' => $competition->accommodationCosts($participants, $competition->rooms()->get()),
             'roomPlan' => $competition->roomPlan($participants),
-            'participants' => $participants->map(fn ($p) => $p->toSummaryArray() + [
+            'participants' => $participants->map(fn ($p) => $p->toSummaryArray() + $this->bedsInfo($competition, $p) + [
                 'payments' => $p->payments->map(fn ($pay) => [
                     'id' => $pay->id,
                     'amount' => (float) $pay->amount,
@@ -442,6 +442,12 @@ class CompetitionFeeController extends Controller
             'bySize' => $bySize,
             'priceRows' => $priceRows,
             'supporterDiscount' => $settings['supporter_discount'],
+            // "Babies 0–1: free, no bed · Children 2–6: adult price · …"
+            'childNote' => collect($settings['child_bands'])->values()->map(function ($b, $i) use ($settings, $competition) {
+                $from = $i === 0 ? 0 : $settings['child_bands'][$i - 1]['max_age'] + 1;
+                $price = $b['price'] === null ? 'adult price' : ((float) $b['price'] == 0 ? 'free' : number_format($b['price'], 2) . ' ' . $competition->currency);
+                return "{$b['label']} {$from}–{$b['max_age']}: {$price}" . ($b['takes_bed'] ? '' : ', no bed');
+            })->implode(' · '),
             'packageNights' => $defaults['check_in'] && $defaults['check_out']
                 ? (int) round((strtotime($defaults['check_out']) - strtotime($defaults['check_in'])) / 86400)
                 : null,
@@ -548,6 +554,13 @@ class CompetitionFeeController extends Controller
         foreach (Competition::ROOM_SIZES as $size) {
             $rules["prices.{$size}"] = 'nullable|numeric|min:0';
         }
+        $rules += [
+            'child_bands' => 'nullable|array|max:5',
+            'child_bands.*.label' => 'required|string|max:30',
+            'child_bands.*.max_age' => 'required|integer|min:0|max:25',
+            'child_bands.*.price' => 'nullable|numeric|min:0',
+            'child_bands.*.takes_bed' => 'boolean',
+        ];
         $request->validate($rules);
 
         $prices = [];
@@ -559,6 +572,13 @@ class CompetitionFeeController extends Controller
             'prices' => $prices,
             'supporter_discount' => round((float) $request->input('supporter_discount', 0), 2),
             'charge_empty_beds' => $request->boolean('charge_empty_beds', true),
+            'child_bands' => collect($request->input('child_bands', Competition::DEFAULT_CHILD_BANDS))
+                ->map(fn ($b) => [
+                    'label' => trim($b['label'] ?? ''),
+                    'max_age' => (int) ($b['max_age'] ?? 0),
+                    'price' => ($b['price'] ?? '') === '' || ($b['price'] ?? null) === null ? null : round((float) $b['price'], 2),
+                    'takes_bed' => filter_var($b['takes_bed'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                ])->sortBy('max_age')->values()->all(),
         ]]);
 
         return back()->with('success', 'Accommodation prices saved');
@@ -728,6 +748,8 @@ class CompetitionFeeController extends Controller
             'extra_athletes' => 'nullable|integer|min:0|max:99',
             'extra_supporters' => 'nullable|integer|min:0|max:99',
             'extra_children' => 'nullable|integer|min:0|max:99',
+            'children_dobs' => 'sometimes|nullable|array|max:99',
+            'children_dobs.*' => 'nullable|date|before_or_equal:today',
             'preferred_room' => ['nullable', 'integer', Rule::in(Competition::ROOM_SIZES)],
             'notes' => 'nullable|string|max:1000',
             'can_edit_rooms' => 'sometimes|boolean',
@@ -736,6 +758,11 @@ class CompetitionFeeController extends Controller
         ]);
         foreach (['extra_athletes', 'extra_supporters', 'extra_children'] as $field) {
             $data[$field] = (int) ($data[$field] ?? 0);
+        }
+        // Children are entered as a list of birth dates; the count follows it.
+        if ($request->has('children_dobs')) {
+            $data['children_dobs'] = array_values(array_map(fn ($d) => $d ?: null, (array) ($data['children_dobs'] ?? [])));
+            $data['extra_children'] = count($data['children_dobs']);
         }
 
         $participant->update($data);
@@ -918,12 +945,12 @@ class CompetitionFeeController extends Controller
 
     /**
      * XLSX "Rooms" sheet: one row per room with occupants, then room counts.
-     * Children don't take a bed; cancelled participants are left out.
+     * Children take a bed depending on their age band; cancelled participants are left out.
      */
     private function roomsSheet($sheet, Competition $competition, $rooms, $participants)
     {
         $active = $participants->where('status', '!=', 'cancelled');
-        $beds = fn ($p) => 1 + (int) $p->extra_athletes + (int) $p->extra_supporters;
+        $beds = fn ($p) => $competition->bedsFor($p);
         $extras = function ($p) {
             $parts = [];
             foreach (['extra_athletes' => ['athlete', 'athletes'], 'extra_supporters' => ['supporter', 'supporters'], 'extra_children' => ['child', 'children']] as $field => [$one, $many]) {
@@ -1001,12 +1028,10 @@ class CompetitionFeeController extends Controller
             return [];
         }
 
-        // People placed = beds taken (participant + additional athletes/supporters,
-        // children don't take a bed), using participants' current extras.
+        // People placed = beds taken (participant, additional athletes/supporters
+        // and children whose age band takes a bed), using current data.
         $participants = $competition->participants()->where('status', '!=', 'cancelled')->get()->keyBy('id');
-        $beds = fn ($id) => ($p = $participants->get($id))
-            ? 1 + (int) $p->extra_athletes + (int) $p->extra_supporters
-            : 0;
+        $beds = fn ($id) => ($p = $participants->get($id)) ? $competition->bedsFor($p) : 0;
 
         return $competition->roomSnapshots()->with('creator:id,name')->get()->map(fn ($s) => [
             'id' => $s->id,
@@ -1021,6 +1046,19 @@ class CompetitionFeeController extends Controller
     private function roomsArray(Competition $competition)
     {
         return $competition->rooms()->get(['id', 'number', 'name', 'beds']);
+    }
+
+    /**
+     * Beds a participant's party takes and each child's age/band, for the UI.
+     */
+    private function bedsInfo(Competition $competition, CompetitionParticipant $p)
+    {
+        return [
+            'beds' => $competition->bedsFor($p),
+            'children' => collect($competition->childrenOf($p))
+                ->map(fn ($c) => ['age' => $c['age'], 'band' => $c['band'], 'takes_bed' => $c['takes_bed']])
+                ->values(),
+        ];
     }
 
     private function isStaff()

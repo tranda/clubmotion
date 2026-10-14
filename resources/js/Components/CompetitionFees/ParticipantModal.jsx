@@ -12,7 +12,7 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
         preferred_room: participant.preferred_room ?? '',
         extra_athletes: participant.extra_athletes ?? 0,
         extra_supporters: participant.extra_supporters ?? 0,
-        extra_children: participant.extra_children ?? 0,
+        children_dobs: participant.children_dobs ?? Array.from({ length: participant.extra_children || 0 }, () => null),
         notes: participant.notes || '',
         can_edit_rooms: !!participant.can_edit_rooms,
         // Shown as effective dates; saved as null when equal to the default.
@@ -109,7 +109,7 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                 <div>
                     <div className="block text-sm font-medium text-gray-700 mb-1">Additional</div>
                     <div className="grid grid-cols-3 gap-3">
-                        {[['extra_athletes', 'Athletes'], ['extra_supporters', 'Supporters'], ['extra_children', 'Children']].map(([field, label]) => (
+                        {[['extra_athletes', 'Athletes'], ['extra_supporters', 'Supporters']].map(([field, label]) => (
                             <div key={field}>
                                 <label className="block text-xs text-gray-500 mb-1">{label}</label>
                                 <input
@@ -125,6 +125,47 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                                 {errors[field] && <p className="mt-1 text-sm text-red-600">{errors[field]}</p>}
                             </div>
                         ))}
+                    </div>
+                    <div className="mt-3">
+                        <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs text-gray-500">Children (date of birth — sets the room price)</label>
+                            <button
+                                type="button"
+                                onClick={() => setData('children_dobs', [...data.children_dobs, null])}
+                                className="text-xs text-blue-600 hover:text-blue-800"
+                            >
+                                + Add child
+                            </button>
+                        </div>
+                        {data.children_dobs.length === 0 && <p className="text-xs text-gray-400">No children.</p>}
+                        <div className="space-y-2">
+                            {data.children_dobs.map((dob, i) => (
+                                <div key={i} className="flex items-center gap-2">
+                                    <input
+                                        type="date"
+                                        value={dob || ''}
+                                        onChange={(e) => setData('children_dobs', data.children_dobs.map((d, j) => (j === i ? e.target.value || null : d)))}
+                                        className={inputClass}
+                                    />
+                                    <span className="text-xs text-gray-500 whitespace-nowrap w-24">
+                                        {participant.children_dobs?.[i] === dob && participant.children?.[i]
+                                            ? (participant.children[i].age == null
+                                                ? 'DOB missing'
+                                                : `${participant.children[i].age} y · ${participant.children[i].band || 'adult'}`)
+                                            : ''}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('children_dobs', data.children_dobs.filter((_, j) => j !== i))}
+                                        className="text-gray-400 hover:text-red-600"
+                                        aria-label="Remove child"
+                                    >
+                                        ✕
+                                    </button>
+                                    {errors[`children_dobs.${i}`] && <p className="text-xs text-red-600">{errors[`children_dobs.${i}`]}</p>}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
                 <div>

@@ -56,7 +56,7 @@
     <div class="note">
         Price per person for the whole stay{{ $packageNights ? " ({$packageNights} nights)" : '' }}.
         @if ($supporterDiscount > 0) Supporters: {{ number_format($supporterDiscount, 2) }} {{ $competition->currency }} discount. @endif
-        Children are free and do not take a bed.
+        @if ($childNote) Children (age at check-in): {{ $childNote }}. @endif
     </div>
 @endif
 

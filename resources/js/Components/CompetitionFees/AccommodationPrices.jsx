@@ -13,7 +13,10 @@ export default function AccommodationPrices({ competition, accommodation }) {
         prices: Object.fromEntries(SIZES.map((s) => [s, settings.prices?.[s] ?? ''])),
         supporter_discount: settings.supporter_discount || '',
         charge_empty_beds: settings.charge_empty_beds ?? true,
+        child_bands: (settings.child_bands || []).map((b) => ({ ...b, price: b.price ?? '' })),
     });
+    const setBand = (i, field, value) =>
+        setData('child_bands', data.child_bands.map((b, j) => (j === i ? { ...b, [field]: value } : b)));
     const types = competition.room_types?.length ? competition.room_types : SIZES;
 
     const save = (e) => {
@@ -30,7 +33,7 @@ export default function AccommodationPrices({ competition, accommodation }) {
             <form onSubmit={save} className="mt-2 space-y-3">
                 <p className="text-xs text-gray-500">
                     Price per person for the whole stay{accommodation?.package_nights ? ` (${accommodation.package_nights} nights, default dates)` : ''}.
-                    Other stay lengths are pro-rated by nights. Children are free and take no bed.
+                    Other stay lengths are pro-rated by nights. Children are priced by their age at check-in (bands below).
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     {types.map((s) => (
@@ -49,6 +52,25 @@ export default function AccommodationPrices({ competition, accommodation }) {
                             )}
                         </div>
                     ))}
+                </div>
+                <div>
+                    <div className="text-xs text-gray-500 mb-1">Children by age at check-in (price per child for the whole stay; empty = same as an adult bed)</div>
+                    <div className="space-y-1">
+                        {data.child_bands.map((b, i) => (
+                            <div key={i} className="flex flex-wrap items-center gap-2 text-sm">
+                                <input value={b.label} onChange={(e) => setBand(i, 'label', e.target.value)} className={`${input} w-28`} aria-label="Band name" />
+                                <span className="text-xs text-gray-500">{i === 0 ? 0 : (data.child_bands[i - 1].max_age ?? 0) + 1} to</span>
+                                <input type="number" min="0" max="25" value={b.max_age} onChange={(e) => setBand(i, 'max_age', e.target.value)} className={`${input} w-16`} aria-label="Up to age" />
+                                <span className="text-xs text-gray-500">years</span>
+                                <input type="number" min="0" step="0.01" value={b.price} placeholder="adult" onChange={(e) => setBand(i, 'price', e.target.value)} className={`${input} w-28`} aria-label={`Price (${cur})`} />
+                                <span className="text-xs text-gray-500">{cur}</span>
+                                <label className="flex items-center gap-1 text-xs text-gray-600">
+                                    <input type="checkbox" checked={!!b.takes_bed} onChange={(e) => setBand(i, 'takes_bed', e.target.checked)} />
+                                    takes a bed
+                                </label>
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 <div className="flex flex-wrap items-end gap-4">
                     <div>
