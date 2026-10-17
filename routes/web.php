@@ -176,6 +176,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/planner-rooms/{room}', 'updateRoom')->name('competition-fees.planner-rooms.update');
         Route::delete('/planner-rooms/{room}', 'destroyRoom')->name('competition-fees.planner-rooms.destroy');
         Route::put('/participants/{participant}/room', 'assignRoom')->name('competition-fees.participants.room');
+        Route::put('/participants/{participant}/split', 'splitExtra')->name('competition-fees.participants.split');
     });
 
     // Admin & Superuser: Full payment management

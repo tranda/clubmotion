@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import { Modal, RoleBadge, extrasLabel, inputClass, bedsFor as partySize, roomsSummary, bedColor, stayRange, stayLabel, effectiveStay, hasOwnStay, formatMoney } from './format';
+import { Modal, RoleBadge, extrasLabel, inputClass, allUnits, roomsSummary, bedColor, stayRange, stayLabel, effectiveStay, hasOwnStay, formatMoney } from './format';
 import AccommodationPrices from './AccommodationPrices';
 
 const dateInput = 'border border-gray-300 rounded px-2 py-1 bg-white';
@@ -15,7 +15,8 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
     const [newBeds, setNewBeds] = useState(competition.room_types?.[0] || 2);
     const { roomSnapshots = [], accommodation } = usePage().props;
     const cur = competition.currency;
-    const costOf = (p) => accommodation?.participants?.[p.id];
+    // Cost of a planner unit (participant with the people still with them, or a separated person).
+    const unitCost = (u) => accommodation?.units?.[u.key];
     const [snapshotName, setSnapshotName] = useState('');
     const saveSnapshot = () =>
         router.post(`${base}/${competition.id}/room-snapshots`, { name: snapshotName }, { ...opts, onSuccess: () => setSnapshotName('') });
@@ -29,8 +30,8 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
     };
     const types = competition.room_types || [];
 
-    const people = participants.filter((p) => p.status !== 'cancelled');
-    const unassigned = people.filter((p) => !p.room_id || !rooms.some((r) => r.id === p.room_id));
+    const units = allUnits(participants);
+    const unassigned = units.filter((u) => !u.room_id || !rooms.some((r) => r.id === u.room_id));
 
     const toggleType = (beds) => {
         const next = types.includes(beds) ? types.filter((b) => b !== beds) : [...types, beds].sort();
@@ -69,16 +70,46 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
     };
     const assign = (participantId, roomId) =>
         router.put(`${base}/participants/${participantId}/room`, { room_id: roomId || null }, opts);
+    // Separated additional people: place (room or null), or put back with their participant.
+    const splitExtra = (p, slot, separate, roomId = null) =>
+        router.put(`${base}/participants/${p.id}/split`, { slot, separate, room_id: roomId }, opts);
+    const placeUnit = (u, roomId) => (u.slot === 'main' ? assign(u.participant.id, roomId) : splitExtra(u.participant, u.slot, true, roomId));
+    const removeUnit = (u) => (u.slot === 'main' ? assign(u.participant.id, null) : splitExtra(u.participant, u.slot, false));
 
-    const nameWithExtras = (p) => (
-        <>
-            {p.member.name}
-            <RoleBadge role={p.role} />
-            {extrasLabel(p) && <span className="text-xs text-gray-500"> {extrasLabel(p)}</span>}
-            {p.preferred_room && <span className="text-xs text-gray-400"> · wants {p.preferred_room}-bed</span>}
-            {hasOwnStay(p) && <span className="text-xs text-amber-700"> · {stayLabel(effectiveStay(p, defaults))}</span>}
-        </>
-    );
+    // Additional people still with the participant, which can be separated.
+    const separable = (p) => {
+        const split = p.split_extras || {};
+        const first = (p.member.name || '').split(' ')[0];
+        const slots = [];
+        for (let i = 1; i <= (p.extra_athletes || 0); i++) slots.push([`athlete:${i}`, `${first}'s athlete #${i}`]);
+        for (let i = 1; i <= (p.extra_supporters || 0); i++) slots.push([`supporter:${i}`, `${first}'s supporter #${i}`]);
+        for (let i = 1; i <= (p.extra_children || 0); i++) {
+            const age = p.children?.[i - 1]?.age;
+            slots.push([`child:${i}`, `${first}'s child #${i}${age != null ? ` (${age})` : ''}`]);
+        }
+        return slots.filter(([slot]) => !(slot in split));
+    };
+
+    const unitName = (u) => {
+        const p = u.participant;
+        if (u.slot !== 'main') {
+            return <span className="italic">{u.label}</span>;
+        }
+        return (
+            <>
+                {p.member.name}
+                <RoleBadge role={p.role} />
+                {u.extras && <span className="text-xs text-gray-500"> {u.extras}</span>}
+                {p.preferred_room && <span className="text-xs text-gray-400"> · wants {p.preferred_room}-bed</span>}
+                {hasOwnStay(p) && <span className="text-xs text-amber-700"> · {stayLabel(effectiveStay(p, defaults))}</span>}
+            </>
+        );
+    };
+    const unitOption = (u) => {
+        const p = u.participant;
+        if (u.slot !== 'main') return u.label;
+        return `${p.member.name}${u.beds > 1 ? ` (+${u.beds - 1})` : ''}${p.preferred_room ? ` · wants ${p.preferred_room}-bed` : ''}${hasOwnStay(p) ? ` · ${stayLabel(effectiveStay(p, defaults))}` : ''}`;
+    };
 
     return (
         <Modal title="Room planner" onClose={onClose} extraWide>
@@ -206,16 +237,23 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                     <div className="text-sm text-gray-500">Everyone has a room.</div>
                 ) : (
                     <ul className="text-sm text-gray-800 space-y-0.5">
-                        {unassigned.map((p) => {
+                        {unassigned.map((u) => {
+                            const p = u.participant;
                             const stay = effectiveStay(p, defaults);
                             return (
-                                <li key={p.id} className="flex flex-wrap items-center justify-between gap-2">
-                                    <span>{nameWithExtras(p)}</span>
-                                    <span className="flex items-center gap-1 text-xs text-gray-500">
-                                        <input type="date" aria-label="Check-in" value={stay.check_in || ''} onChange={(e) => setPersonStay(p, 'check_in', e.target.value)} className={`${dateInput} text-xs`} />
-                                        –
-                                        <input type="date" aria-label="Check-out" value={stay.check_out || ''} onChange={(e) => setPersonStay(p, 'check_out', e.target.value)} className={`${dateInput} text-xs`} />
-                                    </span>
+                                <li key={u.key} className="flex flex-wrap items-center justify-between gap-2">
+                                    <span>{unitName(u)}</span>
+                                    {u.slot === 'main' ? (
+                                        <span className="flex items-center gap-1 text-xs text-gray-500">
+                                            <input type="date" aria-label="Check-in" value={stay.check_in || ''} onChange={(e) => setPersonStay(p, 'check_in', e.target.value)} className={`${dateInput} text-xs`} />
+                                            –
+                                            <input type="date" aria-label="Check-out" value={stay.check_out || ''} onChange={(e) => setPersonStay(p, 'check_out', e.target.value)} className={`${dateInput} text-xs`} />
+                                        </span>
+                                    ) : (
+                                        <button type="button" onClick={() => removeUnit(u)} className="text-xs text-indigo-600 hover:text-indigo-800">
+                                            back with {p.member.name.split(' ')[0]}
+                                        </button>
+                                    )}
                                 </li>
                             );
                         })}
@@ -229,11 +267,11 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {rooms.map((room) => {
-                        const occupants = people.filter((p) => p.room_id === room.id);
-                        const used = occupants.reduce((n, p) => n + partySize(p), 0);
+                        const occupants = units.filter((u) => u.room_id === room.id);
+                        const used = occupants.reduce((n, u) => n + u.beds, 0);
                         const over = used > room.beds;
                         const free = Math.max(0, room.beds - used);
-                        const range = stayRange(occupants, defaults);
+                        const range = stayRange([...new Set(occupants.map((u) => u.participant))], defaults);
                         return (
                             <div key={room.id} className={`border rounded-lg p-3 ${bedColor(room.beds)} ${over ? '!border-red-400 border-2' : free > 0 ? '!border-orange-400 border-2 border-dashed' : ''}`}>
                                 <div className="flex items-center justify-between gap-2 mb-2">
@@ -294,15 +332,30 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                                     {range.mixed && <span className="text-red-600 font-medium">dates differ</span>}
                                 </div>
                                 <ul className="space-y-1 mb-2">
-                                    {occupants.map((p) => (
-                                        <li key={p.id} className="flex items-start justify-between gap-2 text-sm">
-                                            <span>{nameWithExtras(p)}</span>
+                                    {occupants.map((u) => (
+                                        <li key={u.key} className="flex items-start justify-between gap-2 text-sm">
+                                            <span>{unitName(u)}</span>
                                             <span className="flex items-start gap-2 shrink-0">
-                                            {costOf(p) != null && <span className="text-xs text-gray-700 tabular-nums whitespace-nowrap">{formatMoney(costOf(p), cur)}</span>}
+                                            {unitCost(u) != null && <span className="text-xs text-gray-700 tabular-nums whitespace-nowrap">{formatMoney(unitCost(u), cur)}</span>}
+                                            {u.slot === 'main' && separable(u.participant).length > 0 && (
+                                                <select
+                                                    value=""
+                                                    onChange={(e) => e.target.value && splitExtra(u.participant, e.target.value, true, null)}
+                                                    title="Separate someone to place them in another room"
+                                                    className="text-xs border border-gray-300 rounded bg-white text-gray-600 w-6 px-0"
+                                                    aria-label="Separate"
+                                                >
+                                                    <option value="">⇆</option>
+                                                    {separable(u.participant).map(([slot, label]) => (
+                                                        <option key={slot} value={slot}>Separate {label}</option>
+                                                    ))}
+                                                </select>
+                                            )}
                                             <button
                                                 type="button"
-                                                onClick={() => assign(p.id, null)}
-                                                aria-label={`Remove ${p.member.name} from room`}
+                                                onClick={() => removeUnit(u)}
+                                                title={u.slot === 'main' ? 'Remove from room' : `Back with ${u.participant.member.name}`}
+                                                aria-label={u.slot === 'main' ? `Remove ${u.participant.member.name} from room` : `Back with ${u.participant.member.name}`}
                                                 className="text-gray-400 hover:text-red-600"
                                             >
                                                 ✕
@@ -314,14 +367,15 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                                 {unassigned.length > 0 && (
                                     <select
                                         value=""
-                                        onChange={(e) => e.target.value && assign(Number(e.target.value), room.id)}
+                                        onChange={(e) => {
+                                            const u = unassigned.find((x) => x.key === e.target.value);
+                                            if (u) placeUnit(u, room.id);
+                                        }}
                                         className="w-full text-sm border border-gray-300 rounded px-2 py-1 bg-white text-gray-600"
                                     >
                                         <option value="">+ Add participant…</option>
-                                        {unassigned.map((p) => (
-                                            <option key={p.id} value={p.id}>
-                                                {p.member.name}{partySize(p) > 1 ? ` (+${partySize(p) - 1})` : ''}{p.preferred_room ? ` · wants ${p.preferred_room}-bed` : ''}{hasOwnStay(p) ? ` · ${stayLabel(effectiveStay(p, defaults))}` : ''}
-                                            </option>
+                                        {unassigned.map((u) => (
+                                            <option key={u.key} value={u.key}>{unitOption(u)}</option>
                                         ))}
                                     </select>
                                 )}

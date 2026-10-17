@@ -9,7 +9,7 @@ import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal'
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
 import ApplyAccommodationModal from '../../Components/CompetitionFees/ApplyAccommodationModal';
 import OrganizerPaymentModal from '../../Components/CompetitionFees/OrganizerPaymentModal';
-import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor, roomsSummary, stayRange, stayLabel, effectiveStay, hasOwnStay, paidLabel } from '../../Components/CompetitionFees/format';
+import { formatDate, formatMoney, CompetitionStatusBadge, StatusBadge, SummaryCard, RoleBadge, extrasLabel, roomLabel, bedsFor, roomsSummary, allUnits, stayRange, stayLabel, effectiveStay, hasOwnStay, paidLabel } from '../../Components/CompetitionFees/format';
 
 const FILTERS = [
     { key: 'all', label: 'All' },
@@ -70,9 +70,9 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
         if (!groupByRoom || rooms.length === 0) return [{ key: 'all', items: visible }];
         const result = rooms.map((room) => {
             const items = visible.filter((p) => p.room_id === room.id);
-            const used = participants
-                .filter((p) => p.room_id === room.id && p.status !== 'cancelled')
-                .reduce((n, p) => n + bedsFor(p), 0);
+            const used = allUnits(participants)
+                .filter((u) => u.room_id === room.id)
+                .reduce((n, u) => n + u.beds, 0);
             return { key: `room-${room.id}`, room, used, items };
         });
         result.push({ key: 'none', items: visible.filter((p) => !p.room_id || !rooms.some((r) => r.id === p.room_id)) });

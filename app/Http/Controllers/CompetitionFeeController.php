@@ -398,25 +398,15 @@ class CompetitionFeeController extends Controller
         $types = $rooms->pluck('beds')->merge($competition->roomTypes())->unique()->sort();
         $priceRows = $types->filter(fn ($b) => ($prices[$b] ?? null) !== null)
             ->map(fn ($b) => ['beds' => $b, 'label' => $labels[$b] ?? "{$b} beds", 'price' => $prices[$b]])->values();
-        $extras = function ($p) {
-            $parts = [];
-            foreach (['extra_athletes' => ['athlete', 'athletes'], 'extra_supporters' => ['supporter', 'supporters'], 'extra_children' => ['child', 'children']] as $field => [$one, $many]) {
-                $n = (int) $p->{$field};
-                if ($n > 0) {
-                    $parts[] = '+' . $n . ' ' . ($n === 1 ? $one : $many);
-                }
-            }
-            return implode(', ', $parts);
-        };
         $dmy = fn ($d) => $d ? date('d.m.Y', strtotime($d)) : '';
+        $units = $this->roomUnits($competition, $participants);
 
         $roomInfo = [];
         foreach ($rooms as $room) {
-            $occupants = $participants->where('competition_room_id', $room->id)
-                ->sortBy(fn ($p) => mb_strtolower($p->member->name ?? ''));
-            $range = Competition::stayRange($occupants, $defaults);
+            $inRoom = $units->where('room_id', $room->id)->sortBy(fn ($u) => mb_strtolower($u['label']));
+            $range = Competition::stayRange($inRoom->pluck('participant')->unique('id'), $defaults);
             $roomInfo[$room->id] = [
-                'occupants' => $occupants->map(fn ($p) => ['name' => $p->member->name ?? '?', 'extras' => $extras($p)])->values(),
+                'occupants' => $inRoom->map(fn ($u) => ['name' => $u['label'], 'extras' => $u['extras']])->values(),
                 'stay' => $range['check_in'] && $range['check_out']
                     ? $dmy($range['check_in']) . ' – ' . $dmy($range['check_out']) . ($range['nights'] !== null ? " · {$range['nights']} nights" : '')
                     : null,
@@ -424,8 +414,8 @@ class CompetitionFeeController extends Controller
             ];
         }
 
-        $notInRoom = $participants->filter(fn ($p) => !$rooms->contains('id', $p->competition_room_id))
-            ->map(fn ($p) => $p->member->name ?? '?')->sort()->values();
+        $notInRoom = $units->filter(fn ($u) => !$rooms->contains('id', $u['room_id']))
+            ->map(fn ($u) => $u['label'])->sort()->values();
         $peopleCount = $participants->sum(fn ($p) => 1 + (int) $p->extra_athletes + (int) $p->extra_supporters + (int) $p->extra_children);
         $bySize = $rooms->groupBy('beds')->sortKeys()->map(fn ($g, $beds) => $g->count() . '× ' . $beds . '-bed')->implode(', ');
 
@@ -641,6 +631,10 @@ class CompetitionFeeController extends Controller
                 'participants' => $competition->participants()->get()->map(fn ($p) => [
                     'id' => $p->id,
                     'room_number' => optional($rooms->firstWhere('id', $p->competition_room_id))->number,
+                    // Separated additional people: slot => room number (null = not in a room).
+                    'split' => collect((array) ($p->split_extras ?? []))
+                        ->map(fn ($roomId) => $roomId ? optional($rooms->firstWhere('id', (int) $roomId))->number : null)
+                        ->all(),
                     'check_in' => $p->check_in?->format('Y-m-d'),
                     'check_out' => $p->check_out?->format('Y-m-d'),
                 ])->values()->all(),
@@ -682,8 +676,12 @@ class CompetitionFeeController extends Controller
             $saved = collect($data['participants'] ?? [])->keyBy('id');
             foreach ($competition->participants()->get() as $p) {
                 $snap = $saved->get($p->id);
+                $split = collect($snap['split'] ?? [])
+                    ->map(fn ($number) => $number !== null ? ($roomIds[$number] ?? null) : null)
+                    ->all();
                 $p->update([
                     'competition_room_id' => $snap && $snap['room_number'] !== null ? ($roomIds[$snap['room_number']] ?? null) : null,
+                    'split_extras' => $split ?: null,
                     'check_in' => $snap['check_in'] ?? null,
                     'check_out' => $snap['check_out'] ?? null,
                 ]);
@@ -715,10 +713,55 @@ class CompetitionFeeController extends Controller
 
     public function destroyRoom(CompetitionRoom $room)
     {
+        // Separated people in this room become "not in a room".
+        foreach ($room->competition->participants()->whereNotNull('split_extras')->get() as $p) {
+            $split = (array) $p->split_extras;
+            $changed = false;
+            foreach ($split as $slot => $roomId) {
+                if ((int) $roomId === (int) $room->id) {
+                    $split[$slot] = null;
+                    $changed = true;
+                }
+            }
+            if ($changed) {
+                $p->update(['split_extras' => $split]);
+            }
+        }
+
         $this->authorizeRoomEditor($room->competition);
 
         // Occupants become unassigned (FK nullOnDelete).
         $room->delete();
+
+        return back();
+    }
+
+    /**
+     * Separate one of a participant's additional people (e.g. "supporter:1")
+     * to place them in their own room, move them, or put them back with the
+     * participant (separate = false).
+     */
+    public function splitExtra(Request $request, CompetitionParticipant $participant)
+    {
+        $this->authorizeRoomEditor($participant->competition);
+
+        $data = $request->validate([
+            'slot' => ['required', 'regex:/^(athlete|supporter|child):[1-9][0-9]?$/'],
+            'separate' => 'required|boolean',
+            'room_id' => 'nullable|integer|exists:competition_rooms,id',
+        ]);
+        $roomId = $data['room_id'] ?? null;
+        if ($roomId && (int) CompetitionRoom::where('id', $roomId)->value('competition_id') !== (int) $participant->competition_id) {
+            abort(422, 'Room belongs to another competition');
+        }
+
+        $split = (array) ($participant->split_extras ?? []);
+        if ($data['separate']) {
+            $split[$data['slot']] = $roomId ? (int) $roomId : null;
+        } else {
+            unset($split[$data['slot']]);
+        }
+        $participant->update(['split_extras' => $split ?: null]);
 
         return back();
     }
@@ -949,18 +992,7 @@ class CompetitionFeeController extends Controller
      */
     private function roomsSheet($sheet, Competition $competition, $rooms, $participants)
     {
-        $active = $participants->where('status', '!=', 'cancelled');
-        $beds = fn ($p) => $competition->bedsFor($p);
-        $extras = function ($p) {
-            $parts = [];
-            foreach (['extra_athletes' => ['athlete', 'athletes'], 'extra_supporters' => ['supporter', 'supporters'], 'extra_children' => ['child', 'children']] as $field => [$one, $many]) {
-                $n = (int) $p->{$field};
-                if ($n > 0) {
-                    $parts[] = '+' . $n . ' ' . ($n === 1 ? $one : $many);
-                }
-            }
-            return $parts ? ' (' . implode(', ', $parts) . ')' : '';
-        };
+        $units = $this->roomUnits($competition, $participants);
 
         $sheet->setTitle('Rooms');
         $sheet->setCellValue('A1', $competition->name . ' — rooms');
@@ -973,10 +1005,10 @@ class CompetitionFeeController extends Controller
         $r = 4;
         $bedsUsed = 0;
         foreach ($rooms as $room) {
-            $occupants = $active->where('competition_room_id', $room->id);
-            $used = $occupants->sum($beds);
+            $inRoom = $units->where('room_id', $room->id);
+            $used = $inRoom->sum('beds');
             $bedsUsed += $used;
-            $dates = Competition::stayRange($occupants, $defaults);
+            $dates = Competition::stayRange($inRoom->pluck('participant')->unique('id'), $defaults);
             $sheet->fromArray([
                 $room->name ?: $room->number,
                 $room->beds,
@@ -984,7 +1016,7 @@ class CompetitionFeeController extends Controller
                 $dmy($dates['check_in']),
                 $dmy($dates['check_out']),
                 $dates['nights'] ?? '',
-                $occupants->map(fn ($p) => ($p->member->name ?? '?') . $extras($p))->implode("\n"),
+                $inRoom->map(fn ($u) => $u['label'] . ($u['extras'] ? " ({$u['extras']})" : ''))->implode("\n"),
             ], null, "A{$r}", true);
             $sheet->getStyle("G{$r}")->getAlignment()->setWrapText(true);
             $sheet->getStyle("A{$r}:G{$r}")->getAlignment()->setVertical('top');
@@ -1003,7 +1035,7 @@ class CompetitionFeeController extends Controller
             $sheet->fromArray(["{$size}-bed", $group->count()], null, "A{$r}", true);
             $r++;
         }
-        $notInRoom = $active->filter(fn ($p) => !$rooms->contains('id', $p->competition_room_id))->count();
+        $notInRoom = $units->filter(fn ($u) => !$rooms->contains('id', $u['room_id']))->count();
         foreach ([
             ['Total rooms', $rooms->count()],
             ['Total beds', $rooms->sum('beds')],
@@ -1028,10 +1060,22 @@ class CompetitionFeeController extends Controller
             return [];
         }
 
-        // People placed = beds taken (participant, additional athletes/supporters
-        // and children whose age band takes a bed), using current data.
-        $participants = $competition->participants()->where('status', '!=', 'cancelled')->get()->keyBy('id');
-        $beds = fn ($id) => ($p = $participants->get($id)) ? $competition->bedsFor($p) : 0;
+        // People placed = beds taken in rooms (participant, additional people and
+        // children whose age band takes a bed), using current people with the
+        // snapshot's placement (incl. separated people).
+        $participants = $competition->participants()->with('member:id,name')->where('status', '!=', 'cancelled')->get()->keyBy('id');
+        $settings = $competition->accommodationSettings();
+        $defaults = $competition->defaultRoomDates();
+        $beds = function ($sp) use ($participants, $competition, $settings, $defaults) {
+            $p = $participants->get($sp['id']);
+            if (!$p) {
+                return 0;
+            }
+            $q = clone $p;
+            $q->competition_room_id = $sp['room_number'] !== null ? -1 : null;
+            $q->split_extras = collect($sp['split'] ?? [])->map(fn ($n) => $n !== null ? -1 : null)->all() ?: null;
+            return collect($competition->unitsFor($q, $settings, $defaults))->whereNotNull('room_id')->sum('beds');
+        };
 
         return $competition->roomSnapshots()->with('creator:id,name')->get()->map(fn ($s) => [
             'id' => $s->id,
@@ -1039,7 +1083,7 @@ class CompetitionFeeController extends Controller
             'created_at' => $s->created_at->format('Y-m-d H:i'),
             'created_by' => $s->creator->name ?? null,
             'rooms' => count($s->data['rooms'] ?? []),
-            'placed' => collect($s->data['participants'] ?? [])->whereNotNull('room_number')->sum(fn ($sp) => $beds($sp['id'])),
+            'placed' => collect($s->data['participants'] ?? [])->sum($beds),
         ])->values();
     }
 
@@ -1055,10 +1099,25 @@ class CompetitionFeeController extends Controller
     {
         return [
             'beds' => $competition->bedsFor($p),
+            'units' => $competition->unitsFor($p),
             'children' => collect($competition->childrenOf($p))
                 ->map(fn ($c) => ['age' => $c['age'], 'band' => $c['band'], 'takes_bed' => $c['takes_bed']])
                 ->values(),
         ];
+    }
+
+    /**
+     * Room planner units (participant + additional people with them, and each
+     * separated person) for active participants, each with its participant.
+     */
+    private function roomUnits(Competition $competition, $participants)
+    {
+        $settings = $competition->accommodationSettings();
+        $defaults = $competition->defaultRoomDates();
+
+        return collect($participants)->where('status', '!=', 'cancelled')
+            ->flatMap(fn ($p) => collect($competition->unitsFor($p, $settings, $defaults))->map(fn ($u) => $u + ['participant' => $p]))
+            ->values();
     }
 
     private function isStaff()

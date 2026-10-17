@@ -103,8 +103,18 @@ export const bedsFor = (p) => (p.beds != null ? p.beds : 1 + (p.extra_athletes |
 
 // Summary of the rooms actually created in the planner:
 // { bySize: [{ beds, count }], total, beds, used, unassigned }.
+// Room planner units of active participants: the participant with the people
+// still with them, plus each separated person (from the server's `units`).
+export const allUnits = (participants) =>
+    participants
+        .filter((p) => p.status !== 'cancelled')
+        .flatMap((p) => (p.units || [{
+            key: `${p.id}:main`, slot: 'main', label: p.member.name, extras: extrasLabel(p), beds: bedsFor(p), room_id: p.room_id,
+        }]).map((u) => ({ ...u, participant: p })));
+
 export const roomsSummary = (rooms, participants) => {
-    const active = participants.filter((p) => p.status !== 'cancelled');
+    const units = allUnits(participants);
+    const inRoom = (u) => rooms.some((r) => r.id === u.room_id);
     const bySize = [1, 2, 3, 4, 5]
         .map((beds) => ({ beds, count: rooms.filter((r) => r.beds === beds).length }))
         .filter((s) => s.count > 0);
@@ -112,8 +122,8 @@ export const roomsSummary = (rooms, participants) => {
         bySize,
         total: rooms.length,
         beds: rooms.reduce((n, r) => n + r.beds, 0),
-        used: active.filter((p) => rooms.some((r) => r.id === p.room_id)).reduce((n, p) => n + bedsFor(p), 0),
-        unassigned: active.filter((p) => !rooms.some((r) => r.id === p.room_id)).length,
+        used: units.filter(inRoom).reduce((n, u) => n + u.beds, 0),
+        unassigned: units.filter((u) => !inRoom(u)).length,
     };
 };
 

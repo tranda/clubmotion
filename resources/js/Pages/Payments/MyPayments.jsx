@@ -292,7 +292,7 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                                     {room.occupants.map((o) => (
                                                                         <li key={o.id}>
                                                                             {o.name}
-                                                                            {extrasLabel(o) && <span className="text-xs text-gray-500"> {extrasLabel(o)}</span>}
+                                                                            {o.extras && <span className="text-xs text-gray-500"> {o.extras}</span>}
                                                                         </li>
                                                                     ))}
                                                                 </ul>

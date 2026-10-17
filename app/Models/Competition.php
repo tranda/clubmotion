@@ -195,14 +195,100 @@ class Competition extends Model
     }
 
     /**
-     * Accommodation cost per participant and per room.
+     * Every person in a participant's party, each with their own room:
+     * the participant ("main") plus additional athletes, supporters and
+     * children ("athlete:1", "supporter:2", "child:1", …). Additional people
+     * stay in the participant's room unless separated in the room planner
+     * (split_extras: {"supporter:1": room_id|null}).
+     */
+    public function partyPersons($p, ?array $settings = null, ?array $defaults = null)
+    {
+        $settings = $settings ?? $this->accommodationSettings();
+        $defaults = $defaults ?? $this->defaultRoomDates();
+        $split = (array) ($p->split_extras ?? []);
+        $room = fn ($slot) => array_key_exists($slot, $split)
+            ? ($split[$slot] !== null ? (int) $split[$slot] : null)
+            : $p->competition_room_id;
+        $name = $p->member->name ?? '?';
+        $first = \Illuminate\Support\Str::before(trim($name), ' ') ?: $name;
+
+        $persons = [[
+            'slot' => 'main', 'label' => $name, 'kind' => 'adult', 'supporter' => $p->role === 'supporter',
+            'takes_bed' => true, 'price' => null, 'age' => null, 'room_id' => $p->competition_room_id, 'split' => false,
+        ]];
+        foreach (['athlete' => (int) $p->extra_athletes, 'supporter' => (int) $p->extra_supporters] as $type => $n) {
+            for ($i = 1; $i <= $n; $i++) {
+                $slot = "{$type}:{$i}";
+                $persons[] = [
+                    'slot' => $slot, 'label' => "{$first}'s {$type} #{$i}", 'kind' => 'adult', 'supporter' => $type === 'supporter',
+                    'takes_bed' => true, 'price' => null, 'age' => null, 'room_id' => $room($slot), 'split' => array_key_exists($slot, $split),
+                ];
+            }
+        }
+        foreach ($this->childrenOf($p, $settings, $defaults) as $i => $child) {
+            $slot = 'child:' . ($i + 1);
+            $persons[] = [
+                'slot' => $slot,
+                'label' => "{$first}'s child #" . ($i + 1) . ($child['age'] !== null ? " ({$child['age']})" : ''),
+                'kind' => 'child', 'supporter' => false, 'takes_bed' => $child['takes_bed'],
+                'price' => $child['band'] === 'unknown' ? 0.0 : $child['price'], 'age' => $child['age'],
+                'room_id' => $room($slot), 'split' => array_key_exists($slot, $split),
+            ];
+        }
+        return $persons;
+    }
+
+    /**
+     * What the room planner places: the participant together with the
+     * additional people still with them (one unit), plus each separated person
+     * as their own unit. [['key', 'slot', 'label', 'beds', 'room_id', 'participant_id']]
+     */
+    public function unitsFor($p, ?array $settings = null, ?array $defaults = null)
+    {
+        $persons = $this->partyPersons($p, $settings, $defaults);
+        $together = array_values(array_filter($persons, fn ($x) => !$x['split']));
+        $counts = ['athlete' => 0, 'supporter' => 0, 'child' => 0];
+        $ages = [];
+        foreach ($together as $x) {
+            if ($x['slot'] === 'main') continue;
+            $type = strtok($x['slot'], ':');
+            $counts[$type]++;
+            if ($type === 'child') $ages[] = $x['age'] ?? '?';
+        }
+        $extras = [];
+        foreach (['athlete' => ['athlete', 'athletes'], 'supporter' => ['supporter', 'supporters'], 'child' => ['child', 'children']] as $type => [$one, $many]) {
+            if ($counts[$type] > 0) {
+                $extras[] = '+' . $counts[$type] . ' ' . ($counts[$type] === 1 ? $one : $many) . ($type === 'child' && $ages ? ' (' . implode(', ', $ages) . ')' : '');
+            }
+        }
+
+        $units = [[
+            'key' => "{$p->id}:main", 'slot' => 'main', 'participant_id' => $p->id,
+            'label' => $persons[0]['label'], 'extras' => implode(', ', $extras),
+            'beds' => count(array_filter($together, fn ($x) => $x['takes_bed'])),
+            'room_id' => $p->competition_room_id,
+        ]];
+        foreach ($persons as $x) {
+            if ($x['split']) {
+                $units[] = [
+                    'key' => "{$p->id}:{$x['slot']}", 'slot' => $x['slot'], 'participant_id' => $p->id,
+                    'label' => $x['label'], 'extras' => '', 'beds' => $x['takes_bed'] ? 1 : 0, 'room_id' => $x['room_id'],
+                ];
+            }
+        }
+        return $units;
+    }
+
+    /**
+     * Accommodation cost per participant and per room, computed per person.
      *
      * Per-person price is for the package (default stay). A room costs
-     * price × beds when empty beds are charged (split among the people in it),
-     * else price per person. A participant pays a bed share for each adult in
-     * their party, plus each child's band price (null = a bed share), minus the
-     * supporter discount per supporter, pro-rated by nights ÷ package nights.
-     * Cancelled participants and people not in a room cost nothing.
+     * price × beds when empty beds are charged (split among the people taking
+     * a bed in it), else price per person. Adults pay a bed share, children
+     * their band price (null = a bed share); supporters get the discount.
+     * Each person's cost goes to their participant, pro-rated by the
+     * participant's nights ÷ package nights. Cancelled participants and people
+     * not in a room cost nothing.
      */
     public function accommodationCosts($participants, $rooms)
     {
@@ -211,49 +297,61 @@ class Competition extends Model
         $packageNights = $defaults['check_in'] && $defaults['check_out']
             ? max(0, (int) round((strtotime($defaults['check_out']) - strtotime($defaults['check_in'])) / 86400))
             : null;
-        $beds = fn ($p) => $this->bedsFor($p, $settings, $defaults);
         $active = collect($participants)->where('status', '!=', 'cancelled');
 
+        // Everyone, with their participant's pro-rating factor.
+        $people = [];
+        foreach ($active as $p) {
+            $factor = 1.0;
+            $stay = $p->stay($defaults);
+            if ($packageNights && $stay['check_in'] && $stay['check_out']) {
+                $nights = max(0, (int) round((strtotime($stay['check_out']) - strtotime($stay['check_in'])) / 86400));
+                $factor = $nights / $packageNights;
+            }
+            foreach ($this->partyPersons($p, $settings, $defaults) as $x) {
+                $people[] = $x + ['participant_id' => $p->id, 'factor' => $factor];
+            }
+        }
+
         $perParticipant = [];
+        $perUnit = [];
         $perRoom = [];
         foreach ($rooms as $room) {
-            $occupants = $active->where('competition_room_id', $room->id);
+            $inRoom = array_values(array_filter($people, fn ($x) => $x['room_id'] === $room->id));
             $price = $settings['prices'][$room->beds] ?? null;
-            $used = $occupants->sum($beds);
             if ($price === null) {
                 $perRoom[$room->id] = ['price' => null, 'total' => null];
                 continue;
             }
+            $used = count(array_filter($inRoom, fn ($x) => $x['takes_bed']));
             // Cost of one bed-taking person in this room.
             $share = $settings['charge_empty_beds'] && $used > 0 && $used < $room->beds
                 ? $price * $room->beds / $used
                 : $price;
 
             $roomTotal = 0.0;
-            foreach ($occupants as $p) {
-                $supporters = ($p->role === 'supporter' ? 1 : 0) + (int) $p->extra_supporters;
-                $adults = 1 + (int) $p->extra_athletes + (int) $p->extra_supporters;
-                $childCost = 0.0;
-                foreach ($this->childrenOf($p, $settings, $defaults) as $child) {
-                    $childCost += $child['price'] === null ? $share : (float) $child['price'];
+            foreach ($inRoom as $x) {
+                $cost = $x['kind'] === 'child' && $x['price'] !== null ? (float) $x['price'] : $share;
+                if ($x['supporter']) {
+                    $cost = max(0, $cost - $settings['supporter_discount']);
                 }
-                $amount = max(0, $share * $adults + $childCost - $settings['supporter_discount'] * $supporters);
-                $stay = $p->stay($defaults);
-                if ($packageNights && $stay['check_in'] && $stay['check_out']) {
-                    $nights = max(0, (int) round((strtotime($stay['check_out']) - strtotime($stay['check_in'])) / 86400));
-                    $amount = $amount * $nights / $packageNights;
-                }
-                $amount = round($amount, 2);
-                $perParticipant[$p->id] = $amount;
-                $roomTotal += $amount;
+                $cost *= $x['factor'];
+                $perParticipant[$x['participant_id']] = ($perParticipant[$x['participant_id']] ?? 0) + $cost;
+                // Per planner unit: separated people on their own, the rest with the participant.
+                $unit = $x['participant_id'] . ':' . ($x['split'] ? $x['slot'] : 'main');
+                $perUnit[$unit] = ($perUnit[$unit] ?? 0) + $cost;
+                $roomTotal += $cost;
             }
             $perRoom[$room->id] = ['price' => $price, 'total' => round($roomTotal, 2)];
         }
+        $perParticipant = array_map(fn ($v) => round($v, 2), $perParticipant);
+        $perUnit = array_map(fn ($v) => round($v, 2), $perUnit);
 
         return [
             'settings' => $settings,
             'package_nights' => $packageNights,
             'participants' => (object) $perParticipant,
+            'units' => (object) $perUnit,
             'rooms' => (object) $perRoom,
             'total' => round(array_sum($perParticipant), 2),
         ];

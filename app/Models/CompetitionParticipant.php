@@ -12,7 +12,7 @@ class CompetitionParticipant extends Model
 
     protected $fillable = [
         'competition_id', 'member_id', 'role', 'fee_amount', 'accommodation_applied', 'status',
-        'extra_athletes', 'extra_supporters', 'extra_children', 'children_dobs', 'preferred_room', 'competition_room_id', 'can_edit_rooms',
+        'extra_athletes', 'extra_supporters', 'extra_children', 'children_dobs', 'preferred_room', 'competition_room_id', 'split_extras', 'can_edit_rooms',
         'check_in', 'check_out', 'notes',
     ];
 
@@ -25,6 +25,7 @@ class CompetitionParticipant extends Model
         'children_dobs' => 'array',
         'preferred_room' => 'integer',
         'competition_room_id' => 'integer',
+        'split_extras' => 'array',
         'can_edit_rooms' => 'boolean',
         'check_in' => 'date:Y-m-d',
         'check_out' => 'date:Y-m-d',
@@ -167,6 +168,8 @@ class CompetitionParticipant extends Model
             'children_dobs' => $this->childrenDobs(),
             'preferred_room' => $this->preferred_room ? (int) $this->preferred_room : null,
             'room_id' => $this->competition_room_id ? (int) $this->competition_room_id : null,
+            // Additional people placed apart: {"supporter:1": room_id|null}.
+            'split_extras' => (object) ($this->split_extras ?? []),
             'can_edit_rooms' => (bool) $this->can_edit_rooms,
             // Own stay dates; null = use the competition default (room_dates).
             'check_in' => $this->check_in ? $this->check_in->format('Y-m-d') : null,

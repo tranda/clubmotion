@@ -843,29 +843,29 @@ class PaymentController extends Controller
             return null;
         }
 
-        $rooms = $competition->rooms()->with(['participants' => function ($q) {
-            $q->where('status', '!=', 'cancelled')->with('member:id,name');
-        }])->get();
-
+        $rooms = $competition->rooms()->get();
         $defaults = $competition->defaultRoomDates();
-        $prices = $competition->accommodationSettings()['prices'];
+        $settings = $competition->accommodationSettings();
+        $prices = $settings['prices'];
+        // Placement units: participant with the people still with them, plus
+        // each separated additional person on their own.
+        $units = $competition->participants()->with('member:id,name')->where('status', '!=', 'cancelled')->get()
+            ->flatMap(fn ($p) => collect($competition->unitsFor($p, $settings, $defaults))->map(fn ($u) => $u + ['participant' => $p]));
 
-        return $rooms->map(fn ($room) => \App\Models\Competition::stayRange($room->participants, $defaults) + [
+        return $rooms->map(fn ($room) => \App\Models\Competition::stayRange(
+            $units->where('room_id', $room->id)->pluck('participant')->unique('id'),
+            $defaults
+        ) + [
             'id' => $room->id,
             'title' => $room->name ? "Room {$room->name}" : "Room {$room->number}",
             'beds' => $room->beds,
             // List price per person for this room type (whole stay), or null.
             'price_per_person' => $prices[$room->beds] ?? null,
             'is_mine' => (int) $participant->competition_room_id === (int) $room->id,
-            'occupants' => $room->participants
-                ->sortBy(fn ($o) => mb_strtolower($o->member->name ?? ''))
-                ->map(fn ($o) => [
-                    'id' => $o->id,
-                    'name' => $o->member->name ?? '?',
-                    'extra_athletes' => (int) $o->extra_athletes,
-                    'extra_supporters' => (int) $o->extra_supporters,
-                    'extra_children' => (int) $o->extra_children,
-                ])->values(),
+            'occupants' => $units->where('room_id', $room->id)
+                ->sortBy(fn ($u) => mb_strtolower($u['label']))
+                ->map(fn ($u) => ['id' => $u['key'], 'name' => $u['label'], 'extras' => $u['extras']])
+                ->values(),
         ])->values();
     }
 

@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.152] - 2026-10-17
+
+### Added
+- **Room planner: separate additional people.** A participant's additional athlete, supporter or child can be separated (⇆ menu) and placed in another room as e.g. "Maja's supporter #1"; ✕ / "back with Maja" puts them back. Beds, prices (per person, shown per row), the PDF, the Excel Rooms sheet, the member room plan and snapshots follow each person's room. All costs still go to the registering participant. Deleting a room makes separated people in it unassigned.
+
+### Note
+- Requires running `/migrate` after deploy (adds `competition_participants.split_extras`). Run `/clear-cache` if separating returns 404.
+
 ## [0.9.151] - 2026-10-14
 
 ### Changed
