@@ -35,7 +35,12 @@ class Competition extends Model
 
     public function rooms()
     {
-        return $this->hasMany(CompetitionRoom::class)->orderBy('number');
+        // By the number shown on the room ("Room 205" → 205): its title when set,
+        // else its own number; titles without a number come first, then by title.
+        return $this->hasMany(CompetitionRoom::class)
+            ->orderByRaw("CAST(REPLACE(COALESCE(NULLIF(name, ''), number), 'Room ', '') AS UNSIGNED)")
+            ->orderBy('name')
+            ->orderBy('number');
     }
 
     public function roomSnapshots()

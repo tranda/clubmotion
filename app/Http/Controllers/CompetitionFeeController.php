@@ -278,7 +278,7 @@ class CompetitionFeeController extends Controller
         $data = $request->validate(['beds' => ['required', 'integer', Rule::in(Competition::ROOM_SIZES)]]);
 
         $competition->rooms()->create([
-            'number' => (int) $competition->rooms()->max('number') + 1,
+            'number' => (int) $competition->rooms()->reorder()->max('number') + 1,
             'beds' => $data['beds'],
         ]);
 
@@ -295,7 +295,7 @@ class CompetitionFeeController extends Controller
         $participants = $competition->participants()->get();
         $plan = $competition->roomPlan($participants);
         $existing = $competition->rooms()->get()->countBy('beds');
-        $number = (int) $competition->rooms()->max('number');
+        $number = (int) $competition->rooms()->reorder()->max('number');
         $added = 0;
 
         foreach ($plan['sizes'] as $size) {

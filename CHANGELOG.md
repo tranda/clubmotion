@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.153] - 2026-10-17
+
+### Changed
+- **Rooms sorted by the number shown on them** ("Room 205" → 205; untitled rooms by their own number) everywhere rooms are listed (planner, group by room, member room plan, PDF, export).
+
 ## [0.9.152] - 2026-10-17
 
 ### Added
