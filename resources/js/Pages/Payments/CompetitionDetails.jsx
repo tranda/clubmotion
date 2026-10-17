@@ -70,13 +70,14 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
         if (!groupByRoom || rooms.length === 0) return [{ key: 'all', items: visible }];
         const result = rooms.map((room) => {
             const items = visible.filter((p) => p.room_id === room.id);
-            const used = allUnits(participants)
-                .filter((u) => u.room_id === room.id)
-                .reduce((n, u) => n + u.beds, 0);
-            return { key: `room-${room.id}`, room, used, items };
+            const inRoom = allUnits(participants).filter((u) => u.room_id === room.id);
+            const used = inRoom.reduce((n, u) => n + u.beds, 0);
+            // Additional people separated from their participant into this room.
+            const separated = inRoom.filter((u) => u.slot !== 'main');
+            return { key: `room-${room.id}`, room, used, items, separated };
         });
-        result.push({ key: 'none', items: visible.filter((p) => !p.room_id || !rooms.some((r) => r.id === p.room_id)) });
-        return result.filter((g) => g.items.length > 0);
+        result.push({ key: 'none', items: visible.filter((p) => !p.room_id || !rooms.some((r) => r.id === p.room_id)), separated: [] });
+        return result.filter((g) => g.items.length > 0 || g.separated.length > 0);
     }, [groupByRoom, rooms, visible, participants]);
     const grouped = groups.length > 1 || groups[0]?.key !== 'all';
 
@@ -351,6 +352,14 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                                 <td colSpan={7} className="px-4 py-2">{groupHeader(g)}</td>
                                             </tr>
                                         )}
+                                        {grouped && g.separated?.map((u) => (
+                                            <tr key={u.key} className="text-sm text-gray-600">
+                                                <td colSpan={7} className="px-4 py-2 italic">
+                                                    {u.label}
+                                                    {accommodation?.units?.[u.key] != null && <span className="not-italic text-xs text-gray-500"> · accommodation {formatMoney(accommodation.units[u.key], cur)}</span>}
+                                                </td>
+                                            </tr>
+                                        ))}
                                     {g.items.map((p) => (
                                         <tr key={p.id} className={`hover:bg-gray-50 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(p.id)}>
@@ -390,6 +399,12 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                             {groups.map((g) => (
                                 <Fragment key={g.key}>
                                 {grouped && <div className="px-4 py-2 bg-indigo-50">{groupHeader(g)}</div>}
+                                {grouped && g.separated?.map((u) => (
+                                    <div key={u.key} className="px-4 py-2 text-sm text-gray-600 italic">
+                                        {u.label}
+                                        {accommodation?.units?.[u.key] != null && <span className="not-italic text-xs text-gray-500"> · {formatMoney(accommodation.units[u.key], cur)}</span>}
+                                    </div>
+                                ))}
                             {g.items.map((p) => (
                                 <div key={p.id} className={`p-4 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                     <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(p.id)}>

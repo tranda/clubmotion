@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.156] - 2026-10-17
+
+### Fixed
+- **Group by room: rooms with only separated people were missing.** Such rooms are now shown, and separated people are listed (in italics, with their accommodation) under their room.
+
 ## [0.9.155] - 2026-10-17
 
 ### Changed
