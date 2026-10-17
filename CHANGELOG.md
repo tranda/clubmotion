@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.155] - 2026-10-17
+
+### Changed
+- **Room planner: "+ Add participant…" only offers people who fit.** It lists only people (with their party) whose beds fit the room's free beds, and is hidden when nobody fits (e.g. the room is full).
+
 ## [0.9.154] - 2026-10-17
 
 ### Added

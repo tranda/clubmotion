@@ -364,7 +364,8 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                                         </li>
                                     ))}
                                 </ul>
-                                {unassigned.length > 0 && (
+                                {/* Only people who still fit (by beds); hidden when the room is full. */}
+                                {unassigned.some((u) => u.beds <= free) && (
                                     <select
                                         value=""
                                         onChange={(e) => {
@@ -374,7 +375,7 @@ export default function RoomPlannerModal({ competition, rooms, participants, roo
                                         className="w-full text-sm border border-gray-300 rounded px-2 py-1 bg-white text-gray-600"
                                     >
                                         <option value="">+ Add participant…</option>
-                                        {unassigned.map((u) => (
+                                        {unassigned.filter((u) => u.beds <= free).map((u) => (
                                             <option key={u.key} value={u.key}>{unitOption(u)}</option>
                                         ))}
                                     </select>
