@@ -400,13 +400,21 @@ class CompetitionFeeController extends Controller
             ->map(fn ($b) => ['beds' => $b, 'label' => $labels[$b] ?? "{$b} beds", 'price' => $prices[$b]])->values();
         $dmy = fn ($d) => $d ? date('d.m.Y', strtotime($d)) : '';
         $units = $this->roomUnits($competition, $participants);
+        $costs = $competition->accommodationCosts($participants, $rooms);
+        $unitCosts = (array) $costs['units'];
+        $roomCosts = (array) $costs['rooms'];
 
         $roomInfo = [];
         foreach ($rooms as $room) {
             $inRoom = $units->where('room_id', $room->id)->sortBy(fn ($u) => mb_strtolower($u['label']));
             $range = Competition::stayRange($inRoom->pluck('participant')->unique('id'), $defaults);
             $roomInfo[$room->id] = [
-                'occupants' => $inRoom->map(fn ($u) => ['name' => $u['label'], 'extras' => $u['extras']])->values(),
+                'occupants' => $inRoom->map(fn ($u) => [
+                    'name' => $u['label'],
+                    'extras' => $u['extras'],
+                    'cost' => $unitCosts[$u['key']] ?? null,
+                ])->values(),
+                'total' => $roomCosts[$room->id]['total'] ?? null,
                 'stay' => $range['check_in'] && $range['check_out']
                     ? $dmy($range['check_in']) . ' – ' . $dmy($range['check_out']) . ($range['nights'] !== null ? " · {$range['nights']} nights" : '')
                     : null,

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [0.9.154] - 2026-10-17
+
+### Added
+- **Room plan PDF: amounts per person and room total.** Each occupant (incl. separated people) shows their accommodation amount, and each room card a room total, matching the room planner.
+
 ## [0.9.153] - 2026-10-17
 
 ### Changed

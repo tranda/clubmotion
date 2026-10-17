@@ -21,6 +21,10 @@
         ul { margin: 3px 0 0; padding-left: 12px; }
         li { margin: 1px 0; }
         .extras { color: #666; font-size: 8px; }
+        table.occ { width: 100%; border-collapse: collapse; margin-top: 3px; }
+        table.occ td { padding: 1px 0; vertical-align: top; }
+        table.occ td.amt { text-align: right; white-space: nowrap; padding-left: 4px; }
+        .total { font-weight: bold; font-size: 9px; }
         h2 { font-size: 11px; margin: 12px 0 4px; border-bottom: 1px solid #999; padding-bottom: 2px; }
         table.prices { border-collapse: collapse; margin: 0 0 8px; }
         table.prices th, table.prices td { padding: 3px 10px 3px 0; border-bottom: 1px solid #e5e7eb; text-align: left; }
@@ -75,11 +79,17 @@
                         @if ($info['occupants']->isEmpty())
                             <div class="sub">Empty</div>
                         @else
-                            <ul>
+                            <table class="occ">
                                 @foreach ($info['occupants'] as $o)
-                                    <li>{{ $o['name'] }}@if ($o['extras']) <span class="extras">{{ $o['extras'] }}</span>@endif</li>
+                                    <tr>
+                                        <td>• {{ $o['name'] }}@if ($o['extras']) <span class="extras">{{ $o['extras'] }}</span>@endif</td>
+                                        <td class="amt">@if ($o['cost'] !== null){{ number_format($o['cost'], 2) }}@endif</td>
+                                    </tr>
                                 @endforeach
-                            </ul>
+                                @if ($info['total'] !== null)
+                                    <tr><td class="total">Room total</td><td class="amt total">{{ number_format($info['total'], 2) }} {{ $competition->currency }}</td></tr>
+                                @endif
+                            </table>
                         @endif
                     </div>
                 </td>
