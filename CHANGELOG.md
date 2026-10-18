@@ -2,6 +2,18 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.0] - 2026-10-18
+
+First stable release. ClubMotion now covers the club's day-to-day work end to end:
+
+- **Members** — profiles with photos, gender, EDBF ID and IDBF age categories; list with sorting, filters and two-level grouping; join requests.
+- **Membership fees** — yearly payment grid, member payment history and My Payments for members.
+- **Competition fees** — participants (athletes / supporters, additional people, children by date of birth), payments in EUR or RSD, payments to the organizer, Ledger posting with two-way sync, exports.
+- **Accommodation** — room planner with room types, stay dates, prices by room type and child age band, per-person costs, separating additional people, snapshots, PDF and Excel export, and a read-only room plan for members; trip planner access for chosen participants.
+- **Attendance, achievements, Ledger, notes and tools**, plus Settings (member categories) and "View as member" for admins.
+
+No functional changes compared to 0.9.156.
+
 ## [0.9.156] - 2026-10-17
 
 ### Fixed
