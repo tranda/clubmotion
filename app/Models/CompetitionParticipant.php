@@ -156,6 +156,7 @@ class CompetitionParticipant extends Model
                 'id' => $this->member->id ?? null,
                 'name' => $this->member->name ?? '?',
                 'membership_number' => $this->member->membership_number ?? null,
+                'email' => $this->member->email ?? null,
             ],
             'role' => $this->role ?? 'athlete',
             'fee_amount' => (float) $this->fee_amount,

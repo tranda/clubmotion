@@ -131,7 +131,7 @@ class CompetitionFeeController extends Controller
     {
         $participants = $competition->participants()
             ->withPaymentTotals()
-            ->with(['member:id,name,membership_number', 'payments'])
+            ->with(['member:id,name,membership_number,email', 'payments'])
             ->get()
             ->sortBy(fn ($p) => mb_strtolower($p->member->name ?? ''))
             ->values();

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.1] - 2026-10-21
+
+### Added
+- **Participant email in competition fee details.** The participant modal shows the member's email under the name, with a Copy button.
+
 ## [1.0.0] - 2026-10-18
 
 First stable release. ClubMotion now covers the club's day-to-day work end to end:

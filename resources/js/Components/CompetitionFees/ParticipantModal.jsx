@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Modal, StatusBadge, METHOD_LABELS, formatDate, formatMoney, inputClass, effectiveStay, stayLabel, paidLabel } from './format';
 
 // Participant details: amounts, fee/status editing and payment history.
@@ -41,8 +41,25 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
         el.style.height = `${el.scrollHeight}px`;
     }, [data.notes]);
 
+    const email = participant.member.email;
+    const [copied, setCopied] = useState(false);
+    const copyEmail = () => {
+        navigator.clipboard?.writeText(email).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        });
+    };
+
     return (
         <Modal title={participant.member.name} onClose={onClose} wide>
+            {email && (
+                <div className="-mt-3 mb-4 flex items-center gap-2 text-sm">
+                    <span className="text-gray-600 select-all">{email}</span>
+                    <button type="button" onClick={copyEmail} className="text-blue-600 hover:text-blue-800" title="Copy email">
+                        {copied ? 'Copied ✓' : 'Copy'}
+                    </button>
+                </div>
+            )}
             <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="bg-gray-50 rounded p-3">
                     <div className="text-xs text-gray-500">Competition fee</div>
