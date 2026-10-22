@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.14] - 2026-10-22
+
+### Changed
+- **Competition fee payments default to Ledger off.** "Post to Ledger" starts unticked when adding a participant's payment; editing an existing payment keeps its saved setting.
+
 ## [1.0.13] - 2026-10-22
 
 ### Security

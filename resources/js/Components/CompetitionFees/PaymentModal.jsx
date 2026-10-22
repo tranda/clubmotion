@@ -10,7 +10,7 @@ export default function PaymentModal({ competition, participant, payment = null,
         currency_amount: payment?.currency_amount ?? '',
         payment_method: payment?.payment_method || 'cash',
         note: payment?.note || '',
-        post_to_ledger: payment?.post_to_ledger ?? true,
+        post_to_ledger: payment?.post_to_ledger ?? false,
     });
 
     const submit = (e) => {
