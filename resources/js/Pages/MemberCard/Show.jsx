@@ -64,10 +64,10 @@ export default function MemberCardShow({ member, card, backHref }) {
                     className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden"
                     onClick={() => setFull(false)}
                 >
-                    <div style={fullStyle}>
+                    <div style={fullStyle} onClick={(e) => e.stopPropagation()}>
                         <MemberCard member={member} card={card} />
                     </div>
-                    <span className="absolute bottom-4 left-0 right-0 text-center text-xs text-gray-400">Tap to close</span>
+                    <span className="absolute bottom-4 left-0 right-0 text-center text-xs text-gray-400">Tap outside the card to close</span>
                 </div>
             )}
         </Layout>

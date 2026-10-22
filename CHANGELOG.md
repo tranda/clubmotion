@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.5] - 2026-10-22
+
+### Changed
+- **Member card full screen** closes only when you tap outside the card (or press Esc); tapping the card itself keeps it open.
+
 ## [1.0.4] - 2026-10-22
 
 ### Added
