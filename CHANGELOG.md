@@ -2,6 +2,13 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.12] - 2026-10-22
+
+### Security
+- **Events platform settings are admin-only to change.** Superusers can still view them and run the sync, but only admins can change the API key or club.
+- **The events API address can no longer be edited in the app.** It comes from config (`EVENTS_API_URL`, https only, default events.motion.rs), so the saved key can't be sent to another server.
+- **Requests to the events platform no longer follow redirects**, so the API key header is never forwarded elsewhere.
+
 ## [1.0.11] - 2026-10-22
 
 ### Changed

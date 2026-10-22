@@ -2,8 +2,8 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 // Settings → Events platform: connection to events.motion.rs (for EDBF IDs).
-export default function EventsSettings({ url, club, hasKey }) {
-    const { data, setData, post, processing, errors } = useForm({ url, club, key: '', remove_key: false });
+export default function EventsSettings({ url, club, hasKey, canEdit }) {
+    const { data, setData, post, processing, errors } = useForm({ club, key: '', remove_key: false });
 
     const submit = (e) => {
         e.preventDefault();
@@ -25,6 +25,10 @@ export default function EventsSettings({ url, club, hasKey }) {
                 </div>
 
                 <form onSubmit={submit} className="bg-white rounded-lg shadow p-4 sm:p-6 space-y-4">
+                    {!canEdit && (
+                        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md p-2">Only admins can change the API key or club.</p>
+                    )}
+                    <fieldset disabled={!canEdit} className="space-y-4 disabled:opacity-60">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">API key</label>
                         <input
@@ -36,7 +40,7 @@ export default function EventsSettings({ url, club, hasKey }) {
                             className={input}
                         />
                         <p className="mt-1 text-xs text-gray-500">
-                            Create it on events.motion.rs under Administration → API keys, with <code>athletes.read</code> (to fetch) and <code>athletes.write</code> (to send our data). Stored encrypted.
+                            Create it on events.motion.rs under Administration → API keys, linked to our club, with <code>athletes.read</code> (to fetch) and <code>athletes.write</code> (to send our data). Stored encrypted.
                         </p>
                         {hasKey && !data.key && (
                             <label className="mt-2 inline-flex items-center gap-2 text-sm text-red-700">
@@ -54,17 +58,16 @@ export default function EventsSettings({ url, club, hasKey }) {
                         {errors.club && <p className="text-sm text-red-600">{errors.club}</p>}
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">API address</label>
-                        <input value={data.url} onChange={(e) => setData('url', e.target.value)} className={input} />
-                        {errors.url && <p className="text-sm text-red-600">{errors.url}</p>}
-                    </div>
+                    <p className="text-xs text-gray-500">API address: <code>{url}</code></p>
 
-                    <div className="flex justify-end">
-                        <button type="submit" disabled={processing} className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
-                            {processing ? 'Saving…' : 'Save'}
-                        </button>
-                    </div>
+                    {canEdit && (
+                        <div className="flex justify-end">
+                            <button type="submit" disabled={processing} className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                                {processing ? 'Saving…' : 'Save'}
+                            </button>
+                        </div>
+                    )}
+                    </fieldset>
                 </form>
 
                 <div className="bg-white rounded-lg shadow p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">

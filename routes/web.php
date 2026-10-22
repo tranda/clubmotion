@@ -336,7 +336,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/member-card', [App\Http\Controllers\MemberCardController::class, 'settings'])->name('member-card');
         Route::post('/member-card', [App\Http\Controllers\MemberCardController::class, 'updateSettings'])->name('member-card.update');
         Route::get('/events', [App\Http\Controllers\EventsSyncController::class, 'settings'])->name('events');
-        Route::post('/events', [App\Http\Controllers\EventsSyncController::class, 'updateSettings'])->name('events.update');
+        // Only admins may change the key or club (superusers can view and sync).
+        Route::post('/events', [App\Http\Controllers\EventsSyncController::class, 'updateSettings'])->middleware('role:admin')->name('events.update');
         Route::get('/events/sync', [App\Http\Controllers\EventsSyncController::class, 'preview'])->name('events.sync');
         Route::post('/events/sync/pull', [App\Http\Controllers\EventsSyncController::class, 'pull'])->name('events.sync.pull');
         Route::post('/events/sync/push', [App\Http\Controllers\EventsSyncController::class, 'push'])->name('events.sync.push');

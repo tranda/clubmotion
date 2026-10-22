@@ -28,19 +28,18 @@ class EventsSyncController extends Controller
             'url' => $conn['url'],
             'club' => $conn['club'],
             'hasKey' => (bool) $conn['key'],
+            'canEdit' => optional(auth()->user()->role)->name === 'admin',
         ]);
     }
 
     public function updateSettings(Request $request)
     {
         $data = $request->validate([
-            'url' => 'required|url|max:255',
             'club' => 'required|string|max:255',
             'key' => 'nullable|string|max:255',
             'remove_key' => 'nullable|boolean',
         ]);
 
-        ToolSetting::set('events_api_url', rtrim($data['url'], '/'), 'Events platform: API base URL');
         ToolSetting::set('events_club', trim($data['club']), 'Events platform: club name or id');
 
         if (!empty($data['key'])) {
@@ -161,7 +160,11 @@ class EventsSyncController extends Controller
             . ($skipped ? " {$skipped} skipped (not in our club there)." : ''));
     }
 
-    /** Saved settings win; .env values (EVENTS_API_*) are the fallback. */
+    /**
+     * Key and club come from Settings (.env as fallback). The address is fixed
+     * in config (EVENTS_API_URL, https only) so the saved key can't be sent to
+     * another server from the UI.
+     */
     public static function connection(): array
     {
         $key = ToolSetting::get('events_api_key');
@@ -174,15 +177,22 @@ class EventsSyncController extends Controller
         }
 
         return [
-            'url' => ToolSetting::get('events_api_url') ?: rtrim((string) config('services.events.url', self::DEFAULT_URL), '/'),
+            'url' => self::apiUrl(),
             'club' => ToolSetting::get('events_club') ?: (string) config('services.events.club', 'Motion'),
             'key' => $key ?: config('services.events.key'),
         ];
     }
 
+    private static function apiUrl(): string
+    {
+        $url = rtrim((string) config('services.events.url', self::DEFAULT_URL), '/');
+        return str_starts_with($url, 'https://') ? $url : self::DEFAULT_URL;
+    }
+
     private function client(array $conn)
     {
-        return Http::withHeaders(['X-API-Key' => $conn['key']])->acceptJson()->timeout(30);
+        // No redirects: the key header would be forwarded to wherever a redirect points.
+        return Http::withHeaders(['X-API-Key' => $conn['key']])->acceptJson()->timeout(30)->withoutRedirecting();
     }
 
     private static function clubParam(array $conn): array
