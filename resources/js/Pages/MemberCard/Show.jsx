@@ -23,11 +23,26 @@ export default function MemberCardShow({ member, card, backHref }) {
     const [full, setFull] = useState(false);
     useWakeLock(!!member);
 
+    // Full screen adds a history entry, so the phone's Back button closes it too.
+    const openFull = () => {
+        window.history.pushState({ ...window.history.state, memberCardFull: true }, '');
+        setFull(true);
+    };
+    const closeFull = () => {
+        if (window.history.state?.memberCardFull) window.history.back();
+        else setFull(false);
+    };
+
     useEffect(() => {
         if (!full) return;
-        const onKey = (e) => e.key === 'Escape' && setFull(false);
+        const onKey = (e) => e.key === 'Escape' && closeFull();
+        const onPop = () => setFull(false);
         window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
+        window.addEventListener('popstate', onPop);
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            window.removeEventListener('popstate', onPop);
+        };
     }, [full]);
 
     if (!member) {
@@ -51,7 +66,7 @@ export default function MemberCardShow({ member, card, backHref }) {
                 {backHref && (
                     <Link href={backHref} className="text-sm text-blue-600 hover:text-blue-800">← Back to member</Link>
                 )}
-                <button type="button" onClick={() => setFull(true)} className="block w-full mt-3 text-left" aria-label="Show card full screen">
+                <button type="button" onClick={openFull} className="block w-full mt-3 text-left" aria-label="Show card full screen">
                     <MemberCard member={member} card={card} />
                 </button>
                 <p className="mt-4 text-center text-sm text-gray-500">
@@ -60,14 +75,24 @@ export default function MemberCardShow({ member, card, backHref }) {
             </div>
 
             {full && (
+                // cursor-pointer: iOS Safari ignores taps on plain divs without it.
                 <div
-                    className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden"
-                    onClick={() => setFull(false)}
+                    className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden cursor-pointer"
+                    onClick={closeFull}
                 >
-                    <div style={fullStyle} onClick={(e) => e.stopPropagation()}>
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); closeFull(); }}
+                        className="absolute right-3 w-11 h-11 rounded-full bg-white/15 text-white text-2xl leading-none flex items-center justify-center hover:bg-white/25"
+                        style={{ top: 'max(0.75rem, env(safe-area-inset-top))' }}
+                        aria-label="Close"
+                    >
+                        ×
+                    </button>
+                    <div style={fullStyle} className="cursor-default" onClick={(e) => e.stopPropagation()}>
                         <MemberCard member={member} card={card} />
                     </div>
-                    <span className="absolute bottom-4 left-0 right-0 text-center text-xs text-gray-400">Tap outside the card to close</span>
+                    <span className="absolute left-0 right-0 text-center text-xs text-gray-400" style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))' }}>Tap outside the card or ✕ to close</span>
                 </div>
             )}
         </Layout>

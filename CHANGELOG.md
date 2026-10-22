@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.6] - 2026-10-22
+
+### Fixed
+- **Member card full screen would not close on iPhone.** Added a ✕ close button, made the area outside the card respond to taps on iOS Safari, and the phone's Back button now closes full screen too.
+
 ## [1.0.5] - 2026-10-22
 
 ### Changed
