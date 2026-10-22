@@ -65,6 +65,9 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('home');
 
+    // Digital member card - the logged-in member's own card
+    Route::get('/my-card', [App\Http\Controllers\MemberCardController::class, 'mine'])->name('card.mine');
+
     // My Profile - for regular users to see their own data
     Route::get('/my-profile', function () {
         $user = auth()->user();
@@ -90,6 +93,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/members/{member}/edit', [MemberController::class, 'edit'])->name('members.edit');
         Route::put('/members/{member}', [MemberController::class, 'update'])->name('members.update');
         Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('members.destroy');
+        Route::get('/members/{member}/card', [App\Http\Controllers\MemberCardController::class, 'show'])->name('members.card');
         Route::post('/members/{member}/reset-password', [MemberController::class, 'resetPassword'])->name('members.reset-password');
         Route::post('/members/{member}/email', [MemberController::class, 'sendEmail'])->name('members.email');
         // Photo history management (revert / delete) - admin & superuser
@@ -329,6 +333,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/categories', [App\Http\Controllers\MembershipCategoryController::class, 'store'])->name('member-categories.store');
         Route::put('/categories/{category}', [App\Http\Controllers\MembershipCategoryController::class, 'update'])->name('member-categories.update');
         Route::delete('/categories/{category}', [App\Http\Controllers\MembershipCategoryController::class, 'destroy'])->name('member-categories.destroy');
+        Route::get('/member-card', [App\Http\Controllers\MemberCardController::class, 'settings'])->name('member-card');
+        Route::post('/member-card', [App\Http\Controllers\MemberCardController::class, 'updateSettings'])->name('member-card.update');
     });
 
     // Tools - Admin & Superuser

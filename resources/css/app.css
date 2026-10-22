@@ -121,3 +121,6 @@ select:focus {
         background-color: #f9f9f9;
     }
 }
+/* Member card: "live" dot so a screenshot is easy to spot */
+@keyframes mc-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.7); } }
+.mc-pulse { animation: mc-pulse 1.4s ease-in-out infinite; }
