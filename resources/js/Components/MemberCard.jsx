@@ -183,10 +183,9 @@ function Night({ m, c, custom }) {
                     <Label color={c.label}>Member card</Label>
                 </div>
                 <Photo m={m} round ring={c.ring} size={50} />
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2cqw', width: '100%' }}>
-                    <Label color={c.label}>Member ID</Label>
-                    <Number m={m} color={c.accent} size={14} />
-                    <div style={{ marginTop: '1cqw', width: '100%' }}><Name m={m} c={c} size={7} /></div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2.5cqw', width: '100%' }}>
+                    <Name m={m} c={c} />
+                    <Number m={m} color={c.accent} />
                 </div>
                 <Fields m={m} c={c} />
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2.5cqw' }}>

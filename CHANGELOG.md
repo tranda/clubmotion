@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.9] - 2026-10-22
+
+### Changed
+- **Night Dragon card layout:** name and member ID under the photo now match Teal Wave (name first, ID below).
+
 ## [1.0.8] - 2026-10-22
 
 ### Changed
