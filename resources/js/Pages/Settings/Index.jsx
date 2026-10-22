@@ -4,6 +4,7 @@ import Layout from '../../Components/Layout';
 // Settings home (admin & superuser): club-wide configuration.
 const SECTIONS = [
     { href: '/settings/member-card', title: 'Member card', text: 'Design of the digital member card (layout and custom background).' },
+    { href: '/settings/events', title: 'Events platform', text: 'Connection to events.motion.rs and syncing members\' EDBF IDs.' },
     { href: '/settings/categories', title: 'Member categories', text: 'IDBF categories and age ranges used to assign members automatically.' },
 ];
 

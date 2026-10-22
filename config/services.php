@@ -45,4 +45,12 @@ return [
         'rest_api_key' => env('ONESIGNAL_REST_API_KEY'),
     ],
 
+    // Events platform (events.motion.rs) - used to pull members' EDBF IDs.
+    // EVENTS_CLUB is the club's name there (or its numeric id).
+    'events' => [
+        'url' => env('EVENTS_API_URL', 'https://events.motion.rs/api'),
+        'key' => env('EVENTS_API_KEY'),
+        'club' => env('EVENTS_CLUB', 'Motion'),
+    ],
+
 ];

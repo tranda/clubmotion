@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.10] - 2026-10-22
+
+### Added
+- **Settings → Events platform.** Save the events.motion.rs API key (stored encrypted), club name and API address.
+- **Sync EDBF IDs** from the events platform: fetches the club's athletes, matches them to members by name (accents and word order ignored) and birth date, and shows a review list. Safe matches that fill an empty EDBF ID are pre-ticked; birth-date mismatches, partial names and existing different IDs need a manual tick; ambiguous and unmatched athletes are listed separately. Needs the events platform `athletes/for-club` endpoint and an API key with `athletes.read`.
+
 ## [1.0.9] - 2026-10-22
 
 ### Changed
