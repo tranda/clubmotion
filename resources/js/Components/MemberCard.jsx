@@ -178,9 +178,9 @@ function Night({ m, c, custom }) {
                 </>
             )}
             <div style={{ ...column, padding: '8cqw 7cqw 7cqw', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {custom ? <span /> : <WhiteLogo h={11} />}
-                    <Label color={c.label}>Member</Label>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2cqw' }}>
+                    {custom ? <div style={{ height: '13cqw' }} /> : <WhiteLogo />}
+                    <Label color={c.label}>Member card</Label>
                 </div>
                 <Photo m={m} round ring={c.ring} size={50} />
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2cqw', width: '100%' }}>

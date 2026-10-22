@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.8] - 2026-10-22
+
+### Changed
+- **Night Dragon card layout:** the top now has the centered logo with "Member card" under it, matching Teal Wave.
+
 ## [1.0.7] - 2026-10-22
 
 ### Changed
