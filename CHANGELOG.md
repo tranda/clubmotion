@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.4] - 2026-10-22
+
+### Added
+- **Show Card chip on the home page**, above the welcome title, for everyone with a linked member profile.
+
 ## [1.0.3] - 2026-10-22
 
 ### Changed

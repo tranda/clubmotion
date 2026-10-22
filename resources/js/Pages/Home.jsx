@@ -11,6 +11,18 @@ export default function Home({ stats }) {
         <Layout>
             <div className="min-h-[calc(100vh-5rem)] flex flex-col py-8">
                 <div className="text-center mb-8">
+                    {auth.user?.hasMember && (
+                        <Link
+                            href="/my-card"
+                            className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full text-sm font-semibold text-white shadow-md hover:shadow-lg hover:brightness-110 transition"
+                            style={{ background: 'linear-gradient(135deg, #30afb8, #1c9ba4)' }}
+                        >
+                            <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                            </svg>
+                            Show Card
+                        </Link>
+                    )}
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Welcome to {clubName || 'ClubMotion'}</h1>
                     <p className="text-sm sm:text-base text-gray-600">{canManage ? 'Manage your club members and payments efficiently' : 'Your club member portal'}</p>
                 </div>
