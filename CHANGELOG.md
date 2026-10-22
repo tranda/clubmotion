@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.3] - 2026-10-22
+
+### Changed
+- **Show Card for admins and superusers.** The menu item now appears for every user with a linked member profile, not only regular members.
+
 ## [1.0.2] - 2026-10-22
 
 ### Added

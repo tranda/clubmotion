@@ -54,6 +54,8 @@ class HandleInertiaRequests extends Middleware
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    // Linked member profile (any role) - used for the Show Card menu item.
+                    'hasMember' => $user->member()->exists(),
                     'role' => $user->role ? [
                         'id' => $user->role->id,
                         'name' => $user->role->name,

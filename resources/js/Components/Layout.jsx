@@ -24,6 +24,8 @@ export default function Layout({ children }) {
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
     const isAdmin = userRole === 'admin';
+    // Anyone with a linked member profile (admins and superusers too) has a card.
+    const hasCard = !!auth.user?.hasMember;
 
     // Identify the logged-in user to OneSignal so we can target push at them.
     // Admins/superusers get a `staff` tag (used to notify on new join requests)
@@ -77,7 +79,7 @@ export default function Layout({ children }) {
 
                         {/* Desktop Navigation - Hidden on Mobile */}
                         <nav className="hidden md:flex space-x-1">
-                            {!canManage && (
+                            {hasCard && (
                                 <Link
                                     href="/my-card"
                                     className="flex items-center px-4 py-2 text-gray-800 font-medium hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
@@ -305,7 +307,7 @@ export default function Layout({ children }) {
             >
                 <div className="pt-16 px-4">
                     <nav className="space-y-2">
-                        {!canManage && (
+                        {hasCard && (
                             <Link
                                 href="/my-card"
                                 onClick={closeMenu}
