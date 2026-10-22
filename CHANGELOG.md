@@ -2,6 +2,15 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.13] - 2026-10-22
+
+### Security
+- **Member API (`/api/*`) is staff-only.** Regular members can no longer read, edit or delete members through the API; `/api/register` is admin-only.
+- **Superusers can't take over admin accounts:** only an admin can reset an admin's password, and member create/edit saves only the validated form fields (the linked login `user_id` can no longer be set from a request).
+- **Member photos** are saved with an extension taken from the file's real content (jpg/png), never from the uploaded file name.
+- **Login, forgot-password and reset-password** are limited to 5 attempts per minute.
+- **Removed `/clear-cache` and `/migrate`** (development helpers).
+
 ## [1.0.12] - 2026-10-22
 
 ### Security

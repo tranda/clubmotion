@@ -11,14 +11,14 @@ use Carbon\Carbon;
 // Guest-only routes (login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 });
 
 // Password reset routes (accessible whether logged in or not)
 Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.email');
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1')->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
-Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
 
 // Public "Join in" request form (accessible without auth)
 Route::get('/join', [App\Http\Controllers\JoinRequestController::class, 'create'])->name('join.create');
@@ -31,15 +31,6 @@ Route::get('/csrf-token', function () {
 
 // Old app link (club.motion.rs/home) that was sent around: send it to the home page.
 Route::redirect('/home', '/');
-
-// Clear cache endpoint (for debugging on shared hosting)
-Route::get('/clear-cache', function () {
-    \Illuminate\Support\Facades\Artisan::call('route:clear');
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    return 'Cache cleared successfully!';
-});
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {
@@ -390,7 +381,7 @@ Route::middleware('auth')->group(function () {
                 '<h2 style="color:red">✗ Failed to send test email to ' . htmlspecialchars($to) . '</h2>'
                 . '<p><strong>Error:</strong></p><pre style="white-space:pre-wrap">' . htmlspecialchars($e->getMessage()) . '</pre>'
                 . '<p>Current config:</p><ul>' . $configHtml . '</ul>'
-                . '<p>Fix the MAIL_* values in the server .env, then visit <a href="/clear-cache">/clear-cache</a> and retry.</p>',
+                . '<p>Fix the MAIL_* values in the server .env, then clear the config cache on the server and retry.</p>',
                 500
             );
         }
@@ -411,7 +402,7 @@ Route::middleware('auth')->group(function () {
         if (! $configured) {
             return response(
                 '<h2 style="color:red">✗ OneSignal is not configured</h2>'
-                . '<p>Set the values in the server .env, then visit <a href="/clear-cache">/clear-cache</a> and retry.</p>'
+                . '<p>Set the values in the server .env, then clear the config cache on the server and retry.</p>'
                 . '<ul>' . $configHtml . '</ul>',
                 500
             );
@@ -538,20 +529,5 @@ Route::middleware('auth')->group(function () {
             . '<table border="1" cellpadding="4" style="border-collapse:collapse;font-family:sans-serif;font-size:14px">'
             . '<tr><th>Inactive member</th><th>Current deactivation</th><th>End of last paid month</th><th></th></tr>'
             . $rows . '</table>');
-    })->middleware('role:admin');
-
-    // Migration runner - Admin only (remove after first use)
-    Route::get('/migrate', function () {
-        if (auth()->user()->role_id !== 1) {
-            abort(403, 'Only admin can run migrations');
-        }
-
-        try {
-            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-            $output = \Illuminate\Support\Facades\Artisan::output();
-            return response('<pre>' . $output . '</pre><br><a href="/payments">Go to Payments</a>');
-        } catch (\Exception $e) {
-            return response('<h2>Migration Error:</h2><pre>' . $e->getMessage() . '</pre>', 500);
-        }
     })->middleware('role:admin');
 });

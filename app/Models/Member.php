@@ -11,8 +11,11 @@ class Member extends Model
 
     protected $fillable = [
         'name', 'membership_number', 'edbf_id', 'date_of_birth', 'gender', 'address', 'phone', 'email',
-        'category_id', 'medical_validity', 'registration_date', 'deactivation_date', 'profile_image_url', 'password_hash', 'is_active', 'image', 'user_id', 'exemption_status'
+        'category_id', 'medical_validity', 'registration_date', 'deactivation_date', 'profile_image_url', 'password_hash', 'is_active', 'image', 'exemption_status'
     ];
+
+    // user_id (the linked login) is set explicitly in code, never from a form.
+    protected $hidden = ['password_hash'];
 
     protected $casts = [
             'membership_number' => 'integer', // Ensure Laravel treats it as an integer

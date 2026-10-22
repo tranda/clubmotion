@@ -29,8 +29,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
+// Member API (used by dbcrews) - staff accounts only; regular members get 403.
+Route::middleware(['auth:sanctum', 'role:admin,superuser'])->group(function () {
+    Route::post('/register', [AuthController::class, 'register'])->middleware('role:admin');
 
     Route::get('/members', [MemberController::class, 'index']);
     Route::get('/members/{member}', [MemberController::class, 'show']);

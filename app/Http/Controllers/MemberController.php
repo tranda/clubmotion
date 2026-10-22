@@ -130,7 +130,7 @@ class MemberController extends Controller
     {
         $imageWarning = $this->guardImageUpload($request);
 
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'date_of_birth' => 'nullable|date',
             'gender' => 'nullable|in:M,F',
@@ -146,7 +146,8 @@ class MemberController extends Controller
             'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
         ]);
 
-        $data = $request->except('image');
+        // Only the validated fields (never user_id, exemption_status, ...).
+        $data = \Illuminate\Support\Arr::except($validated, ['image']);
 
         // Auto-generate membership number (highest existing number + 1)
         $maxMembershipNumber = Member::max('membership_number');
@@ -295,7 +296,7 @@ class MemberController extends Controller
     {
         $imageWarning = $this->guardImageUpload($request);
 
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'membership_number' => 'required|integer',
             'date_of_birth' => 'nullable|date',
@@ -312,7 +313,8 @@ class MemberController extends Controller
             'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
         ]);
 
-        $data = $request->except('image');
+        // Only the validated fields (never user_id, exemption_status, ...).
+        $data = \Illuminate\Support\Arr::except($validated, ['image']);
 
         $member->update($data);
 
@@ -381,6 +383,12 @@ class MemberController extends Controller
         }
 
         $user = $member->user;
+
+        // Only an admin may change an admin's password (stops a superuser
+        // from taking over an admin account).
+        if ($user && optional($user->role)->name === 'admin' && optional(auth()->user()->role)->name !== 'admin') {
+            return back()->with('error', 'Only an admin can reset an admin\'s password.');
+        }
 
         if (!$user) {
             $userRole = Role::where('name', 'user')->first();
@@ -463,7 +471,11 @@ class MemberController extends Controller
             ]);
         }
 
-        $ext = $file->getClientOriginalExtension() ?: 'jpg';
+        // Extension from the file's real content, never the uploaded name.
+        $ext = ['jpeg' => 'jpg'][$file->guessExtension()] ?? $file->guessExtension();
+        if (!in_array($ext, ['jpg', 'png'], true)) {
+            $ext = 'jpg';
+        }
         $filename = Str::slug($member->name) . '-' . $member->membership_number . '-' . Str::random(8) . '.' . $ext;
         $path = $file->storeAs('members', $filename, 'public');
 
