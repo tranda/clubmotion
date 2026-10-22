@@ -10,9 +10,7 @@ const EXAMPLE = {
     edbfId: 'SRB-1234',
     category: 'Senior B',
     memberSince: '2019',
-    medicalValidity: `${new Date().getFullYear() + 1}-03-31`,
     isActive: true,
-    status: null,
     photoUrl: null,
 };
 

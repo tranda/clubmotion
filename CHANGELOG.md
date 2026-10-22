@@ -5,7 +5,7 @@ All notable changes to ClubMotion will be documented in this file.
 ## [1.0.2] - 2026-10-22
 
 ### Added
-- **Digital member card.** Members open it from **Show Card** (first item in their menu) to show at the gym or club. It shows photo, name, member ID, category, member since, EDBF ID, medical validity and active status, plus a live ticking clock so screenshots are easy to spot. The card is vertical (portrait), made for phones. Tap for full screen; the screen stays on while it is open.
+- **Digital member card.** Members open it from **Show Card** (first item in their menu) to show at the gym or club. It shows photo, name, member ID, category, member since and EDBF ID (inactive members get a red INACTIVE label), plus a live ticking clock so screenshots are easy to spot. The card is vertical (portrait), made for phones. Tap for full screen; the screen stays on while it is open.
 - **Settings → Member card.** Choose one of three motion.rs-styled layouts (Teal Wave, Night Dragon, Clean White) and optionally upload your own portrait background image (about 638 × 1012 px) with light or dark text on top.
 - Admins and superusers can open any member's card from the member profile (**Show Card**).
 

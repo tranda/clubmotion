@@ -31,11 +31,6 @@ export function formatDate(ymd) {
     return `${d}.${m}.${y}`;
 }
 
-function todayYmd() {
-    const d = new Date();
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
 export function formatMemberNumber(n) {
     if (n === null || n === undefined || n === '') return '—';
     return '#' + String(n).padStart(4, '0');
@@ -79,38 +74,36 @@ function Photo({ m, round, ring, ink, size = 50 }) {
     );
 }
 
-function Field({ label, value, c, warn }) {
+function Field({ label, value, c }) {
     if (!value) return null;
     return (
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, width: '44%' }}>
             <div style={{ fontSize: '3.2cqw', fontWeight: 600, letterSpacing: '0.4cqw', textTransform: 'uppercase', color: c.label }}>{label}</div>
-            <div style={{ fontSize: '5.2cqw', fontWeight: 700, color: warn ? c.warn : c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+            <div style={{ fontSize: '5.2cqw', fontWeight: 700, color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
         </div>
     );
 }
 
-function StatusPill({ m, c }) {
-    const active = m.isActive;
-    const text = !active ? 'Inactive' : (m.status || 'Active member');
+// Only shown for inactive members, so the card can't pass as valid.
+function StatusPill({ m }) {
+    if (m.isActive) return null;
     return (
         <span style={{
             display: 'inline-flex', alignItems: 'center', padding: '1.2cqw 4cqw', borderRadius: '20cqw',
             fontSize: '3.6cqw', fontWeight: 700, letterSpacing: '0.3cqw', textTransform: 'uppercase',
-            background: active ? c.pillBg : '#dc2626', color: active ? c.pillText : '#fff',
+            background: '#dc2626', color: '#fff',
         }}>
-            {text}
+            Inactive
         </span>
     );
 }
 
-function Fields({ m, c, align = 'center' }) {
-    const medExpired = m.medicalValidity && m.medicalValidity < todayYmd();
+function Fields({ m, c }) {
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3cqw 5cqw', textAlign: align, width: '100%' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '3cqw 5cqw', textAlign: 'center', width: '100%' }}>
             <Field label="Category" value={m.category} c={c} />
             <Field label="Member since" value={m.memberSince} c={c} />
             <Field label="EDBF ID" value={m.edbfId} c={c} />
-            <Field label="Medical until" value={formatDate(m.medicalValidity) || 'Not on file'} c={c} warn={medExpired || !m.medicalValidity} />
         </div>
     );
 }

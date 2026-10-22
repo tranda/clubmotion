@@ -90,9 +90,6 @@ class MemberCardController extends Controller
 
     public static function cardData(Member $member): array
     {
-        $status = $member->exemption_status === 'pocasni' ? 'Honorary'
-            : ($member->exemption_status === 'saradnik' ? 'Associate' : null);
-
         return [
             'id' => $member->id,
             'name' => $member->name,
@@ -100,9 +97,7 @@ class MemberCardController extends Controller
             'edbfId' => $member->edbf_id,
             'category' => $member->category->category_name ?? null,
             'memberSince' => $member->registration_date ? $member->registration_date->format('Y') : null,
-            'medicalValidity' => $member->medical_validity ? $member->medical_validity->format('Y-m-d') : null,
             'isActive' => (bool) $member->is_active,
-            'status' => $status,
             'photoUrl' => $member->image ? '/storage/' . $member->image : null,
         ];
     }
