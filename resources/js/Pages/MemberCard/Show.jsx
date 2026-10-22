@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import MemberCard, { CARD_RATIO } from '../../Components/MemberCard';
 
@@ -23,26 +23,15 @@ export default function MemberCardShow({ member, card, backHref }) {
     const [full, setFull] = useState(false);
     useWakeLock(!!member);
 
-    // Full screen adds a history entry, so the phone's Back button closes it too.
-    const openFull = () => {
-        window.history.pushState({ ...window.history.state, memberCardFull: true }, '');
-        setFull(true);
-    };
-    const closeFull = () => {
-        if (window.history.state?.memberCardFull) window.history.back();
-        else setFull(false);
-    };
+    // Tapping anywhere outside the card closes it (back to the member, or home).
+    const closeCard = () => router.visit(backHref || '/');
+    const keepOpen = (e) => e.stopPropagation();
 
     useEffect(() => {
         if (!full) return;
-        const onKey = (e) => e.key === 'Escape' && closeFull();
-        const onPop = () => setFull(false);
+        const onKey = (e) => e.key === 'Escape' && setFull(false);
         window.addEventListener('keydown', onKey);
-        window.addEventListener('popstate', onPop);
-        return () => {
-            window.removeEventListener('keydown', onKey);
-            window.removeEventListener('popstate', onPop);
-        };
+        return () => window.removeEventListener('keydown', onKey);
     }, [full]);
 
     if (!member) {
@@ -62,37 +51,35 @@ export default function MemberCardShow({ member, card, backHref }) {
     return (
         <Layout>
             <Head title="Member card" />
-            <div className="max-w-sm mx-auto py-2 sm:py-6">
-                {backHref && (
-                    <Link href={backHref} className="text-sm text-blue-600 hover:text-blue-800">← Back to member</Link>
-                )}
-                <button type="button" onClick={openFull} className="block w-full mt-3 text-left" aria-label="Show card full screen">
-                    <MemberCard member={member} card={card} />
-                </button>
-                <p className="mt-4 text-center text-sm text-gray-500">
-                    Tap the card to show it full screen.
-                </p>
+            {/* cursor-pointer: iOS Safari ignores taps on plain divs without it. */}
+            <div className="min-h-[calc(100vh-6rem)] cursor-pointer" onClick={closeCard}>
+                <div className="max-w-sm mx-auto py-2 sm:py-6">
+                    {backHref && (
+                        <Link href={backHref} onClick={keepOpen} className="text-sm text-blue-600 hover:text-blue-800">← Back to member</Link>
+                    )}
+                    <button
+                        type="button"
+                        onClick={(e) => { keepOpen(e); setFull(true); }}
+                        className="block w-full mt-3 text-left"
+                        aria-label="Show card full screen"
+                    >
+                        <MemberCard member={member} card={card} />
+                    </button>
+                    <p className="mt-4 text-center text-sm text-gray-500">
+                        Tap the card for full screen, tap outside to close.
+                    </p>
+                </div>
             </div>
 
             {full && (
-                // cursor-pointer: iOS Safari ignores taps on plain divs without it.
                 <div
                     className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden cursor-pointer"
-                    onClick={closeFull}
+                    onClick={closeCard}
                 >
-                    <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); closeFull(); }}
-                        className="absolute right-3 w-11 h-11 rounded-full bg-white/15 text-white text-2xl leading-none flex items-center justify-center hover:bg-white/25"
-                        style={{ top: 'max(0.75rem, env(safe-area-inset-top))' }}
-                        aria-label="Close"
-                    >
-                        ×
-                    </button>
-                    <div style={fullStyle} className="cursor-default" onClick={(e) => e.stopPropagation()}>
+                    <div style={fullStyle} className="cursor-default" onClick={keepOpen}>
                         <MemberCard member={member} card={card} />
                     </div>
-                    <span className="absolute left-0 right-0 text-center text-xs text-gray-400" style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))' }}>Tap outside the card or ✕ to close</span>
+                    <span className="absolute left-0 right-0 text-center text-xs text-gray-400" style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))' }}>Tap outside the card to close</span>
                 </div>
             )}
         </Layout>

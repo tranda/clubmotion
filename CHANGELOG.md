@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.7] - 2026-10-22
+
+### Changed
+- **Closing the member card.** Tapping anywhere outside the card (normal or full screen) closes it and returns to the home page (admins viewing a member's card go back to that member). The ✕ button was removed.
+
 ## [1.0.6] - 2026-10-22
 
 ### Fixed
