@@ -56,7 +56,7 @@ export default function MemberCardSettings({ card, designs, sample }) {
 
                 <section className="bg-white rounded-lg shadow p-4 sm:p-6">
                     <h2 className="font-semibold text-gray-900 mb-3">1. Layout</h2>
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
                         {designs.map((d) => (
                             <label
                                 key={d}
@@ -77,7 +77,7 @@ export default function MemberCardSettings({ card, designs, sample }) {
                     <div>
                         <h2 className="font-semibold text-gray-900">2. Custom background (optional)</h2>
                         <p className="text-sm text-gray-600">
-                            Landscape image, credit-card ratio (about 1012 × 638 px or larger), JPG/PNG/WebP up to 4 MB.
+                            Portrait (vertical) image, credit-card ratio (about 638 × 1012 px or larger), JPG/PNG/WebP up to 4 MB.
                             It replaces the layout's own colors and logo; member data is drawn on top, so keep the photo and text areas fairly plain.
                         </p>
                     </div>
@@ -119,7 +119,7 @@ export default function MemberCardSettings({ card, designs, sample }) {
 
                 <section className="bg-white rounded-lg shadow p-4 sm:p-6">
                     <h2 className="font-semibold text-gray-900 mb-3">Preview{sample ? ' (your card)' : ' (example member)'}</h2>
-                    <div className="max-w-md">
+                    <div className="max-w-xs">
                         <MemberCard member={member} card={previewCard} backgroundOverride={bg} />
                     </div>
                 </section>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
-import MemberCard from '../../Components/MemberCard';
+import MemberCard, { CARD_RATIO } from '../../Components/MemberCard';
 
 // Keep the phone screen on while the card is shown (where supported).
 function useWakeLock(enabled) {
@@ -19,20 +19,8 @@ function useWakeLock(enabled) {
     }, [enabled]);
 }
 
-function usePortrait() {
-    const get = () => typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
-    const [portrait, setPortrait] = useState(get);
-    useEffect(() => {
-        const onResize = () => setPortrait(get());
-        window.addEventListener('resize', onResize);
-        return () => window.removeEventListener('resize', onResize);
-    }, []);
-    return portrait;
-}
-
 export default function MemberCardShow({ member, card, backHref }) {
     const [full, setFull] = useState(false);
-    const portrait = usePortrait();
     useWakeLock(!!member);
 
     useEffect(() => {
@@ -53,15 +41,13 @@ export default function MemberCardShow({ member, card, backHref }) {
         );
     }
 
-    // Full screen: on a portrait phone, turn the card sideways so it fills the screen.
-    const fullStyle = portrait
-        ? { width: 'min(92vh, 150vw)', transform: 'rotate(90deg)' }
-        : { width: 'min(94vw, 145vh)' };
+    // Full screen: as large as fits the screen, keeping the card's proportions.
+    const fullStyle = { width: `min(92vw, ${(88 * CARD_RATIO).toFixed(2)}vh)` };
 
     return (
         <Layout>
             <Head title="Member card" />
-            <div className="max-w-xl mx-auto py-2 sm:py-6">
+            <div className="max-w-sm mx-auto py-2 sm:py-6">
                 {backHref && (
                     <Link href={backHref} className="text-sm text-blue-600 hover:text-blue-800">← Back to member</Link>
                 )}

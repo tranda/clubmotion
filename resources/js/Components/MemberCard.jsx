@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
-// Digital member card (credit-card ratio, one side). All sizes are in `cqw`
-// (percent of card width) so the card scales from a small preview to full screen.
+// Digital member card (portrait, credit-card ratio, one side) shown on a phone.
+// All sizes are in `cqw` (percent of card width) so the card scales from a
+// small preview to full screen.
 //
 // Three built-in designs based on motion.rs (teal #30afb8, slate #313b48,
 // Montserrat). When the admin uploads a background image, it replaces the
@@ -12,6 +13,9 @@ export const DESIGN_LABELS = {
     night: 'Night Dragon',
     clean: 'Clean White',
 };
+
+// Card proportions: width / height (portrait ID-1 card).
+export const CARD_RATIO = 54 / 85.6;
 
 const TEAL = '#30afb8';
 const TEAL_DARK = '#1c9ba4';
@@ -46,30 +50,30 @@ function LiveClock({ color, dot }) {
     }, []);
     const text = `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '1.2cqw', color, fontSize: '2.5cqw', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-            <span className="mc-pulse" style={{ width: '1.6cqw', height: '1.6cqw', borderRadius: '50%', background: dot }} />
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2cqw', color, fontSize: '4cqw', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+            <span className="mc-pulse" style={{ width: '2.6cqw', height: '2.6cqw', borderRadius: '50%', background: dot }} />
             {text}
         </span>
     );
 }
 
-function Photo({ m, round, ring, size = 26 }) {
+function Photo({ m, round, ring, ink, size = 50 }) {
     const w = `${size}cqw`;
-    const h = round ? w : `${size * 1.25}cqw`;
+    const h = round ? w : `${size * 1.2}cqw`;
     const initials = (m.name || '?').split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
     return (
         <div style={{
             width: w, height: h, flexShrink: 0, overflow: 'hidden',
-            borderRadius: round ? '50%' : '2.2cqw',
-            border: `0.7cqw solid ${ring}`,
+            borderRadius: round ? '50%' : '4cqw',
+            border: `1.2cqw solid ${ring}`,
             background: 'rgba(255,255,255,0.18)',
-            boxShadow: '0 1.2cqw 3cqw rgba(0,0,0,0.25)',
+            boxShadow: '0 2cqw 5cqw rgba(0,0,0,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
             {m.photoUrl ? (
                 <img src={m.photoUrl} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-                <span style={{ fontSize: `${size * 0.36}cqw`, fontWeight: 700, color: ring }}>{initials}</span>
+                <span style={{ fontSize: `${size * 0.34}cqw`, fontWeight: 700, color: ink || ring }}>{initials}</span>
             )}
         </div>
     );
@@ -79,8 +83,8 @@ function Field({ label, value, c, warn }) {
     if (!value) return null;
     return (
         <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '2cqw', fontWeight: 600, letterSpacing: '0.25cqw', textTransform: 'uppercase', color: c.label }}>{label}</div>
-            <div style={{ fontSize: '3.3cqw', fontWeight: 700, color: warn ? c.warn : c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+            <div style={{ fontSize: '3.2cqw', fontWeight: 600, letterSpacing: '0.4cqw', textTransform: 'uppercase', color: c.label }}>{label}</div>
+            <div style={{ fontSize: '5.2cqw', fontWeight: 700, color: warn ? c.warn : c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
         </div>
     );
 }
@@ -90,8 +94,8 @@ function StatusPill({ m, c }) {
     const text = !active ? 'Inactive' : (m.status || 'Active member');
     return (
         <span style={{
-            display: 'inline-flex', alignItems: 'center', padding: '0.7cqw 2.2cqw', borderRadius: '10cqw',
-            fontSize: '2.3cqw', fontWeight: 700, letterSpacing: '0.2cqw', textTransform: 'uppercase',
+            display: 'inline-flex', alignItems: 'center', padding: '1.2cqw 4cqw', borderRadius: '20cqw',
+            fontSize: '3.6cqw', fontWeight: 700, letterSpacing: '0.3cqw', textTransform: 'uppercase',
             background: active ? c.pillBg : '#dc2626', color: active ? c.pillText : '#fff',
         }}>
             {text}
@@ -99,10 +103,10 @@ function StatusPill({ m, c }) {
     );
 }
 
-function Fields({ m, c }) {
+function Fields({ m, c, align = 'center' }) {
     const medExpired = m.medicalValidity && m.medicalValidity < todayYmd();
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.6cqw 3cqw' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3cqw 5cqw', textAlign: align, width: '100%' }}>
             <Field label="Category" value={m.category} c={c} />
             <Field label="Member since" value={m.memberSince} c={c} />
             <Field label="EDBF ID" value={m.edbfId} c={c} />
@@ -111,50 +115,56 @@ function Fields({ m, c }) {
     );
 }
 
-const Name = ({ m, c, size = 5.2 }) => (
+// Long names step down in size so they still fit in two lines.
+const nameScale = (name = '') => (name.length > 28 ? 0.6 : name.length > 20 ? 0.8 : 1);
+
+const Name = ({ m, c, size = 8 }) => (
     <div style={{
-        flexShrink: 0,
-        // Long names step down a size so they still fit in two lines.
-        fontSize: `${(m.name || '').length > 22 ? size * 0.82 : size}cqw`, fontWeight: 800, lineHeight: 1.1, color: c.text, textTransform: 'uppercase',
+        flexShrink: 0, textAlign: 'center', width: '100%',
+        fontSize: `${size * nameScale(m.name)}cqw`, fontWeight: 800, lineHeight: 1.1, color: c.text, textTransform: 'uppercase',
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
     }}>
         {m.name}
     </div>
 );
 
-const WhiteLogo = ({ h = 8.5, opacity = 1 }) => (
+const WhiteLogo = ({ h = 13, opacity = 1 }) => (
     <img src={LOGO} alt="Motion Dragon Boat Club" style={{ height: `${h}cqw`, opacity }} />
 );
 
 const Label = ({ children, color }) => (
-    <span style={{ fontSize: '2.2cqw', fontWeight: 700, letterSpacing: '0.5cqw', textTransform: 'uppercase', color }}>{children}</span>
+    <span style={{ fontSize: '3.4cqw', fontWeight: 700, letterSpacing: '0.8cqw', textTransform: 'uppercase', color }}>{children}</span>
 );
+
+const Number = ({ m, color, size = 7 }) => (
+    <div style={{ fontSize: `${size}cqw`, fontWeight: 800, lineHeight: 1, color, letterSpacing: '0.5cqw' }}>{formatMemberNumber(m.memberNumber)}</div>
+);
+
+const column = { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' };
 
 // --- Design 1: teal gradient with paddle-water waves -----------------------
 function Wave({ m, c, custom }) {
     return (
         <>
             {!custom && (
-                <svg viewBox="0 0 400 252" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-                    <path d="M0 190 C 80 160, 140 220, 220 195 S 340 160, 400 185 L400 252 L0 252Z" fill="rgba(255,255,255,0.10)" />
-                    <path d="M0 215 C 90 190, 160 245, 250 220 S 360 200, 400 215 L400 252 L0 252Z" fill="rgba(255,255,255,0.12)" />
-                    <circle cx="370" cy="20" r="90" fill="rgba(255,255,255,0.07)" />
+                <svg viewBox="0 0 252 400" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+                    <circle cx="240" cy="10" r="110" fill="rgba(255,255,255,0.07)" />
+                    <path d="M0 330 C 50 305, 100 355, 150 335 S 220 310, 252 325 L252 400 L0 400Z" fill="rgba(255,255,255,0.10)" />
+                    <path d="M0 355 C 60 335, 120 380, 180 360 S 235 345, 252 352 L252 400 L0 400Z" fill="rgba(255,255,255,0.12)" />
                 </svg>
             )}
-            <div style={{ position: 'absolute', inset: 0, padding: '5cqw 5.5cqw', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {custom ? <span /> : <WhiteLogo />}
+            <div style={{ ...column, padding: '8cqw 7cqw 7cqw', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2cqw' }}>
+                    {custom ? <div style={{ height: '13cqw' }} /> : <WhiteLogo />}
                     <Label color={c.label}>Member card</Label>
                 </div>
-                <div style={{ display: 'flex', gap: '4.5cqw', marginTop: '3.5cqw', flex: 1, minHeight: 0 }}>
-                    <Photo m={m} ring={c.ring} size={24} />
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2cqw' }}>
-                        <Name m={m} c={c} />
-                        <div style={{ fontSize: '4cqw', fontWeight: 800, color: c.accent, letterSpacing: '0.3cqw' }}>{formatMemberNumber(m.memberNumber)}</div>
-                        <Fields m={m} c={c} />
-                    </div>
+                <Photo m={m} ring={c.ring} size={46} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2.5cqw', width: '100%' }}>
+                    <Name m={m} c={c} />
+                    <Number m={m} color={c.accent} />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Fields m={m} c={c} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2.5cqw' }}>
                     <StatusPill m={m} c={c} />
                     <LiveClock color={c.text} dot={c.dot} />
                 </div>
@@ -163,32 +173,31 @@ function Wave({ m, c, custom }) {
     );
 }
 
-// --- Design 2: dark slate, teal edge, big dragon watermark -----------------
+// --- Design 2: dark slate, teal top edge, big dragon watermark -------------
 function Night({ m, c, custom }) {
     return (
         <>
             {!custom && (
                 <>
-                    <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 85% 10%, rgba(48,175,184,0.45), transparent 55%)` }} />
-                    <img src={LOGO} alt="" style={{ position: 'absolute', right: '-12cqw', bottom: '-4cqw', height: '40cqw', opacity: 0.07 }} />
-                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '2cqw', background: `linear-gradient(${TEAL}, ${TEAL_DARK})` }} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 30%, rgba(48,175,184,0.40), transparent 60%)' }} />
+                    <img src={LOGO} alt="" style={{ position: 'absolute', left: '-20cqw', bottom: '-8cqw', height: '45cqw', opacity: 0.045 }} />
+                    <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '2.5cqw', background: `linear-gradient(90deg, ${TEAL}, ${TEAL_DARK})` }} />
                 </>
             )}
-            <div style={{ position: 'absolute', inset: 0, padding: '5cqw 5.5cqw 5cqw 7.5cqw', display: 'flex', gap: '5cqw', alignItems: 'center' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3cqw' }}>
-                    <Photo m={m} round ring={c.ring} size={25} />
-                    <StatusPill m={m} c={c} />
+            <div style={{ ...column, padding: '8cqw 7cqw 7cqw', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {custom ? <span /> : <WhiteLogo h={11} />}
+                    <Label color={c.label}>Member</Label>
                 </div>
-                <div style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        {custom ? <span /> : <WhiteLogo h={7.5} />}
-                    </div>
-                    <div>
-                        <Label color={c.label}>Member ID</Label>
-                        <div style={{ fontSize: '9cqw', fontWeight: 800, lineHeight: 1, color: c.accent, letterSpacing: '0.4cqw' }}>{formatMemberNumber(m.memberNumber)}</div>
-                        <div style={{ marginTop: '1.5cqw' }}><Name m={m} c={c} size={4.6} /></div>
-                    </div>
-                    <Fields m={m} c={c} />
+                <Photo m={m} round ring={c.ring} size={50} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2cqw', width: '100%' }}>
+                    <Label color={c.label}>Member ID</Label>
+                    <Number m={m} color={c.accent} size={14} />
+                    <div style={{ marginTop: '1cqw', width: '100%' }}><Name m={m} c={c} size={7} /></div>
+                </div>
+                <Fields m={m} c={c} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2.5cqw' }}>
+                    <StatusPill m={m} c={c} />
                     <LiveClock color={c.label} dot={c.dot} />
                 </div>
             </div>
@@ -199,32 +208,37 @@ function Night({ m, c, custom }) {
 // --- Design 3: white card, teal header band, slate footer ------------------
 function Clean({ m, c, custom }) {
     return (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
+        <div style={column}>
             <div style={{
-                height: '14cqw', padding: '0 5.5cqw', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: custom ? 'transparent' : `linear-gradient(90deg, ${TEAL}, ${TEAL_DARK})`,
-            }}>
-                {custom ? <span /> : <WhiteLogo h={8} />}
+                position: 'absolute', left: 0, right: 0, top: 0, height: '46cqw',
+                background: custom ? 'transparent' : `linear-gradient(135deg, ${TEAL}, ${TEAL_DARK})`,
+            }} />
+            <div style={{ position: 'relative', paddingTop: '8cqw', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2cqw' }}>
+                {custom ? <div style={{ height: '12cqw' }} /> : <WhiteLogo h={12} />}
                 <Label color={custom ? c.label : 'rgba(255,255,255,0.9)'}>Member card</Label>
             </div>
-            <div style={{ flex: 1, minHeight: 0, padding: '3.5cqw 5.5cqw', display: 'flex', gap: '4.5cqw' }}>
-                <Photo m={m} ring={custom ? c.ring : TEAL} size={22} />
-                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1.4cqw' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2cqw' }}>
-                        <div style={{ fontSize: '4.2cqw', fontWeight: 800, color: c.accent }}>{formatMemberNumber(m.memberNumber)}</div>
+            <div style={{ position: 'relative', marginTop: '5cqw' }}>
+                <Photo m={m} ring={custom ? c.ring : '#fff'} ink={custom ? c.ring : TEAL} size={42} />
+            </div>
+            <div style={{ position: 'relative', flex: 1, minHeight: 0, width: '100%', padding: '4cqw 7cqw 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2.5cqw', width: '100%' }}>
+                    <Name m={m} c={c} size={7.5} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '3cqw' }}>
+                        <Number m={m} color={c.accent} size={6.5} />
                         <StatusPill m={m} c={c} />
                     </div>
-                    <Name m={m} c={c} size={4.8} />
-                    <Fields m={m} c={c} />
                 </div>
+                <Fields m={m} c={c} />
             </div>
             <div style={{
-                height: '8cqw', padding: '0 5.5cqw', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                position: 'relative', width: '100%', marginTop: '4cqw', padding: '3.5cqw 7cqw', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5cqw',
                 background: custom ? 'transparent' : SLATE,
             }}>
-                <span style={{ fontSize: '2.2cqw', fontWeight: 700, letterSpacing: '0.4cqw', color: custom ? c.label : TEAL, textTransform: 'uppercase' }}>
-                    {custom ? '' : 'Pokreni svog zmaja'}
-                </span>
+                {!custom && (
+                    <span style={{ fontSize: '3.2cqw', fontWeight: 700, letterSpacing: '0.8cqw', color: TEAL, textTransform: 'uppercase' }}>
+                        Pokreni svog zmaja
+                    </span>
+                )}
                 <LiveClock color={custom ? c.text : '#fff'} dot={custom ? c.dot : TEAL} />
             </div>
         </div>
@@ -234,12 +248,12 @@ function Clean({ m, c, custom }) {
 const DESIGNS = {
     wave: {
         Component: Wave,
-        background: `linear-gradient(135deg, ${TEAL} 0%, ${TEAL_DARK} 55%, #26909a 100%)`,
+        background: `linear-gradient(160deg, ${TEAL} 0%, ${TEAL_DARK} 55%, #26909a 100%)`,
         colors: { text: '#fff', label: 'rgba(255,255,255,0.78)', accent: SLATE, ring: '#fff', pillBg: '#fff', pillText: TEAL_DARK, dot: '#a7f3d0', warn: '#fde68a' },
     },
     night: {
         Component: Night,
-        background: `linear-gradient(160deg, #3a4656 0%, ${SLATE} 50%, #232b35 100%)`,
+        background: `linear-gradient(170deg, #3a4656 0%, ${SLATE} 50%, #232b35 100%)`,
         colors: { text: '#fff', label: '#9fb3c4', accent: TEAL, ring: TEAL, pillBg: TEAL, pillText: '#fff', dot: TEAL, warn: '#fbbf24' },
     },
     clean: {
@@ -264,11 +278,11 @@ export default function MemberCard({ member, card = {}, backgroundOverride }) {
     return (
         <div style={{ containerType: 'inline-size', width: '100%' }}>
             <div style={{
-                position: 'relative', width: '100%', aspectRatio: '85.6 / 54', overflow: 'hidden',
-                borderRadius: '4.5cqw', fontFamily: FONT,
+                position: 'relative', width: '100%', aspectRatio: '54 / 85.6', overflow: 'hidden',
+                borderRadius: '6cqw', fontFamily: FONT,
                 background: custom ? `center / cover no-repeat url("${bgUrl}")` : design.background,
-                boxShadow: '0 2cqw 6cqw rgba(15,23,42,0.28)',
-                textShadow: custom ? (card.textTone === 'dark' ? '0 0 0.8cqw rgba(255,255,255,0.7)' : '0 0.2cqw 0.8cqw rgba(0,0,0,0.45)') : undefined,
+                boxShadow: '0 3cqw 8cqw rgba(15,23,42,0.28)',
+                textShadow: custom ? (card.textTone === 'dark' ? '0 0 1.2cqw rgba(255,255,255,0.7)' : '0 0.3cqw 1.2cqw rgba(0,0,0,0.45)') : undefined,
             }}>
                 <Component m={member} c={c} custom={custom} />
             </div>
