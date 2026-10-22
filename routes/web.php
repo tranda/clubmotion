@@ -335,10 +335,13 @@ Route::middleware('auth')->group(function () {
         Route::delete('/categories/{category}', [App\Http\Controllers\MembershipCategoryController::class, 'destroy'])->name('member-categories.destroy');
         Route::get('/member-card', [App\Http\Controllers\MemberCardController::class, 'settings'])->name('member-card');
         Route::post('/member-card', [App\Http\Controllers\MemberCardController::class, 'updateSettings'])->name('member-card.update');
-        Route::get('/events', [App\Http\Controllers\MemberEdbfController::class, 'settings'])->name('events');
-        Route::post('/events', [App\Http\Controllers\MemberEdbfController::class, 'updateSettings'])->name('events.update');
-        Route::get('/events/edbf-sync', [App\Http\Controllers\MemberEdbfController::class, 'preview'])->name('events.edbf-sync');
-        Route::post('/events/edbf-sync', [App\Http\Controllers\MemberEdbfController::class, 'apply'])->name('events.edbf-sync.apply');
+        Route::get('/events', [App\Http\Controllers\EventsSyncController::class, 'settings'])->name('events');
+        Route::post('/events', [App\Http\Controllers\EventsSyncController::class, 'updateSettings'])->name('events.update');
+        Route::get('/events/sync', [App\Http\Controllers\EventsSyncController::class, 'preview'])->name('events.sync');
+        Route::post('/events/sync/pull', [App\Http\Controllers\EventsSyncController::class, 'pull'])->name('events.sync.pull');
+        Route::post('/events/sync/push', [App\Http\Controllers\EventsSyncController::class, 'push'])->name('events.sync.push');
+        // Old link (v1.0.10)
+        Route::redirect('/events/edbf-sync', '/settings/events/sync');
     });
 
     // Tools - Admin & Superuser

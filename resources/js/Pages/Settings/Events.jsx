@@ -20,7 +20,7 @@ export default function EventsSettings({ url, club, hasKey }) {
                     <Link href="/settings" className="text-sm text-blue-600 hover:text-blue-800">← Settings</Link>
                     <h1 className="text-2xl font-bold text-gray-900 mt-1">Events platform</h1>
                     <p className="text-sm text-gray-600">
-                        Connection to events.motion.rs, used to pull members' EDBF IDs from our club's athletes there.
+                        Connection to events.motion.rs, used to sync member data (EDBF ID, birth date, gender) with our club's athletes there.
                     </p>
                 </div>
 
@@ -36,7 +36,7 @@ export default function EventsSettings({ url, club, hasKey }) {
                             className={input}
                         />
                         <p className="mt-1 text-xs text-gray-500">
-                            Create it on events.motion.rs under Administration → API keys, with the <code>athletes.read</code> permission. Stored encrypted.
+                            Create it on events.motion.rs under Administration → API keys, with <code>athletes.read</code> (to fetch) and <code>athletes.write</code> (to send our data). Stored encrypted.
                         </p>
                         {hasKey && !data.key && (
                             <label className="mt-2 inline-flex items-center gap-2 text-sm text-red-700">
@@ -69,12 +69,12 @@ export default function EventsSettings({ url, club, hasKey }) {
 
                 <div className="bg-white rounded-lg shadow p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
                     <div>
-                        <h2 className="font-semibold text-gray-900">Sync EDBF IDs</h2>
-                        <p className="text-sm text-gray-600">Fetch athletes from the events platform, match them to members, review, then save.</p>
+                        <h2 className="font-semibold text-gray-900">Sync with events platform</h2>
+                        <p className="text-sm text-gray-600">Match athletes to members, choose fields, then take values from events or send ours there.</p>
                     </div>
                     {hasKey ? (
-                        <Link href="/settings/events/edbf-sync" className="shrink-0 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-center">
-                            Sync EDBF IDs
+                        <Link href="/settings/events/sync" className="shrink-0 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-center">
+                            Open sync
                         </Link>
                     ) : (
                         <span className="text-sm text-gray-400">Save an API key first</span>

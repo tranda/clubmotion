@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.11] - 2026-10-22
+
+### Changed
+- **Two-way sync with the events platform** (Settings → Events platform → Open sync). Pick the fields (EDBF ID, birth date, gender) and the direction: **Events → ClubMotion** saves the events values on members, **ClubMotion → Events** sends our values to the athletes there (needs an API key with `athletes.write`). Rows that only fill empty values from a safe match are pre-ticked; overwrites and doubtful matches need a manual tick, and every save asks for confirmation. Names are not synced.
+
 ## [1.0.10] - 2026-10-22
 
 ### Added
