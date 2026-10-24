@@ -163,7 +163,7 @@ class CompetitionParticipant extends Model
     }
 
     /**
-     * Calculated, never stored: exempt, cancelled, unpaid, partial, paid, overpaid.
+     * Calculated, never stored: exempt, cancelled, no_fee, unpaid, partial, paid, overpaid.
      */
     public function getPaymentStatusAttribute()
     {
@@ -175,7 +175,8 @@ class CompetitionParticipant extends Model
         $fee = (float) $this->fee_amount;
 
         if ($paid <= 0) {
-            return $fee > 0 ? 'unpaid' : 'paid';
+            // Nothing to pay yet (e.g. fee not set): not "paid".
+            return $fee > 0 ? 'unpaid' : 'no_fee';
         }
         if ($paid < $fee) {
             return 'partial';

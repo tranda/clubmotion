@@ -62,6 +62,7 @@ const STATUS_STYLES = {
     paid: 'bg-green-100 text-green-800',
     partial: 'bg-yellow-100 text-yellow-800',
     unpaid: 'bg-red-100 text-red-800',
+    no_fee: 'bg-gray-100 text-gray-600',
     exempt: 'bg-gray-100 text-gray-600',
     overpaid: 'bg-blue-100 text-blue-800',
     cancelled: 'bg-gray-100 text-gray-400 line-through',
@@ -78,7 +79,7 @@ const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
 export function StatusBadge({ status }) {
     return (
         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[status] || ''}`}>
-            {capitalize(status)}
+            {status === 'no_fee' ? 'No fee yet' : capitalize(status)}
         </span>
     );
 }

@@ -473,7 +473,7 @@ class Competition extends Model
     {
         $totals = [
             'expected' => 0.0, 'collected' => 0.0, 'remaining' => 0.0, 'overpaid' => 0.0,
-            'participants' => 0, 'paid' => 0, 'partial' => 0, 'unpaid' => 0,
+            'participants' => 0, 'paid' => 0, 'partial' => 0, 'unpaid' => 0, 'no_fee' => 0,
             'exempt' => 0, 'cancelled' => 0, 'overpaid_count' => 0,
             // Headcount of people going (participants + their additional people).
             'people' => ['athletes' => 0, 'supporters' => 0, 'children' => 0],

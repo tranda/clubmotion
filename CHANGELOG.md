@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.18] - 2026-10-24
+
+### Fixed
+- **Participants with no fee yet no longer show as "Paid".** A fee of 0 with nothing paid now shows **No fee yet** (grey), with its own filter when any exist. It isn't counted as paid in the totals or the export.
+
 ## [1.0.17] - 2026-10-24
 
 ### Added

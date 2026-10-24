@@ -16,6 +16,7 @@ const FILTERS = [
     { key: 'paid', label: 'Paid' },
     { key: 'partial', label: 'Partial' },
     { key: 'unpaid', label: 'Unpaid' },
+    { key: 'no_fee', label: 'No fee yet' },
     { key: 'exempt', label: 'Exempt' },
     { key: 'cancelled', label: 'Cancelled' },
 ];
@@ -324,7 +325,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                     <div className="flex flex-wrap gap-2">
-                        {FILTERS.map((f) => (
+                        {FILTERS.filter((f) => f.key !== 'no_fee' || totals.no_fee > 0).map((f) => (
                             <button
                                 key={f.key}
                                 onClick={() => setFilter(f.key)}

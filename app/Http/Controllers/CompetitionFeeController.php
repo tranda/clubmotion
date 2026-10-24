@@ -915,7 +915,7 @@ class CompetitionFeeController extends Controller
             (float) $p->fee_amount,
             $p->paid_amount,
             $p->remaining_amount,
-            ucfirst($p->payment_status),
+            $p->payment_status === 'no_fee' ? 'No fee yet' : ucfirst($p->payment_status),
             $p->last_payment_at ? date('d.m.Y', strtotime($p->last_payment_at)) : '',
         ])->all();
         $statusHeader = ['Member', 'Role', 'Room', 'Check-in', 'Check-out', "Fee ({$cur})", "Paid ({$cur})", "Remaining ({$cur})", 'Status', 'Last payment'];
