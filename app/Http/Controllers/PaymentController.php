@@ -191,6 +191,7 @@ class PaymentController extends Controller
                 'extra_athletes' => (int) $p->extra_athletes,
                 'extra_supporters' => (int) $p->extra_supporters,
                 'extra_children' => (int) $p->extra_children,
+                'extra_names' => $p->extraNames(),
                 'fee_amount' => (float) $p->fee_amount,
                 'paid_amount' => $p->paid_amount,
                 'remaining_amount' => $p->remaining_amount,

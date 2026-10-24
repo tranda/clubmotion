@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.19] - 2026-10-24
+
+### Changed
+- **Names of additional people shown everywhere** they're listed: participant rows and cards, the room planner, the room plan PDF and My Payments, e.g. "+2 supporters (Ana, Marko), +2 children (Mia 8, 4)". Unnamed people are counted ("Ana, +1"); children without a name show just their age.
+
 ## [1.0.18] - 2026-10-24
 
 ### Fixed

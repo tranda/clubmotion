@@ -257,19 +257,24 @@ class Competition extends Model
     {
         $persons = $this->partyPersons($p, $settings, $defaults);
         $together = array_values(array_filter($persons, fn ($x) => !$x['split']));
-        $counts = ['athlete' => 0, 'supporter' => 0, 'child' => 0];
-        $ages = [];
+        // "+2 supporters (Ana, Marko), +2 children (Mia 8, 4)": names when set,
+        // children's ages; unnamed adults are counted as "+1".
+        $people = ['athlete' => [], 'supporter' => [], 'child' => []];
         foreach ($together as $x) {
             if ($x['slot'] === 'main') continue;
-            $type = strtok($x['slot'], ':');
-            $counts[$type]++;
-            if ($type === 'child') $ages[] = $x['age'] ?? '?';
+            $people[strtok($x['slot'], ':')][] = $x;
         }
         $extras = [];
         foreach (['athlete' => ['athlete', 'athletes'], 'supporter' => ['supporter', 'supporters'], 'child' => ['child', 'children']] as $type => [$one, $many]) {
-            if ($counts[$type] > 0) {
-                $extras[] = '+' . $counts[$type] . ' ' . ($counts[$type] === 1 ? $one : $many) . ($type === 'child' && $ages ? ' (' . implode(', ', $ages) . ')' : '');
+            $list = $people[$type];
+            if (!$list) continue;
+            if ($type === 'child') {
+                $parts = array_map(fn ($x) => trim(($x['name'] ?? '') . ' ' . ($x['age'] ?? '?')), $list);
+            } else {
+                $named = array_values(array_filter(array_map(fn ($x) => $x['name'] ?? '', $list)));
+                $parts = $named ? array_merge($named, count($named) < count($list) ? ['+' . (count($list) - count($named))] : []) : [];
             }
+            $extras[] = '+' . count($list) . ' ' . (count($list) === 1 ? $one : $many) . ($parts ? ' (' . implode(', ', $parts) . ')' : '');
         }
 
         $units = [[

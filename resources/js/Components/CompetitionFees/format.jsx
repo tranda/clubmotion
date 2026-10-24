@@ -84,14 +84,25 @@ export function StatusBadge({ status }) {
     );
 }
 
-// "+1 athlete, +2 children (4, 9)" for a participant's additional people, or ''.
-// Children's ages come from the server (p.children) when known.
+// "+2 supporters (Ana, Marko), +2 children (Mia 8, 4)" for a participant's
+// additional people, or ''. Names from p.extra_names; children's ages from the
+// server (p.children) when known. Unnamed adults are counted as "+1".
 export const extrasLabel = (p) => {
-    const ages = (p.children || []).map((c) => (c.age == null ? '?' : c.age));
+    const names = p.extra_names || {};
+    const adults = (type, n) => {
+        const named = (names[type] || []).slice(0, n).map((s) => (s || '').trim()).filter(Boolean);
+        if (named.length === 0) return '';
+        return ` (${[...named, ...(named.length < n ? [`+${n - named.length}`] : [])].join(', ')})`;
+    };
+    const kids = Array.from({ length: p.extra_children || 0 }, (_, i) => {
+        const name = (names.child?.[i] || '').trim();
+        const age = p.children ? (p.children[i]?.age ?? '?') : '';
+        return [name, age].filter((x) => x !== '').join(' ');
+    }).filter(Boolean);
     return [
-        [p.extra_athletes, 'athlete', 'athletes', ''],
-        [p.extra_supporters, 'supporter', 'supporters', ''],
-        [p.extra_children, 'child', 'children', ages.length ? ` (${ages.join(', ')})` : ''],
+        [p.extra_athletes, 'athlete', 'athletes', adults('athlete', p.extra_athletes)],
+        [p.extra_supporters, 'supporter', 'supporters', adults('supporter', p.extra_supporters)],
+        [p.extra_children, 'child', 'children', kids.length ? ` (${kids.join(', ')})` : ''],
     ]
         .filter(([n]) => n > 0)
         .map(([n, one, many, suffix]) => `+${n} ${n === 1 ? one : many}${suffix}`)
