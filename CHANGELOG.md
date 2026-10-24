@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.23] - 2026-10-24
+
+### Changed
+- **Room planner and Update fees are now buttons** (same style as + Add Participants) instead of text links. Update fees turns amber and shows "N out of date" when fees need updating.
+
 ## [1.0.22] - 2026-10-24
 
 ### Added

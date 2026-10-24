@@ -278,10 +278,16 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                             <span className={rs.used > rs.beds ? 'text-red-600' : 'text-gray-500'}>({rs.used}/{rs.beds} beds used)</span>
                             {rs.unassigned > 0 && <span className="text-red-600">· {rs.unassigned} not in a room</span>}
                             {accommodation?.total > 0 && <span>· accommodation <strong>{formatMoney(accommodation.total, cur)}</strong></span>}
-                            <button type="button" onClick={() => setShowRooms(true)} className="text-blue-600 hover:text-blue-800">Room planner</button>
-                            {outdatedCount > 0 && <span className="text-amber-700 font-medium">· {outdatedCount} fee{outdatedCount === 1 ? '' : 's'} out of date</span>}
+                            <button type="button" onClick={() => setShowRooms(true)} className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 whitespace-nowrap">Room planner</button>
                             {accommodation?.total > 0 && (
-                                <button type="button" onClick={() => setShowApplyAcc(true)} className="text-blue-600 hover:text-blue-800">Update fees…</button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowApplyAcc(true)}
+                                    className={`inline-flex items-center gap-2 px-4 py-2 text-white text-sm rounded-md whitespace-nowrap ${outdatedCount > 0 ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                >
+                                    Update fees
+                                    {outdatedCount > 0 && <span className="px-1.5 rounded-full bg-white text-amber-700 text-xs font-semibold" title={`${outdatedCount} fee${outdatedCount === 1 ? '' : 's'} out of date`}>{outdatedCount} out of date</span>}
+                                </button>
                             )}
                         </div>
                     );
@@ -304,7 +310,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                 ({roomPlan.no_preference} without preference{roomPlan.unplaced > 0 ? ' not placed: no room types set' : ' included'})
                             </span>
                         )}
-                        <button type="button" onClick={() => setShowRooms(true)} className="text-blue-600 hover:text-blue-800">Room planner</button>
+                        <button type="button" onClick={() => setShowRooms(true)} className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 whitespace-nowrap">Room planner</button>
                     </div>
                 )}
                 {totals.overpaid > 0 && (
