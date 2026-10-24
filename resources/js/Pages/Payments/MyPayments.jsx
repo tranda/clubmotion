@@ -262,9 +262,14 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                         {cf.payments.length > 0 && (
                                             <ul className="mt-3 pt-3 border-t border-gray-100 space-y-1 text-sm text-gray-600">
                                                 {cf.payments.map((pay) => (
-                                                    <li key={pay.id} className="flex justify-between">
-                                                        <span>{formatDate(pay.paid_at)} • {METHOD_LABELS[pay.payment_method] || pay.payment_method}</span>
-                                                        <span className="font-medium text-gray-900">{paidLabel(pay, cur)}</span>
+                                                    <li key={pay.id} className="flex justify-between gap-3">
+                                                        <span>
+                                                            {formatDate(pay.paid_at)} • {METHOD_LABELS[pay.payment_method] || pay.payment_method}
+                                                            {(pay.paid_by || pay.for) && (
+                                                                <span className="block text-xs text-gray-500">{[pay.paid_by && `paid by ${pay.paid_by}`, pay.for && `for ${pay.for}`].filter(Boolean).join(' · ')}</span>
+                                                            )}
+                                                        </span>
+                                                        <span className="font-medium text-gray-900 whitespace-nowrap">{paidLabel(pay, cur)}</span>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -313,6 +318,19 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                                                                     ? <span className="text-blue-700"> · +{formatMoney(o.overpaid, cur)} overpaid</span>
                                                                                     : o.remaining > 0 && <span className="text-red-700"> · {formatMoney(o.remaining, cur)} left</span>}
                                                                             </div>
+                                                                            {o.payments?.length > 0 && (
+                                                                                <ul className="mt-1 space-y-0.5 text-xs text-gray-600">
+                                                                                    {o.payments.map((pay) => (
+                                                                                        <li key={pay.id} className="flex justify-between gap-3">
+                                                                                            <span>
+                                                                                                {formatDate(pay.paid_at)} • {METHOD_LABELS[pay.payment_method] || pay.payment_method}
+                                                                                                {pay.paid_by && <span className="text-gray-500"> · paid by {pay.paid_by}</span>}
+                                                                                            </span>
+                                                                                            <span className="font-medium text-gray-800 whitespace-nowrap">{paidLabel(pay, cur)}</span>
+                                                                                        </li>
+                                                                                    ))}
+                                                                                </ul>
+                                                                            )}
                                                                         </li>
                                                                     ))}
                                                                 </ul>

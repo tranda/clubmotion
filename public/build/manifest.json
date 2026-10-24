@@ -1,44 +1,44 @@
 {
-  "_CompetitionFormModal-de1eb6c1.js": {
-    "file": "assets/CompetitionFormModal-de1eb6c1.js",
+  "_CompetitionFormModal-86438311.js": {
+    "file": "assets/CompetitionFormModal-86438311.js",
     "imports": [
       "resources/js/app.jsx",
-      "_format-0bc16f31.js"
+      "_format-af6af3da.js"
     ]
   },
-  "_ConfirmModal-8067abbe.js": {
-    "file": "assets/ConfirmModal-8067abbe.js",
+  "_ConfirmModal-b997cd56.js": {
+    "file": "assets/ConfirmModal-b997cd56.js",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_Layout-61c8c4c9.js": {
-    "file": "assets/Layout-61c8c4c9.js",
+  "_Layout-35140dd6.js": {
+    "file": "assets/Layout-35140dd6.js",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_MemberCard-2a002678.js": {
-    "file": "assets/MemberCard-2a002678.js",
+  "_MemberCard-b67ced84.js": {
+    "file": "assets/MemberCard-b67ced84.js",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_PaymentsTabs-85d3163c.js": {
-    "file": "assets/PaymentsTabs-85d3163c.js",
+  "_PaymentsTabs-31bb0a03.js": {
+    "file": "assets/PaymentsTabs-31bb0a03.js",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_RoomPlannerModal-318f7707.js": {
-    "file": "assets/RoomPlannerModal-318f7707.js",
+  "_RoomPlannerModal-5333ac09.js": {
+    "file": "assets/RoomPlannerModal-5333ac09.js",
     "imports": [
       "resources/js/app.jsx",
-      "_format-0bc16f31.js"
+      "_format-af6af3da.js"
     ]
   },
-  "_format-0bc16f31.js": {
-    "file": "assets/format-0bc16f31.js",
+  "_format-af6af3da.js": {
+    "file": "assets/format-af6af3da.js",
     "imports": [
       "resources/js/app.jsx"
     ]
@@ -55,10 +55,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Import-890cf441.js",
+    "file": "assets/Import-eaccccf1.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Achievements/Import.jsx"
@@ -67,10 +67,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Index-765b1680.js",
+    "file": "assets/Index-ca85ebf0.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Achievements/Index.jsx"
@@ -79,10 +79,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/PullDbcrews-354acfb8.js",
+    "file": "assets/PullDbcrews-2a67d1ce.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Achievements/PullDbcrews.jsx"
@@ -91,10 +91,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Import-52bf1dd5.js",
+    "file": "assets/Import-a02e13e4.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Attendance/Import.jsx"
@@ -103,11 +103,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Index-94046116.js",
+    "file": "assets/Index-9a1e4ecf.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Attendance/Index.jsx"
@@ -116,10 +116,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Yearly-b4761fc9.js",
+    "file": "assets/Yearly-dac5d5cd.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Attendance/Yearly.jsx"
@@ -128,7 +128,7 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/ForgotPassword-dcc236b8.js",
+    "file": "assets/ForgotPassword-5c4824d4.js",
     "imports": [
       "resources/js/app.jsx"
     ],
@@ -139,7 +139,7 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Login-2b0f861b.js",
+    "file": "assets/Login-21de99f7.js",
     "imports": [
       "resources/js/app.jsx"
     ],
@@ -150,7 +150,7 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/ResetPassword-d7bfeaf7.js",
+    "file": "assets/ResetPassword-5a547760.js",
     "imports": [
       "resources/js/app.jsx"
     ],
@@ -161,10 +161,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Home-c449d1b6.js",
+    "file": "assets/Home-fc809274.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Home.jsx"
@@ -173,7 +173,7 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Create-e235a16a.js",
+    "file": "assets/Create-947fc763.js",
     "imports": [
       "resources/js/app.jsx"
     ],
@@ -184,10 +184,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Index-b6b8bc6a.js",
+    "file": "assets/Index-c97ff37e.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/JoinRequests/Index.jsx"
@@ -196,11 +196,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Categories-3f1e03f7.js",
+    "file": "assets/Categories-63d43ec5.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Ledger/Categories.jsx"
@@ -209,11 +209,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Deleted-8e044a2c.js",
+    "file": "assets/Deleted-878136d9.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Ledger/Deleted.jsx"
@@ -222,11 +222,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Import-1469d188.js",
+    "file": "assets/Import-9a728723.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Ledger/Import.jsx"
@@ -235,11 +235,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/ImportReview-586181df.js",
+    "file": "assets/ImportReview-4029fc52.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Ledger/ImportReview.jsx"
@@ -248,11 +248,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Index-ee8daf9f.js",
+    "file": "assets/Index-7e77340a.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Ledger/Index.jsx"
@@ -261,10 +261,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Annual-bcbecd4f.js",
+    "file": "assets/Annual-d8fd774a.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Ledger/Reports/Annual.jsx"
@@ -273,11 +273,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Show-34447aec.js",
+    "file": "assets/Show-7e0600e2.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_MemberCard-2a002678.js"
+      "_Layout-35140dd6.js",
+      "_MemberCard-b67ced84.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/MemberCard/Show.jsx"
@@ -286,10 +286,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Create-39512ece.js",
+    "file": "assets/Create-175afbcb.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
+      "_Layout-35140dd6.js",
       "_resizeImage-723cd95c.js"
     ],
     "isDynamicEntry": true,
@@ -299,10 +299,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Edit-30e82284.js",
+    "file": "assets/Edit-d12e8bc4.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
+      "_Layout-35140dd6.js",
       "_resizeImage-723cd95c.js"
     ],
     "isDynamicEntry": true,
@@ -312,10 +312,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/GenderGuess-46cd4497.js",
+    "file": "assets/GenderGuess-1974649b.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Members/GenderGuess.jsx"
@@ -324,10 +324,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Index-6d439d45.js",
+    "file": "assets/Index-2b651f4a.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Members/Index.jsx"
@@ -336,10 +336,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Show-6bbbdde5.js",
+    "file": "assets/Show-f7cdcd0c.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
+      "_Layout-35140dd6.js",
       "_resizeImage-723cd95c.js"
     ],
     "isDynamicEntry": true,
@@ -349,11 +349,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Categories-381e817a.js",
+    "file": "assets/Categories-6d4fd0ff.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Notes/Categories.jsx"
@@ -362,10 +362,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Deleted-3a9f68b5.js",
+    "file": "assets/Deleted-6facdef9.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Notes/Deleted.jsx"
@@ -374,11 +374,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Index-eb5eb6c2.js",
+    "file": "assets/Index-7bc25c6c.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Notes/Index.jsx"
@@ -387,10 +387,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/AnnualSettings-07246e05.js",
+    "file": "assets/AnnualSettings-04202c46.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/AnnualSettings.jsx"
@@ -399,14 +399,14 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/CompetitionDetails-82117269.js",
+    "file": "assets/CompetitionDetails-b94503e0.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js",
-      "_CompetitionFormModal-de1eb6c1.js",
-      "_format-0bc16f31.js",
-      "_RoomPlannerModal-318f7707.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js",
+      "_CompetitionFormModal-86438311.js",
+      "_format-af6af3da.js",
+      "_RoomPlannerModal-5333ac09.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/CompetitionDetails.jsx"
@@ -415,13 +415,13 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/CompetitionFees-450c1c4c.js",
+    "file": "assets/CompetitionFees-2e421bcb.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_PaymentsTabs-85d3163c.js",
-      "_CompetitionFormModal-de1eb6c1.js",
-      "_format-0bc16f31.js"
+      "_Layout-35140dd6.js",
+      "_PaymentsTabs-31bb0a03.js",
+      "_CompetitionFormModal-86438311.js",
+      "_format-af6af3da.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/CompetitionFees.jsx"
@@ -430,10 +430,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Import-7b2f817b.js",
+    "file": "assets/Import-dc7e9457.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/Import.jsx"
@@ -442,12 +442,12 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Index-e4ca18b1.js",
+    "file": "assets/Index-83335897.js",
     "imports": [
       "resources/js/app.jsx",
-      "_ConfirmModal-8067abbe.js",
-      "_Layout-61c8c4c9.js",
-      "_PaymentsTabs-85d3163c.js"
+      "_ConfirmModal-b997cd56.js",
+      "_Layout-35140dd6.js",
+      "_PaymentsTabs-31bb0a03.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/Index.jsx"
@@ -456,11 +456,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/InitializeYear-e5759e8e.js",
+    "file": "assets/InitializeYear-1762c67c.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/InitializeYear.jsx"
@@ -469,10 +469,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/MemberHistory-cf34110a.js",
+    "file": "assets/MemberHistory-3251f8cb.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/MemberHistory.jsx"
@@ -481,11 +481,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/MyPayments-111ab81e.js",
+    "file": "assets/MyPayments-d11d46bd.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_format-0bc16f31.js"
+      "_Layout-35140dd6.js",
+      "_format-af6af3da.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/MyPayments.jsx"
@@ -494,11 +494,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/RatePresets-2eb808da.js",
+    "file": "assets/RatePresets-bdabd420.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/RatePresets.jsx"
@@ -507,12 +507,12 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/RoomPlanner-4800dcda.js",
+    "file": "assets/RoomPlanner-989ba5e1.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_RoomPlannerModal-318f7707.js",
-      "_format-0bc16f31.js"
+      "_Layout-35140dd6.js",
+      "_RoomPlannerModal-5333ac09.js",
+      "_format-af6af3da.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Payments/RoomPlanner.jsx"
@@ -521,10 +521,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Categories-ad0d816d.js",
+    "file": "assets/Categories-1fe415f4.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Settings/Categories.jsx"
@@ -533,10 +533,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Events-a0224743.js",
+    "file": "assets/Events-abfb3990.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Settings/Events.jsx"
@@ -545,11 +545,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/EventsSync-8f4b22b9.js",
+    "file": "assets/EventsSync-577c931a.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_ConfirmModal-8067abbe.js"
+      "_Layout-35140dd6.js",
+      "_ConfirmModal-b997cd56.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Settings/EventsSync.jsx"
@@ -558,10 +558,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Index-9bca13f7.js",
+    "file": "assets/Index-4a338082.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Settings/Index.jsx"
@@ -570,11 +570,11 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/MemberCard-02e7f28b.js",
+    "file": "assets/MemberCard-e1f18589.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js",
-      "_MemberCard-2a002678.js"
+      "_Layout-35140dd6.js",
+      "_MemberCard-b67ced84.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Settings/MemberCard.jsx"
@@ -583,10 +583,10 @@
     "css": [
       "assets/app-f2ffa328.css"
     ],
-    "file": "assets/Index-7f7083a3.js",
+    "file": "assets/Index-2cb1b738.js",
     "imports": [
       "resources/js/app.jsx",
-      "_Layout-61c8c4c9.js"
+      "_Layout-35140dd6.js"
     ],
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Tools/Index.jsx"
@@ -640,7 +640,7 @@
       "resources/js/Pages/Settings/MemberCard.jsx",
       "resources/js/Pages/Tools/Index.jsx"
     ],
-    "file": "assets/app-5d6e19eb.js",
+    "file": "assets/app-4ab790f2.js",
     "isEntry": true,
     "src": "resources/js/app.jsx"
   }

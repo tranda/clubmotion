@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.31] - 2026-10-24
+
+### Added
+- **Members see their own payments in the room plan** (read-only): under their own line and under each of their guests, with date, method, amount and who paid. The payment list on their competition card also shows "paid by …" and which guest a payment was for. Other people's payments stay hidden; only totals and status show for them.
+
 ## [1.0.30] - 2026-10-24
 
 ### Changed

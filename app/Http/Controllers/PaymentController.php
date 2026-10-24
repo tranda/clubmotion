@@ -204,6 +204,11 @@ class PaymentController extends Controller
                     'currency' => $pay->currency,
                     'currency_amount' => $pay->currency_amount !== null ? (float) $pay->currency_amount : null,
                     'payment_method' => $pay->payment_method,
+                    'paid_by' => $pay->paid_by,
+                    // Guest this payment was for ("Ivan Aleksić (Ivana's athlete)"), or null.
+                    'for' => $pay->party_slot && $p->competition
+                        ? (collect($p->competition->unitsFor($p))->firstWhere('slot', $pay->party_slot)['label'] ?? null)
+                        : null,
                 ])->values(),
                 'rooms' => $this->memberRoomPlan($p),
             ]);
@@ -880,6 +885,15 @@ class PaymentController extends Controller
                 $paid = (float) $p->payments->where('party_slot', $u['slot'])->sum('amount');
                 $guests[] = $u + ['share' => $share, 'gpaid' => $paid];
             }
+            // The member's own payments (read-only), per person they were for.
+            $paysFor = fn ($slot) => $p->id === $participant->id
+                ? $p->payments->filter(fn ($pay) => $slot === 'main' ? !$pay->party_slot || !collect($guests)->contains('slot', $pay->party_slot) : $pay->party_slot === $slot)
+                    ->map(fn ($pay) => [
+                        'id' => $pay->id, 'amount' => (float) $pay->amount, 'paid_at' => optional($pay->paid_at)->format('Y-m-d'),
+                        'currency' => $pay->currency, 'currency_amount' => $pay->currency_amount !== null ? (float) $pay->currency_amount : null,
+                        'payment_method' => $pay->payment_method, 'paid_by' => $pay->paid_by,
+                    ])->values()->all()
+                : [];
             foreach ($units as $u) {
                 if ($u['slot'] === 'main') {
                     if ($p->status === 'active') {
@@ -894,6 +908,7 @@ class PaymentController extends Controller
                         'name' => $u['label'], 'extras' => $u['extras'], 'role' => $p->role ?? 'athlete',
                         'accommodation' => $unitCosts[$u['key']] ?? null,
                         'is_me' => $p->id === $participant->id, 'participant' => $p,
+                        'payments' => $paysFor('main'),
                     ]);
                 }
             }
@@ -904,6 +919,7 @@ class PaymentController extends Controller
                     'guest_of' => $p->member->name ?? '?',
                     'accommodation' => $g['share'],
                     'is_me' => $p->id === $participant->id, 'participant' => $p,
+                    'payments' => $paysFor($g['slot']),
                 ]);
             }
         }
