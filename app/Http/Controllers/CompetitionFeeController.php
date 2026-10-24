@@ -166,6 +166,7 @@ class CompetitionFeeController extends Controller
                         'payment_method' => $pay->payment_method,
                         'note' => $pay->note,
                         'paid_by' => $pay->paid_by,
+                        'paid_by_member_id' => $pay->paid_by_member_id ?? null,
                         'party_slot' => $pay->party_slot,
                         'post_to_ledger' => $pay->post_to_ledger !== false,
                         'in_ledger' => (bool) $pay->ledger_entry_id,
@@ -174,6 +175,9 @@ class CompetitionFeeController extends Controller
             })->values(),
             // False until the migration for names / "paid by" has run.
             'namesEnabled' => CompetitionParticipant::hasExtraNames(),
+            // For "Paid by": all club members, active first.
+            'clubMembers' => Member::select('id', 'name', 'membership_number', 'is_active')
+                ->orderByDesc('is_active')->orderBy('name')->get(),
             'availableMembers' => $members,
             'currencies' => Competition::CURRENCIES,
             'paymentMethods' => CompetitionPayment::METHODS,
@@ -1201,15 +1205,21 @@ class CompetitionFeeController extends Controller
             'payment_method' => ['required', Rule::in(CompetitionPayment::METHODS)],
             'post_to_ledger' => 'boolean',
             'note' => 'nullable|string|max:255',
-            'paid_by' => 'nullable|string|max:100',
+            'paid_by_member_id' => 'nullable|integer|exists:members,id',
             'party_slot' => ['nullable', 'regex:/^(athlete|supporter|child):[1-9][0-9]?$/'],
         ]);
 
+        // Paid by: a club member (null = the participant). Their name is kept in paid_by.
+        $payerId = $data['paid_by_member_id'] ?? null;
+        unset($data['paid_by_member_id']);
         if (!CompetitionParticipant::hasExtraNames()) {
-            unset($data['paid_by'], $data['party_slot']);
+            unset($data['party_slot']);
         } else {
-            $data['paid_by'] = isset($data['paid_by']) && trim($data['paid_by']) !== '' ? trim($data['paid_by']) : null;
             $data['party_slot'] = $data['party_slot'] ?? null;
+            $data['paid_by'] = $payerId ? Member::whereKey($payerId)->value('name') : null;
+            if (CompetitionPayment::hasPaidByMember()) {
+                $data['paid_by_member_id'] = $payerId ?: null;
+            }
         }
 
         return $data;

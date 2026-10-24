@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.16] - 2026-10-24
+
+### Changed
+- **"Paid by" is now a club member**, picked from a dropdown with search (accents ignored, e.g. "dorde" finds "Đorđe"). Empty means the participant paid. The member's name still shows in the payment history, export and Ledger note.
+
+### Requires
+- Database migration `2026_10_24_150000_add_paid_by_member_to_competition_payments` (run `php artisan migrate` from the hosting panel). Until it runs, the chosen member's name is saved but not linked to the member.
+
 ## [1.0.15] - 2026-10-24
 
 ### Added

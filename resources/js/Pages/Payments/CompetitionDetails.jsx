@@ -20,7 +20,7 @@ const FILTERS = [
     { key: 'cancelled', label: 'Cancelled' },
 ];
 
-export default function CompetitionDetails({ competition, totals, roomPlan, rooms = [], accommodation, participants, availableMembers, currencies, paymentMethods, organizerPayments = [], ledgerExpenseCategories = [], namesEnabled = false }) {
+export default function CompetitionDetails({ competition, totals, roomPlan, rooms = [], accommodation, participants, availableMembers, currencies, paymentMethods, organizerPayments = [], ledgerExpenseCategories = [], namesEnabled = false, clubMembers = [] }) {
     const cur = competition.currency;
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
@@ -498,6 +498,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                     payment={paymentTarget.payment}
                     payer={paymentTarget.payer}
                     namesEnabled={namesEnabled}
+                    members={clubMembers}
                     paymentMethods={paymentMethods}
                     onClose={() => setPaymentTarget(null)}
                 />

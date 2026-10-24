@@ -10,7 +10,7 @@ class CompetitionPayment extends Model
 
     protected $fillable = [
         'competition_participant_id', 'amount', 'currency', 'currency_amount', 'paid_at', 'payment_method', 'post_to_ledger',
-        'note', 'paid_by', 'party_slot', 'ledger_entry_id', 'created_by',
+        'note', 'paid_by', 'paid_by_member_id', 'party_slot', 'ledger_entry_id', 'created_by',
     ];
 
     protected $casts = [
@@ -23,6 +23,20 @@ class CompetitionPayment extends Model
     public function participant()
     {
         return $this->belongsTo(CompetitionParticipant::class, 'competition_participant_id');
+    }
+
+    public function paidByMember()
+    {
+        return $this->belongsTo(Member::class, 'paid_by_member_id');
+    }
+
+    /**
+     * True once the paid_by_member_id migration ran.
+     */
+    public static function hasPaidByMember()
+    {
+        static $has = null;
+        return $has ??= \Illuminate\Support\Facades\Schema::hasColumn('competition_payments', 'paid_by_member_id');
     }
 
     public function ledgerEntry()
