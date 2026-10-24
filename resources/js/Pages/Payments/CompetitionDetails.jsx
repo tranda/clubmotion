@@ -90,19 +90,30 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
     };
     // Guests of a participant placed in other rooms, with their share and payments.
     const guestsOf = (p) => (p.units || []).filter((u) => u.slot !== 'main').map((u) => ({ ...u, participant: p, info: guestInfo({ ...u, participant: p }) }));
-    // "Includes guest Ivan Aleksić 520.00 EUR (260.00 EUR left)" under the host's name.
+    // Host's own part: fee and paid without guests placed in other rooms
+    // (the guests show on their own lines). Same shape as a participant's amounts.
+    const ownOf = (p) => {
+        const gs = guestsOf(p);
+        if (gs.length === 0 || p.status !== 'active') {
+            return { fee: p.fee_amount, paid: p.paid_amount, remaining: p.remaining_amount, overpaid: p.overpaid_amount, status: p.payment_status };
+        }
+        const fee = Math.max(p.fee_amount - gs.reduce((n, g) => n + g.info.share, 0), 0);
+        const paid = Math.max(p.paid_amount - gs.reduce((n, g) => n + g.info.paid, 0), 0);
+        const diff = Math.round((paid - fee) * 100) / 100;
+        const status = fee <= 0 ? (paid > 0 ? 'paid' : 'no_fee') : paid <= 0 ? 'unpaid' : diff < 0 ? 'partial' : diff > 0 ? 'overpaid' : 'paid';
+        return { fee, paid, remaining: Math.max(-diff, 0), overpaid: Math.max(diff, 0), status };
+    };
+    // "+ guest Ivan Aleksić: 260.00 / 520.00 EUR · 260.00 EUR left" under the host's amounts.
     const GuestsLine = ({ p }) => {
         const gs = guestsOf(p);
         if (gs.length === 0) return null;
         return (
             <div className="text-xs text-teal-700 font-normal">
-                Includes {gs.length === 1 ? 'guest' : 'guests'}{' '}
-                {gs.map((g, i) => (
-                    <span key={g.key}>
-                        {i > 0 && ', '}
-                        {g.name || g.label} {formatMoney(g.info.share, cur)}
-                        {g.info.remaining > 0 ? ` (${formatMoney(g.info.remaining, cur)} left)` : g.info.share > 0 ? ' (paid)' : ''}
-                    </span>
+                {gs.map((g) => (
+                    <div key={g.key}>
+                        + guest {g.name || g.label}: {formatMoney(g.info.paid, cur)} / {formatMoney(g.info.share, cur)}
+                        {g.info.remaining > 0 ? ` · ${formatMoney(g.info.remaining, cur)} left` : g.info.share > 0 ? ' · paid' : ''}
+                    </div>
                 ))}
             </div>
         );
@@ -533,16 +544,16 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
-                                                {formatMoney(p.fee_amount, cur)}
+                                                {formatMoney(ownOf(p).fee, cur)}
                                                 {feeOutdated(p) && <OutdatedMark p={p} acc={accOf(p) ?? 0} cur={cur} onClick={() => setShowApplyAcc(true)} />}
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap text-green-700">{formatMoney(p.paid_amount, cur)}</td>
+                                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap text-green-700">{formatMoney(ownOf(p).paid, cur)}</td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
-                                                {p.overpaid_amount > 0
-                                                    ? <span className="text-blue-700">+{formatMoney(p.overpaid_amount, cur)}</span>
-                                                    : <span className="text-red-700">{formatMoney(p.remaining_amount, cur)}</span>}
+                                                {ownOf(p).overpaid > 0
+                                                    ? <span className="text-blue-700">+{formatMoney(ownOf(p).overpaid, cur)}</span>
+                                                    : <span className="text-red-700">{formatMoney(ownOf(p).remaining, cur)}</span>}
                                             </td>
-                                            <td className="px-4 py-3 text-sm"><StatusBadge status={p.payment_status} /></td>
+                                            <td className="px-4 py-3 text-sm"><StatusBadge status={ownOf(p).status} /></td>
                                             <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{formatDate(p.last_payment_at)}</td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
                                                 <button
@@ -596,16 +607,16 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                             {p.member.name}<RoleBadge role={p.role} />
                                             {!grouped && roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
 {(extrasLabel(p) || roomLabel(p) || hasOwnStay(p) || accOf(p) != null) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates)), accOf(p) != null && `accommodation ${formatMoney(accOf(p), cur)}`].filter(Boolean).join(' · ')}</div>}
-                                            <GuestsLine p={p} />
                                         </div>
-                                        <StatusBadge status={p.payment_status} />
+                                        <StatusBadge status={ownOf(p).status} />
                                     </div>
                                     <div className="mt-1 text-sm text-gray-600" onClick={() => setDetailsId(p.id)}>
-                                        {formatMoney(p.paid_amount, cur)} / {formatMoney(p.fee_amount, cur)}
+                                        {formatMoney(ownOf(p).paid, cur)} / {formatMoney(ownOf(p).fee, cur)}
                                         {feeOutdated(p) && <OutdatedMark p={p} acc={accOf(p) ?? 0} cur={cur} onClick={(e) => { e.stopPropagation(); setShowApplyAcc(true); }} inline />}
-                                        {p.overpaid_amount > 0
-                                            ? <span className="text-blue-700"> · +{formatMoney(p.overpaid_amount, cur)} overpaid</span>
-                                            : p.remaining_amount > 0 && <span className="text-red-700"> · {formatMoney(p.remaining_amount, cur)} left</span>}
+                                        {ownOf(p).overpaid > 0
+                                            ? <span className="text-blue-700"> · +{formatMoney(ownOf(p).overpaid, cur)} overpaid</span>
+                                            : ownOf(p).remaining > 0 && <span className="text-red-700"> · {formatMoney(ownOf(p).remaining, cur)} left</span>}
+                                        <GuestsLine p={p} />
                                     </div>
                                     <div className="mt-2 flex gap-2">
                                         <button

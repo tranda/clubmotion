@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.29] - 2026-10-24
+
+### Changed
+- **A host's row shows their own part.** When a participant's guests are in another room, the participant's fee, paid, remaining and status on the list are for themselves only (e.g. Ivana 630 / 1,040), with each guest below ("+ guest Ivan Aleksić: 260 / 520 · 260 left"). The full fee with guests is still in their details.
+
 ## [1.0.28] - 2026-10-24
 
 ### Changed
