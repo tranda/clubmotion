@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.21] - 2026-10-24
+
+### Added
+- **Collapsible rooms** on the competition page (Group by room). Tap a room header to collapse or expand it; a collapsed room shows who is in it on one line. **Collapse all / Expand all** next to Group by room. Remembered per competition in this browser; while searching, all rooms open so matches show.
+
 ## [1.0.20] - 2026-10-24
 
 ### Changed

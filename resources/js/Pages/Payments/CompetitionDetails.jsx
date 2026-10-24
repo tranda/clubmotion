@@ -110,9 +110,35 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
     }, [groupByRoom, rooms, visible, participants]);
     const grouped = groups.length > 1 || groups[0]?.key !== 'all';
 
-    const groupHeader = (g) =>
+    // Collapsed room groups, remembered per competition in this browser.
+    const collapseKey = `competitionCollapsedRooms:${competition.id}`;
+    const [collapsed, setCollapsedState] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(collapseKey) || '[]'); } catch { return []; }
+    });
+    const setCollapsed = (keys) => {
+        setCollapsedState(keys);
+        try { localStorage.setItem(collapseKey, JSON.stringify(keys)); } catch { /* ignore */ }
+    };
+    // While searching, every group is open so matches are visible.
+    const isCollapsed = (g) => grouped && !search.trim() && collapsed.includes(g.key);
+    const toggleGroup = (g) => setCollapsed(collapsed.includes(g.key) ? collapsed.filter((k) => k !== g.key) : [...collapsed, g.key]);
+    const allCollapsed = grouped && groups.every((g) => collapsed.includes(g.key));
+    // Names shown on a collapsed room header.
+    const groupNames = (g) => [...g.items.map((p) => p.member.name), ...(g.separated || []).map((u) => u.label)].join(', ');
+
+    const groupHeader = (g) => (
+        <button type="button" onClick={() => toggleGroup(g)} className="w-full flex items-center gap-2 text-left" aria-expanded={!isCollapsed(g)}>
+            <svg className={`w-4 h-4 text-indigo-500 shrink-0 transition-transform ${isCollapsed(g) ? '-rotate-90' : ''}`} fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
+            <div className="min-w-0 flex-1">
+                {groupTitle(g)}
+                {isCollapsed(g) && <div className="text-xs text-gray-600 truncate mt-0.5">{groupNames(g)}</div>}
+            </div>
+        </button>
+    );
+
+    const groupTitle = (g) =>
         g.room ? (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">
                     {g.room.name ? `Room ${g.room.name}` : `Room ${g.room.number}`}
                 </span>
@@ -343,6 +369,15 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                 {groupByRoom ? '✓ ' : ''}Group by room
                             </button>
                         )}
+                        {grouped && (
+                            <button
+                                type="button"
+                                onClick={() => setCollapsed(allCollapsed ? [] : groups.map((g) => g.key))}
+                                className="px-3 py-1.5 rounded-full text-sm bg-white border border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                            >
+                                {allCollapsed ? 'Expand all' : 'Collapse all'}
+                            </button>
+                        )}
                     </div>
                     <div className="flex gap-2 items-center">
                         <input
@@ -382,7 +417,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                                 <td colSpan={7} className="px-4 py-2">{groupHeader(g)}</td>
                                             </tr>
                                         )}
-                                        {grouped && g.separated?.map((u) => (
+                                        {grouped && !isCollapsed(g) && g.separated?.map((u) => (
                                             <tr key={u.key} className="text-sm text-gray-600">
                                                 <td colSpan={6} className="px-4 py-2 italic">
                                                     {u.label}
@@ -398,7 +433,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                                 </td>
                                             </tr>
                                         ))}
-                                    {g.items.map((p) => (
+                                    {!isCollapsed(g) && g.items.map((p) => (
                                         <tr key={p.id} className={`hover:bg-gray-50 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(p.id)}>
                                                 {p.member.name}
@@ -440,7 +475,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                             {groups.map((g) => (
                                 <Fragment key={g.key}>
                                 {grouped && <div className="px-4 py-2 bg-indigo-50">{groupHeader(g)}</div>}
-                                {grouped && g.separated?.map((u) => (
+                                {grouped && !isCollapsed(g) && g.separated?.map((u) => (
                                     <div key={u.key} className="px-4 py-2 text-sm text-gray-600 flex items-center justify-between gap-2">
                                         <div className="italic">
                                             {u.label}
@@ -450,7 +485,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                         <button onClick={() => payForUnit(u)} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded whitespace-nowrap">+ Payment</button>
                                     </div>
                                 ))}
-                            {g.items.map((p) => (
+                            {!isCollapsed(g) && g.items.map((p) => (
                                 <div key={p.id} className={`p-4 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                     <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(p.id)}>
                                         <div className="font-medium text-gray-900">
