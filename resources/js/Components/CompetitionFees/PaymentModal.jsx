@@ -21,6 +21,8 @@ export default function PaymentModal({ competition, participant, payment = null,
         note: payment?.note || '',
         post_to_ledger: payment?.post_to_ledger ?? false,
         paid_by_member_id: payment?.paid_by_member_id ?? null,
+        // Typed payer (not a member), e.g. the guest themself.
+        paid_by: payment ? (payment.paid_by_member_id ? '' : (payment.paid_by || '')) : (payer?.name || ''),
         party_slot: slot || null,
     });
 
@@ -99,9 +101,10 @@ export default function PaymentModal({ competition, participant, payment = null,
                             members={members.filter((m) => m.id !== participant.member.id)}
                             value={data.paid_by_member_id}
                             onChange={(id) => setData('paid_by_member_id', id)}
+                            text={data.paid_by}
+                            onText={(t) => setData('paid_by', t)}
                             placeholder={`${participant.member.name} (themself)`}
                         />
-                        {payment?.paid_by && !payment.paid_by_member_id && <p className="mt-1 text-xs text-gray-500">Was: {payment.paid_by}</p>}
                         <p className="mt-1 text-xs text-gray-500">Counts towards {participant.member.name.split(' ')[0]}'s fee either way.</p>
                         {errors.paid_by_member_id && <p className="mt-1 text-sm text-red-600">{errors.paid_by_member_id}</p>}
                     </div>

@@ -5,6 +5,7 @@ import ConfirmModal from '../../Components/ConfirmModal';
 import CompetitionFormModal from '../../Components/CompetitionFees/CompetitionFormModal';
 import AddParticipantsModal from '../../Components/CompetitionFees/AddParticipantsModal';
 import PaymentModal from '../../Components/CompetitionFees/PaymentModal';
+import GuestModal from '../../Components/CompetitionFees/GuestModal';
 import ParticipantModal from '../../Components/CompetitionFees/ParticipantModal';
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
 import ApplyAccommodationModal from '../../Components/CompetitionFees/ApplyAccommodationModal';
@@ -58,6 +59,8 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
         try { localStorage.setItem('competitionGroupByRoom', on ? '1' : '0'); } catch { /* ignore */ }
     };
     const [detailsId, setDetailsId] = useState(null);
+    // Unit key ("12:supporter:1") of the guest whose details are open.
+    const [guestKey, setGuestKey] = useState(null);
     // { participantId, payment|null } for the add/edit payment modal
     const [paymentTarget, setPaymentTarget] = useState(null);
     const [confirm, setConfirm] = useState(null); // { title, message, label, action }
@@ -441,7 +444,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                             const gi = guestInfo(u);
                                             return (
                                             <tr key={u.key} className="hover:bg-gray-50">
-                                                <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(u.participant.id)}>
+                                                <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setGuestKey(u.key)}>
                                                     {u.label}
                                                     <GuestBadge />
                                                     <div className="text-xs text-gray-600 font-normal">{[gi.share > 0 && `accommodation ${formatMoney(gi.share, cur)}`, guestSub(u)].filter(Boolean).join(' · ')}</div>
@@ -459,7 +462,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                                     <button onClick={() => payForUnit(u)} className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 mr-2">
                                                         + Payment
                                                     </button>
-                                                    <button onClick={() => setDetailsId(u.participant.id)} className="text-blue-600 hover:text-blue-800 text-xs">View</button>
+                                                    <button onClick={() => setGuestKey(u.key)} className="text-blue-600 hover:text-blue-800 text-xs">View</button>
                                                 </td>
                                             </tr>
                                             );
@@ -510,14 +513,14 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                     const gi = guestInfo(u);
                                     return (
                                     <div key={u.key} className="p-4">
-                                        <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(u.participant.id)}>
+                                        <div className="flex items-start justify-between gap-2" onClick={() => setGuestKey(u.key)}>
                                             <div className="font-medium text-gray-900">
                                                 {u.label}<GuestBadge />
                                                 <div className="text-xs text-gray-600 font-normal">{[gi.share > 0 && `accommodation ${formatMoney(gi.share, cur)}`, guestSub(u)].filter(Boolean).join(' · ')}</div>
                                             </div>
                                             <StatusBadge status={gi.status} />
                                         </div>
-                                        <div className="mt-1 text-sm text-gray-600" onClick={() => setDetailsId(u.participant.id)}>
+                                        <div className="mt-1 text-sm text-gray-600" onClick={() => setGuestKey(u.key)}>
                                             {formatMoney(gi.paid, cur)} / {formatMoney(gi.share, cur)}
                                             {gi.overpaid > 0
                                                 ? <span className="text-blue-700"> · +{formatMoney(gi.overpaid, cur)} overpaid</span>
@@ -525,7 +528,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                         </div>
                                         <div className="mt-2 flex gap-2">
                                             <button onClick={() => payForUnit(u)} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded">+ Payment</button>
-                                            <button onClick={() => setDetailsId(u.participant.id)} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded">View</button>
+                                            <button onClick={() => setGuestKey(u.key)} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded">View</button>
                                         </div>
                                     </div>
                                     );
@@ -595,6 +598,22 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                     onClose={() => setDetailsId(null)}
                 />
             )}
+            {(() => {
+                const u = guestKey && allUnits(participants).find((x) => x.key === guestKey);
+                if (!u) return null;
+                return (
+                    <GuestModal
+                        competition={competition}
+                        unit={u}
+                        info={guestInfo(u)}
+                        onAddPayment={() => payForUnit(u)}
+                        onEditPayment={(payment) => setPaymentTarget({ participantId: u.participant.id, payment })}
+                        onDeletePayment={deletePayment}
+                        onOpenParticipant={() => { setGuestKey(null); setDetailsId(u.participant.id); }}
+                        onClose={() => setGuestKey(null)}
+                    />
+                );
+            })()}
             {paymentParticipant && (
                 <PaymentModal
                     competition={competition}

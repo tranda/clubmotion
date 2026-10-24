@@ -1206,17 +1206,20 @@ class CompetitionFeeController extends Controller
             'post_to_ledger' => 'boolean',
             'note' => 'nullable|string|max:255',
             'paid_by_member_id' => 'nullable|integer|exists:members,id',
+            'paid_by' => 'nullable|string|max:100',
             'party_slot' => ['nullable', 'regex:/^(athlete|supporter|child):[1-9][0-9]?$/'],
         ]);
 
-        // Paid by: a club member (null = the participant). Their name is kept in paid_by.
+        // Paid by: a club member, or a typed name (e.g. a guest); null = the participant.
+        // A member's name is kept in paid_by too.
         $payerId = $data['paid_by_member_id'] ?? null;
-        unset($data['paid_by_member_id']);
+        $payerText = trim((string) ($data['paid_by'] ?? ''));
+        unset($data['paid_by_member_id'], $data['paid_by']);
         if (!CompetitionParticipant::hasExtraNames()) {
             unset($data['party_slot']);
         } else {
             $data['party_slot'] = $data['party_slot'] ?? null;
-            $data['paid_by'] = $payerId ? Member::whereKey($payerId)->value('name') : null;
+            $data['paid_by'] = $payerId ? Member::whereKey($payerId)->value('name') : ($payerText !== '' ? mb_substr($payerText, 0, 100) : null);
             if (CompetitionPayment::hasPaidByMember()) {
                 $data['paid_by_member_id'] = $payerId ?: null;
             }

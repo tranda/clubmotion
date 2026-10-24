@@ -8,7 +8,8 @@ const fold = (s) => (s || '')
     .replace(/[̀-ͯ]/g, '');
 
 // Single member picker with a search field. value = member id or null.
-export default function MemberSelect({ members, value, onChange, placeholder = 'Select member' }) {
+// With onText, a typed name that isn't a member can be used instead (text).
+export default function MemberSelect({ members, value, onChange, text = '', onText = null, placeholder = 'Select member' }) {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [active, setActive] = useState(0);
@@ -30,12 +31,19 @@ export default function MemberSelect({ members, value, onChange, placeholder = '
     useEffect(() => setActive(0), [query]);
 
     const selected = value ? members.find((m) => m.id === Number(value)) : null;
-    const pick = (id) => { onChange(id); setOpen(false); setQuery(''); };
+    const pick = (id) => { onChange(id); if (onText) onText(''); setOpen(false); setQuery(''); };
+    const typed = query.trim();
+    const useText = () => { onChange(null); onText(typed); setOpen(false); setQuery(''); };
+    const canUseText = onText && typed !== '' && !members.some((m) => fold(m.name) === fold(typed));
 
     const onKeyDown = (e) => {
         if (e.key === 'ArrowDown') { e.preventDefault(); setActive((i) => Math.min(i + 1, results.length - 1)); }
         if (e.key === 'ArrowUp') { e.preventDefault(); setActive((i) => Math.max(i - 1, 0)); }
-        if (e.key === 'Enter') { e.preventDefault(); if (results[active]) pick(results[active].id); }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (results[active]) pick(results[active].id);
+            else if (canUseText) useText();
+        }
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setOpen(false); }
     };
 
@@ -46,7 +54,9 @@ export default function MemberSelect({ members, value, onChange, placeholder = '
                 onClick={() => setOpen(!open)}
                 className="w-full flex items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm text-left focus:border-blue-500 focus:ring-blue-500"
             >
-                <span className={selected ? 'text-gray-900' : 'text-gray-500'}>{selected ? selected.name : placeholder}</span>
+                <span className={selected || text ? 'text-gray-900' : 'text-gray-500'}>
+                    {selected ? selected.name : text ? <>{text} <span className="text-xs text-gray-400">(not a member)</span></> : placeholder}
+                </span>
                 <svg className="w-4 h-4 text-gray-500" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
             </button>
             {open && (
@@ -58,7 +68,7 @@ export default function MemberSelect({ members, value, onChange, placeholder = '
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={onKeyDown}
-                            placeholder="Search member…"
+                            placeholder={onText ? 'Search member or type a name…' : 'Search member…'}
                             className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
                         />
                     </div>
@@ -68,7 +78,14 @@ export default function MemberSelect({ members, value, onChange, placeholder = '
                                 {placeholder}
                             </button>
                         </li>
-                        {results.length === 0 && <li className="px-3 py-2 text-xs text-gray-400">No matches</li>}
+                        {canUseText && (
+                            <li>
+                                <button type="button" onClick={useText} className="w-full text-left px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-50">
+                                    Use “{typed}” <span className="text-xs text-gray-500">(not a member)</span>
+                                </button>
+                            </li>
+                        )}
+                        {results.length === 0 && !canUseText && <li className="px-3 py-2 text-xs text-gray-400">No matches</li>}
                         {results.map((m, i) => (
                             <li key={m.id}>
                                 <button

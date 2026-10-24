@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.26] - 2026-10-24
+
+### Added
+- **Guest details.** **View** (or tapping) a guest in another room opens their own details: accommodation share, paid, remaining, status and only their payments (edit/delete), with **+ Payment** and a link to the participant who brought them.
+
+### Changed
+- **"Paid by" accepts a typed name** as well as a club member: type a name and choose *Use "…" (not a member)*. Payments from a guest's line start with the guest's name filled in.
+
 ## [1.0.25] - 2026-10-24
 
 ### Changed
