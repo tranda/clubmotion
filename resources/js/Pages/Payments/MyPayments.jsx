@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
-import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel, stayLabel, bedColor, paidLabel } from '../../Components/CompetitionFees/format';
+import { StatusBadge, METHOD_LABELS, formatDate, formatMoney, extrasLabel, stayLabel, paidLabel } from '../../Components/CompetitionFees/format';
 
 export default function MyPayments({ member, year, payments, availableYears, competitionFees = [] }) {
     const monthNames = {
@@ -272,34 +272,54 @@ export default function MyPayments({ member, year, payments, availableYears, com
                                         {cf.rooms && cf.rooms.length > 0 && (
                                             <div className="mt-3 pt-3 border-t border-gray-100">
                                                 <div className="text-sm font-medium text-gray-700 mb-2">Room plan</div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                    {cf.rooms.map((room) => (
-                                                        <div key={room.id} className={`rounded-md border p-2 ${bedColor(room.beds)} ${room.is_mine ? '!border-indigo-500 border-2' : ''}`}>
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{room.title}</span>
-                                                                <span className="text-xs text-gray-500">{room.beds}-bed</span>
+                                                <div className="space-y-3">
+                                                    {cf.rooms.map((room) => {
+                                                        const left = Math.round((room.fee - room.paid) * 100) / 100;
+                                                        return (
+                                                        <div key={room.id} className={`rounded-lg border overflow-hidden bg-white ${room.is_mine ? 'border-indigo-500 border-2' : 'border-gray-200'}`}>
+                                                            <div className="px-3 py-2 bg-indigo-50 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                                                                <span className="inline-flex items-center px-2 py-0.5 rounded-md font-semibold bg-indigo-600 text-white">{room.title}</span>
+                                                                <span className={room.used > room.beds ? 'text-red-600 font-medium' : 'text-gray-600'}>{room.beds}-bed · {room.used}/{room.beds} beds</span>
+                                                                {(room.fee > 0 || room.paid > 0) && (
+                                                                    <span>
+                                                                        · paid <strong className="text-green-700">{formatMoney(room.paid, cur)}</strong> / <strong className="text-gray-800">{formatMoney(room.fee, cur)}</strong>
+                                                                        {left > 0 && <span className="text-red-700"> · {formatMoney(left, cur)} left</span>}
+                                                                        {left < 0 && <span className="text-blue-700"> · +{formatMoney(-left, cur)}</span>}
+                                                                    </span>
+                                                                )}
+                                                                {stayLabel(room) && <span className="text-gray-500">· {stayLabel(room)}</span>}
+                                                                {room.is_mine && <span className="ml-auto font-medium text-indigo-700">Your room</span>}
                                                             </div>
-                                                            {stayLabel(room) && <div className="text-xs text-gray-500 mb-1">{stayLabel(room)}</div>}
-                                                            {room.price_per_person != null && (
-                                                                <div className="text-xs text-gray-700 mb-1">
-                                                                    {formatMoney(room.price_per_person, cur)} per person · room {formatMoney(room.price_per_person * room.beds, cur)}
-                                                                </div>
-                                                            )}
                                                             {room.occupants.length === 0 ? (
-                                                                <div className="text-xs text-gray-400">Empty</div>
+                                                                <div className="px-3 py-2 text-xs text-gray-400">Empty</div>
                                                             ) : (
-                                                                <ul className="text-sm text-gray-800">
+                                                                <ul className="divide-y divide-gray-100">
                                                                     {room.occupants.map((o) => (
-                                                                        <li key={o.id}>
-                                                                            {o.name}
-                                                                            {o.extras && <span className="text-xs text-gray-500"> {o.extras}</span>}
+                                                                        <li key={o.id} className={`px-3 py-2 ${o.is_me ? 'bg-indigo-50/40' : ''}`}>
+                                                                            <div className="flex items-start justify-between gap-2">
+                                                                                <div className="text-sm font-medium text-gray-900">
+                                                                                    {o.name}
+                                                                                    {o.kind === 'guest' && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">Guest</span>}
+                                                                                    {o.role === 'supporter' && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Supporter</span>}
+                                                                                    <div className="text-xs text-gray-600 font-normal">
+                                                                                        {[o.extras, o.accommodation != null && `accommodation ${formatMoney(o.accommodation, cur)}`, o.kind === 'guest' && `counts towards ${o.guest_of}'s fee`].filter(Boolean).join(' · ')}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <StatusBadge status={o.status} />
+                                                                            </div>
+                                                                            <div className="mt-0.5 text-sm text-gray-600">
+                                                                                {formatMoney(o.paid, cur)} / {formatMoney(o.fee, cur)}
+                                                                                {o.overpaid > 0
+                                                                                    ? <span className="text-blue-700"> · +{formatMoney(o.overpaid, cur)} overpaid</span>
+                                                                                    : o.remaining > 0 && <span className="text-red-700"> · {formatMoney(o.remaining, cur)} left</span>}
+                                                                            </div>
                                                                         </li>
                                                                     ))}
                                                                 </ul>
                                                             )}
-                                                            {room.is_mine && <div className="mt-1 text-xs font-medium text-indigo-700">Your room</div>}
                                                         </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         )}

@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.30] - 2026-10-24
+
+### Changed
+- **Members' room plan (My Payments) uses the same numbers as the staff page.** Each room shows beds used and paid / fee with what's left; each person shows their accommodation, paid / fee and status, with guests in other rooms on their own line (Guest badge). Replaces the list price per person × beds, which ignored child and supporter prices.
+
 ## [1.0.29] - 2026-10-24
 
 ### Changed

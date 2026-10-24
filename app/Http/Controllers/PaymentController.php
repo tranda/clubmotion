@@ -835,7 +835,10 @@ class PaymentController extends Controller
 
     /**
      * Read-only room plan for a member, only when the competition has it
-     * switched visible. Names and additional people only; no fees or notes.
+     * switched visible. Same numbers as the staff competition page: each
+     * person's accommodation, paid / fee and status, and paid / fee per room.
+     * A participant's guests placed in other rooms are shown there with their
+     * share; the participant shows their own part.
      */
     private function memberRoomPlan(\App\Models\CompetitionParticipant $participant)
     {
@@ -847,27 +850,79 @@ class PaymentController extends Controller
         $rooms = $competition->rooms()->get();
         $defaults = $competition->defaultRoomDates();
         $settings = $competition->accommodationSettings();
-        $prices = $settings['prices'];
-        // Placement units: participant with the people still with them, plus
-        // each separated additional person on their own.
-        $units = $competition->participants()->with('member:id,name')->where('status', '!=', 'cancelled')->get()
-            ->flatMap(fn ($p) => collect($competition->unitsFor($p, $settings, $defaults))->map(fn ($u) => $u + ['participant' => $p]));
+        $participants = $competition->participants()->withPaymentTotals()
+            ->with(['member:id,name', 'payments'])
+            ->where('status', '!=', 'cancelled')->get();
+        $costs = $competition->accommodationCosts($participants, $rooms);
+        $unitCosts = (array) $costs['units'];
+        $roomCosts = (array) $costs['rooms'];
 
-        return $rooms->map(fn ($room) => \App\Models\Competition::stayRange(
-            $units->where('room_id', $room->id)->pluck('participant')->unique('id'),
-            $defaults
-        ) + [
-            'id' => $room->id,
-            'title' => $room->name ? "Room {$room->name}" : "Room {$room->number}",
-            'beds' => $room->beds,
-            // List price per person for this room type (whole stay), or null.
-            'price_per_person' => $prices[$room->beds] ?? null,
-            'is_mine' => (int) $participant->competition_room_id === (int) $room->id,
-            'occupants' => $units->where('room_id', $room->id)
-                ->sortBy(fn ($u) => mb_strtolower($u['label']))
-                ->map(fn ($u) => ['id' => $u['key'], 'name' => $u['label'], 'extras' => $u['extras']])
-                ->values(),
-        ])->values();
+        $status = function ($fee, $paid) {
+            $diff = round($paid - $fee, 2);
+            if ($fee <= 0) return $paid > 0 ? 'paid' : 'no_fee';
+            if ($paid <= 0) return 'unpaid';
+            return $diff < 0 ? 'partial' : ($diff > 0 ? 'overpaid' : 'paid');
+        };
+        $amounts = fn ($fee, $paid, $st) => [
+            'fee' => round($fee, 2), 'paid' => round($paid, 2),
+            'remaining' => round(max($fee - $paid, 0), 2), 'overpaid' => round(max($paid - $fee, 0), 2),
+            'status' => $st,
+        ];
+
+        // One entry per placement unit: participant (own part) or guest elsewhere.
+        $occupants = collect();
+        foreach ($participants as $p) {
+            $units = $competition->unitsFor($p, $settings, $defaults);
+            $guests = [];
+            foreach ($units as $u) {
+                if ($u['slot'] === 'main') continue;
+                $share = (float) ($unitCosts[$u['key']] ?? 0);
+                $paid = (float) $p->payments->where('party_slot', $u['slot'])->sum('amount');
+                $guests[] = $u + ['share' => $share, 'gpaid' => $paid];
+            }
+            foreach ($units as $u) {
+                if ($u['slot'] === 'main') {
+                    if ($p->status === 'active') {
+                        $fee = max((float) $p->fee_amount - array_sum(array_column($guests, 'share')), 0);
+                        $paid = max($p->paid_amount - array_sum(array_column($guests, 'gpaid')), 0);
+                        $money = $amounts($fee, $paid, $status($fee, $paid));
+                    } else {
+                        $money = $amounts((float) $p->fee_amount, $p->paid_amount, $p->payment_status);
+                    }
+                    $occupants->push($money + [
+                        'id' => $u['key'], 'room_id' => $u['room_id'], 'kind' => 'participant', 'unit_beds' => $u['beds'],
+                        'name' => $u['label'], 'extras' => $u['extras'], 'role' => $p->role ?? 'athlete',
+                        'accommodation' => $unitCosts[$u['key']] ?? null,
+                        'is_me' => $p->id === $participant->id, 'participant' => $p,
+                    ]);
+                }
+            }
+            foreach ($guests as $g) {
+                $occupants->push($amounts($g['share'], $g['gpaid'], $status($g['share'], $g['gpaid'])) + [
+                    'id' => $g['key'], 'room_id' => $g['room_id'], 'kind' => 'guest', 'unit_beds' => $g['beds'],
+                    'name' => $g['label'], 'extras' => '', 'role' => null,
+                    'guest_of' => $p->member->name ?? '?',
+                    'accommodation' => $g['share'],
+                    'is_me' => $p->id === $participant->id, 'participant' => $p,
+                ]);
+            }
+        }
+
+        return $rooms->map(function ($room) use ($occupants, $defaults, $roomCosts, $participant) {
+            $in = $occupants->where('room_id', $room->id)->sortBy(fn ($o) => mb_strtolower($o['name']));
+            $counted = $in->filter(fn ($o) => $o['kind'] === 'guest' || $o['participant']->status === 'active');
+            return \App\Models\Competition::stayRange($in->pluck('participant')->unique('id'), $defaults) + [
+                'id' => $room->id,
+                'title' => $room->name ? "Room {$room->name}" : "Room {$room->number}",
+                'beds' => $room->beds,
+                'used' => (int) $in->sum('unit_beds'),
+                'room_total' => $roomCosts[$room->id]['total'] ?? null,
+                'fee' => round($counted->sum('fee'), 2),
+                'paid' => round($counted->sum('paid'), 2),
+                'is_mine' => (int) $participant->competition_room_id === (int) $room->id,
+                'occupants' => $in->map(fn ($o) => collect($o)->except('participant')->all())->values(),
+            ];
+        })->values();
     }
 
     /**
