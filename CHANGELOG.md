@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.22] - 2026-10-24
+
+### Added
+- **Room total in the room header** on the competition page: the room's accommodation cost for the whole stay (from Accommodation prices), next to the beds.
+
 ## [1.0.21] - 2026-10-24
 
 ### Added

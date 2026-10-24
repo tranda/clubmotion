@@ -145,6 +145,9 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                 <span className={`text-xs ${g.used > g.room.beds ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
                     {g.room.beds}-bed · {g.used}/{g.room.beds} beds
                 </span>
+                {accommodation?.rooms?.[g.room.id]?.total != null && (
+                    <span className="text-xs font-semibold text-gray-800">· {formatMoney(accommodation.rooms[g.room.id].total, cur)}</span>
+                )}
                 {(() => {
                     const range = stayRange(participants.filter((p) => p.room_id === g.room.id && p.status !== 'cancelled'), competition.room_dates);
                     return (
