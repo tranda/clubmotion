@@ -88,6 +88,25 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
         const last = slotPays.map((pay) => pay.paid_at).sort().pop() || null;
         return { share, paid, remaining: Math.max(-diff, 0), overpaid: Math.max(diff, 0), status, last };
     };
+    // Guests of a participant placed in other rooms, with their share and payments.
+    const guestsOf = (p) => (p.units || []).filter((u) => u.slot !== 'main').map((u) => ({ ...u, participant: p, info: guestInfo({ ...u, participant: p }) }));
+    // "Includes guest Ivan Aleksić 520.00 EUR (260.00 EUR left)" under the host's name.
+    const GuestsLine = ({ p }) => {
+        const gs = guestsOf(p);
+        if (gs.length === 0) return null;
+        return (
+            <div className="text-xs text-teal-700 font-normal">
+                Includes {gs.length === 1 ? 'guest' : 'guests'}{' '}
+                {gs.map((g, i) => (
+                    <span key={g.key}>
+                        {i > 0 && ', '}
+                        {g.name || g.label} {formatMoney(g.info.share, cur)}
+                        {g.info.remaining > 0 ? ` (${formatMoney(g.info.remaining, cur)} left)` : g.info.share > 0 ? ' (paid)' : ''}
+                    </span>
+                ))}
+            </div>
+        );
+    };
     const GuestBadge = () => <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">Guest</span>;
     const guestSub = (u) => `counts towards ${u.participant.member.name}'s fee`;
 
@@ -474,6 +493,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                                 <RoleBadge role={p.role} />
                                                 {!grouped && roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
 {(extrasLabel(p) || roomLabel(p) || hasOwnStay(p) || accOf(p) != null) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates)), accOf(p) != null && `accommodation ${formatMoney(accOf(p), cur)}`].filter(Boolean).join(' · ')}</div>}
+                                                <GuestsLine p={p} />
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
@@ -540,6 +560,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                             {p.member.name}<RoleBadge role={p.role} />
                                             {!grouped && roomNumber(p) && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-600 text-white">{roomNumber(p)}</span>}
 {(extrasLabel(p) || roomLabel(p) || hasOwnStay(p) || accOf(p) != null) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates)), accOf(p) != null && `accommodation ${formatMoney(accOf(p), cur)}`].filter(Boolean).join(' · ')}</div>}
+                                            <GuestsLine p={p} />
                                         </div>
                                         <StatusBadge status={p.payment_status} />
                                     </div>
@@ -590,6 +611,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                     key={`${detailsParticipant.id}-${detailsParticipant.role}-${extrasLabel(detailsParticipant)}-${detailsParticipant.preferred_room}-${detailsParticipant.can_edit_rooms}-${detailsParticipant.check_in}-${detailsParticipant.check_out}-${JSON.stringify(competition.room_dates)}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}-${JSON.stringify(detailsParticipant.extra_names)}`}
                     competition={competition}
                     participant={detailsParticipant}
+                    guests={guestsOf(detailsParticipant)}
                     namesEnabled={namesEnabled}
                     onAddPayment={() => setPaymentTarget({ participantId: detailsParticipant.id, payment: null })}
                     onEditPayment={(payment) => setPaymentTarget({ participantId: detailsParticipant.id, payment })}

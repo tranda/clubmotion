@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { Modal, StatusBadge, METHOD_LABELS, formatDate, formatMoney, inputClass, effectiveStay, stayLabel, paidLabel } from './format';
 
 // Participant details: amounts, fee/status editing and payment history.
-export default function ParticipantModal({ competition, participant, namesEnabled = false, onAddPayment, onEditPayment, onDeletePayment, onRemove, onClose }) {
+export default function ParticipantModal({ competition, participant, guests = [], namesEnabled = false, onAddPayment, onEditPayment, onDeletePayment, onRemove, onClose }) {
     const cur = competition.currency;
     const { data, setData, put, transform, processing, errors, isDirty } = useForm({
         role: participant.role || 'athlete',
@@ -92,6 +92,36 @@ export default function ParticipantModal({ competition, participant, namesEnable
                 </div>
             </div>
             <div className="mb-4"><StatusBadge status={participant.payment_status} /></div>
+            {guests.length > 0 && (
+                <div className="mb-4 rounded-md border border-teal-200 bg-teal-50 p-3 text-sm">
+                    <div className="font-medium text-teal-900 mb-1">
+                        The fee includes {guests.length === 1 ? 'a guest' : 'guests'} in another room
+                    </div>
+                    <ul className="space-y-0.5 text-teal-900">
+                        {guests.map((g) => (
+                            <li key={g.key} className="flex justify-between gap-3">
+                                <span>{g.label}</span>
+                                <span className="tabular-nums whitespace-nowrap">
+                                    {formatMoney(g.info.paid, cur)} / {formatMoney(g.info.share, cur)}
+                                    {g.info.remaining > 0 && <span className="text-red-700"> · {formatMoney(g.info.remaining, cur)} left</span>}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                    {(() => {
+                        const share = guests.reduce((n, g) => n + g.info.share, 0);
+                        const paid = guests.reduce((n, g) => n + g.info.paid, 0);
+                        const own = Math.max(participant.fee_amount - share, 0);
+                        const ownPaid = Math.max(participant.paid_amount - paid, 0);
+                        return (
+                            <div className="mt-2 pt-2 border-t border-teal-200 flex justify-between gap-3 text-teal-900">
+                                <span>{participant.member.name.split(' ')[0]}'s own part</span>
+                                <span className="tabular-nums whitespace-nowrap">{formatMoney(ownPaid, cur)} / {formatMoney(own, cur)}</span>
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
 
             {/* Fee / status */}
             <form onSubmit={save} className="border rounded-md p-3 mb-5 space-y-3">

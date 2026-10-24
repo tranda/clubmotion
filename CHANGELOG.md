@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.27] - 2026-10-24
+
+### Added
+- **Guest breakdown on the host.** A participant whose guests are in another room shows "Includes guest Ivan Aleksić 520.00 EUR (260.00 EUR left)" under their name, and their details show each guest's paid / share plus the participant's own part, so it's clear why the fee is higher.
+
 ## [1.0.26] - 2026-10-24
 
 ### Added
