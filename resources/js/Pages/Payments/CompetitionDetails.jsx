@@ -20,6 +20,20 @@ const FILTERS = [
     { key: 'cancelled', label: 'Cancelled' },
 ];
 
+// Marker on a fee whose accommodation changed since fees were last updated.
+function OutdatedMark({ p, acc, cur, onClick, inline = false }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            title={`Accommodation now ${formatMoney(acc, cur)}, in fee ${formatMoney(p.accommodation_applied || 0, cur)}. Click to update fees.`}
+            className={`${inline ? 'ml-2 inline' : 'block ml-auto'} text-xs text-amber-700 hover:text-amber-900`}
+        >
+            out of date
+        </button>
+    );
+}
+
 export default function CompetitionDetails({ competition, totals, roomPlan, rooms = [], accommodation, participants, availableMembers, currencies, paymentMethods, organizerPayments = [], ledgerExpenseCategories = [], namesEnabled = false, clubMembers = [] }) {
     const cur = competition.currency;
     const [filter, setFilter] = useState('all');
@@ -30,6 +44,10 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
     const [showRooms, setShowRooms] = useState(false);
     const [showApplyAcc, setShowApplyAcc] = useState(false);
     const accOf = (p) => accommodation?.participants?.[p.id];
+    // Fee out of date: accommodation now differs from what was last applied to the fee.
+    const feeOutdated = (p) => p.status === 'active' && accommodation?.participants != null
+        && Math.round(((accOf(p) ?? 0) - (p.accommodation_applied || 0)) * 100) !== 0;
+    const outdatedCount = participants.filter(feeOutdated).length;
     const [groupByRoom, setGroupByRoomState] = useState(() => {
         // On by default; remembers if the viewer turns it off.
         try { return localStorage.getItem('competitionGroupByRoom') !== '0'; } catch { return true; }
@@ -231,6 +249,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                             {rs.unassigned > 0 && <span className="text-red-600">· {rs.unassigned} not in a room</span>}
                             {accommodation?.total > 0 && <span>· accommodation <strong>{formatMoney(accommodation.total, cur)}</strong></span>}
                             <button type="button" onClick={() => setShowRooms(true)} className="text-blue-600 hover:text-blue-800">Room planner</button>
+                            {outdatedCount > 0 && <span className="text-amber-700 font-medium">· {outdatedCount} fee{outdatedCount === 1 ? '' : 's'} out of date</span>}
                             {accommodation?.total > 0 && (
                                 <button type="button" onClick={() => setShowApplyAcc(true)} className="text-blue-600 hover:text-blue-800">Update fees…</button>
                             )}
@@ -387,7 +406,10 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
 {(extrasLabel(p) || roomLabel(p) || hasOwnStay(p) || accOf(p) != null) && <div className="text-xs text-gray-600 font-normal">{[extrasLabel(p), roomLabel(p), hasOwnStay(p) && stayLabel(effectiveStay(p, competition.room_dates)), accOf(p) != null && `accommodation ${formatMoney(accOf(p), cur)}`].filter(Boolean).join(' · ')}</div>}
                                                 {p.notes && <div className="text-xs text-gray-500 font-normal whitespace-pre-line">{p.notes}</div>}
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatMoney(p.fee_amount, cur)}</td>
+                                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
+                                                {formatMoney(p.fee_amount, cur)}
+                                                {feeOutdated(p) && <OutdatedMark p={p} acc={accOf(p) ?? 0} cur={cur} onClick={() => setShowApplyAcc(true)} />}
+                                            </td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap text-green-700">{formatMoney(p.paid_amount, cur)}</td>
                                             <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
                                                 {p.overpaid_amount > 0
@@ -439,6 +461,7 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                     </div>
                                     <div className="mt-1 text-sm text-gray-600" onClick={() => setDetailsId(p.id)}>
                                         {formatMoney(p.paid_amount, cur)} / {formatMoney(p.fee_amount, cur)}
+                                        {feeOutdated(p) && <OutdatedMark p={p} acc={accOf(p) ?? 0} cur={cur} onClick={(e) => { e.stopPropagation(); setShowApplyAcc(true); }} inline />}
                                         {p.overpaid_amount > 0
                                             ? <span className="text-blue-700"> · +{formatMoney(p.overpaid_amount, cur)} overpaid</span>
                                             : p.remaining_amount > 0 && <span className="text-red-700"> · {formatMoney(p.remaining_amount, cur)} left</span>}

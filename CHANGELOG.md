@@ -2,6 +2,14 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.17] - 2026-10-24
+
+### Added
+- **"Fees out of date" notice.** When room changes alter someone's accommodation after fees were last updated, the rooms bar shows "N fees out of date" next to **Update fees…**, and each affected fee is marked **out of date** (hover for old vs new accommodation, click to open Update fees). Fees still change only when you press Update fees.
+
+### Fixed
+- **Update fees** now also lists participants whose fee already matches but whose recorded accommodation differs, so the out-of-date marker can always be cleared.
+
 ## [1.0.16] - 2026-10-24
 
 ### Changed

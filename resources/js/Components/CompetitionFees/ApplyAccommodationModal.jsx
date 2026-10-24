@@ -16,7 +16,8 @@ export default function ApplyAccommodationModal({ competition, participants, acc
             const newFee = mode === 'replace' ? amount : Math.max(0, p.fee_amount - applied + amount);
             return { p, amount, applied, newFee };
         })
-        .filter((r) => Math.round((r.newFee - r.p.fee_amount) * 100) !== 0), [participants, accommodation, mode]);
+        // Changed fee, or accommodation differing from what was last applied.
+        .filter((r) => Math.round((r.newFee - r.p.fee_amount) * 100) !== 0 || Math.round((r.amount - r.applied) * 100) !== 0), [participants, accommodation, mode]);
 
     // All changed rows selected by default; unticked ones are remembered.
     const [unselected, setUnselected] = useState([]);
