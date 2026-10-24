@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.25] - 2026-10-24
+
+### Changed
+- **Guests in another room look like participants** on the competition page (row on desktop, card on phones): name with a **Guest** badge, their accommodation share as the amount, paid / remaining, a status (Unpaid, Partial, Paid…), last payment date, and **+ Payment** / **View**. Their payments still count towards the fee of the participant who brought them.
+
 ## [1.0.24] - 2026-10-24
 
 ### Fixed

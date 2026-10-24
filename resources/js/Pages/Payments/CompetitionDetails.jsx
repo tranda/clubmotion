@@ -73,10 +73,21 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
         return room ? (room.name ? `Room ${room.name}` : `Room ${room.number}`) : '';
     };
     const paymentParticipant = paymentTarget ? byId(paymentTarget.participantId) : null;
-    // Paid so far for one separated person ("supporter:1") of a participant.
-    const paidForSlot = (u) => (u.participant.payments || [])
-        .filter((pay) => pay.party_slot === u.slot)
-        .reduce((n, pay) => n + pay.amount, 0);
+    // A guest placed in another room, shown like a participant: their
+    // accommodation share is what they owe; it counts towards their participant's fee.
+    const guestInfo = (u) => {
+        const share = accommodation?.units?.[u.key] ?? 0;
+        const slotPays = (u.participant.payments || []).filter((pay) => pay.party_slot === u.slot);
+        const paid = slotPays.reduce((n, pay) => n + pay.amount, 0);
+        const diff = Math.round((paid - share) * 100) / 100;
+        const status = share <= 0 ? (paid > 0 ? 'paid' : 'no_fee')
+            : paid <= 0 ? 'unpaid' : diff < 0 ? 'partial' : diff > 0 ? 'overpaid' : 'paid';
+        const last = slotPays.map((pay) => pay.paid_at).sort().pop() || null;
+        return { share, paid, remaining: Math.max(-diff, 0), overpaid: Math.max(diff, 0), status, last };
+    };
+    const GuestBadge = () => <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">Guest</span>;
+    const guestSub = (u) => `counts towards ${u.participant.member.name}'s fee`;
+
     // Add a payment for a separated person: counts towards their participant's fee.
     const payForUnit = (u) => setPaymentTarget({
         participantId: u.participant.id,
@@ -426,22 +437,33 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                                 <td colSpan={7} className="px-4 py-2">{groupHeader(g)}</td>
                                             </tr>
                                         )}
-                                        {grouped && !isCollapsed(g) && g.separated?.map((u) => (
-                                            <tr key={u.key} className="text-sm text-gray-600">
-                                                <td colSpan={6} className="px-4 py-2 italic">
+                                        {grouped && !isCollapsed(g) && g.separated?.map((u) => {
+                                            const gi = guestInfo(u);
+                                            return (
+                                            <tr key={u.key} className="hover:bg-gray-50">
+                                                <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(u.participant.id)}>
                                                     {u.label}
-                                                    {accommodation?.units?.[u.key] != null && <span className="not-italic text-xs text-gray-500"> · accommodation {formatMoney(accommodation.units[u.key], cur)}</span>}
-                                                    {paidForSlot(u) > 0 && <span className="not-italic text-xs text-green-700"> · paid {formatMoney(paidForSlot(u), cur)}</span>}
-                                                    <span className="not-italic text-xs text-gray-400"> · on {u.participant.member.name}'s fee</span>
+                                                    <GuestBadge />
+                                                    <div className="text-xs text-gray-600 font-normal">{[gi.share > 0 && `accommodation ${formatMoney(gi.share, cur)}`, guestSub(u)].filter(Boolean).join(' · ')}</div>
                                                 </td>
-                                                <td className="px-4 py-2 text-right whitespace-nowrap">
+                                                <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatMoney(gi.share, cur)}</td>
+                                                <td className="px-4 py-3 text-sm text-right whitespace-nowrap text-green-700">{formatMoney(gi.paid, cur)}</td>
+                                                <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
+                                                    {gi.overpaid > 0
+                                                        ? <span className="text-blue-700">+{formatMoney(gi.overpaid, cur)}</span>
+                                                        : <span className="text-red-700">{formatMoney(gi.remaining, cur)}</span>}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm"><StatusBadge status={gi.status} /></td>
+                                                <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{formatDate(gi.last)}</td>
+                                                <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
                                                     <button onClick={() => payForUnit(u)} className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 mr-2">
                                                         + Payment
                                                     </button>
                                                     <button onClick={() => setDetailsId(u.participant.id)} className="text-blue-600 hover:text-blue-800 text-xs">View</button>
                                                 </td>
                                             </tr>
-                                        ))}
+                                            );
+                                        })}
                                     {!isCollapsed(g) && g.items.map((p) => (
                                         <tr key={p.id} className={`hover:bg-gray-50 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer" onClick={() => setDetailsId(p.id)}>
@@ -484,19 +506,30 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                             {groups.map((g) => (
                                 <Fragment key={g.key}>
                                 {grouped && <div className="px-4 py-2 bg-indigo-50">{groupHeader(g)}</div>}
-                                {grouped && !isCollapsed(g) && g.separated?.map((u) => (
-                                    <div key={u.key} className="px-4 py-2 text-sm text-gray-600 flex items-center justify-between gap-2">
-                                        <div className="italic">
-                                            {u.label}
-                                            {accommodation?.units?.[u.key] != null && <span className="not-italic text-xs text-gray-500"> · {formatMoney(accommodation.units[u.key], cur)}</span>}
-                                            {paidForSlot(u) > 0 && <span className="not-italic text-xs text-green-700"> · paid {formatMoney(paidForSlot(u), cur)}</span>}
+                                {grouped && !isCollapsed(g) && g.separated?.map((u) => {
+                                    const gi = guestInfo(u);
+                                    return (
+                                    <div key={u.key} className="p-4">
+                                        <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(u.participant.id)}>
+                                            <div className="font-medium text-gray-900">
+                                                {u.label}<GuestBadge />
+                                                <div className="text-xs text-gray-600 font-normal">{[gi.share > 0 && `accommodation ${formatMoney(gi.share, cur)}`, guestSub(u)].filter(Boolean).join(' · ')}</div>
+                                            </div>
+                                            <StatusBadge status={gi.status} />
                                         </div>
-                                        <div className="flex gap-2 shrink-0">
-                                            <button onClick={() => payForUnit(u)} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded whitespace-nowrap">+ Payment</button>
+                                        <div className="mt-1 text-sm text-gray-600" onClick={() => setDetailsId(u.participant.id)}>
+                                            {formatMoney(gi.paid, cur)} / {formatMoney(gi.share, cur)}
+                                            {gi.overpaid > 0
+                                                ? <span className="text-blue-700"> · +{formatMoney(gi.overpaid, cur)} overpaid</span>
+                                                : gi.remaining > 0 && <span className="text-red-700"> · {formatMoney(gi.remaining, cur)} left</span>}
+                                        </div>
+                                        <div className="mt-2 flex gap-2">
+                                            <button onClick={() => payForUnit(u)} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded">+ Payment</button>
                                             <button onClick={() => setDetailsId(u.participant.id)} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded">View</button>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             {!isCollapsed(g) && g.items.map((p) => (
                                 <div key={p.id} className={`p-4 ${p.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                     <div className="flex items-start justify-between gap-2" onClick={() => setDetailsId(p.id)}>
