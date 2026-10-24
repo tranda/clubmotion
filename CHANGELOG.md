@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.28] - 2026-10-24
+
+### Changed
+- **Room header shows paid / fee for the room**, e.g. "paid 840.00 / 1,460.00 EUR · 620.00 EUR left". Guests in the room count with their share; a host's guests in another room are counted there, not in the host's room. If the fees don't match the room's accommodation yet, the accommodation is shown too ("room 1,460.00 EUR"). "Not in a room" shows its totals as well.
+
 ## [1.0.27] - 2026-10-24
 
 ### Added

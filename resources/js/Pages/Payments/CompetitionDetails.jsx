@@ -159,6 +159,38 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
     // Names shown on a collapsed room header.
     const groupNames = (g) => [...g.items.map((p) => p.member.name), ...(g.separated || []).map((u) => u.label)].join(', ');
 
+    // Fee and paid for the people in a group (room). A host's guests elsewhere
+    // are taken out of the host's part; guests here count with their share.
+    const groupMoney = (g) => {
+        let fee = 0;
+        let paid = 0;
+        // Everyone in the room, whatever the filter or search shows.
+        const members = g.room ? participants.filter((p) => p.room_id === g.room.id) : g.items;
+        members.filter((p) => p.status === 'active').forEach((p) => {
+            const away = guestsOf(p);
+            fee += Math.max(p.fee_amount - away.reduce((n, x) => n + x.info.share, 0), 0);
+            paid += Math.max(p.paid_amount - away.reduce((n, x) => n + x.info.paid, 0), 0);
+        });
+        (g.separated || []).forEach((u) => {
+            const gi = guestInfo(u);
+            fee += gi.share;
+            paid += gi.paid;
+        });
+        return { fee: Math.round(fee * 100) / 100, paid: Math.round(paid * 100) / 100 };
+    };
+    const MoneyLine = ({ g }) => {
+        const m = groupMoney(g);
+        if (m.fee <= 0 && m.paid <= 0) return null;
+        const left = Math.round((m.fee - m.paid) * 100) / 100;
+        return (
+            <span className="text-xs">
+                · paid <strong className="text-green-700">{formatMoney(m.paid, cur)}</strong> / <strong className="text-gray-800">{formatMoney(m.fee, cur)}</strong>
+                {left > 0 && <span className="text-red-700"> · {formatMoney(left, cur)} left</span>}
+                {left < 0 && <span className="text-blue-700"> · +{formatMoney(-left, cur)}</span>}
+            </span>
+        );
+    };
+
     const groupHeader = (g) => (
         <button type="button" onClick={() => toggleGroup(g)} className="w-full flex items-center gap-2 text-left" aria-expanded={!isCollapsed(g)}>
             <svg className={`w-4 h-4 text-indigo-500 shrink-0 transition-transform ${isCollapsed(g) ? '-rotate-90' : ''}`} fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 9l-7 7-7-7" /></svg>
@@ -178,8 +210,9 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                 <span className={`text-xs ${g.used > g.room.beds ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
                     {g.room.beds}-bed · {g.used}/{g.room.beds} beds
                 </span>
-                {accommodation?.rooms?.[g.room.id]?.total != null && (
-                    <span className="text-xs font-semibold text-gray-800">· {formatMoney(accommodation.rooms[g.room.id].total, cur)}</span>
+                <MoneyLine g={g} />
+                {accommodation?.rooms?.[g.room.id]?.total != null && Math.round((accommodation.rooms[g.room.id].total - groupMoney(g).fee) * 100) !== 0 && (
+                    <span className="text-xs text-gray-500" title="Room accommodation from the prices; differs from the fees until you update them">· room {formatMoney(accommodation.rooms[g.room.id].total, cur)}</span>
                 )}
                 {(() => {
                     const range = stayRange(participants.filter((p) => p.room_id === g.room.id && p.status !== 'cancelled'), competition.room_dates);
@@ -192,7 +225,10 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                 })()}
             </div>
         ) : (
-            <span className="text-xs font-semibold text-gray-600 uppercase">Not in a room</span>
+            <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-gray-600 uppercase">Not in a room</span>
+                <MoneyLine g={g} />
+            </div>
         );
 
     const countFor = (key) => {
