@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.32] - 2026-10-24
+
+### Fixed
+- **"Paid by" shown the same everywhere.** A guest's payment with no payer set means the participant paid; members' room plan and payment list now say "paid by Maja …" like the staff guest details, instead of leaving it blank. Same in the participant's payment history.
+
 ## [1.0.31] - 2026-10-24
 
 ### Added

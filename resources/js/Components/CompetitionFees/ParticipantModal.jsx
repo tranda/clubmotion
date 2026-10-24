@@ -334,7 +334,7 @@ export default function ParticipantModal({ competition, participant, guests = []
                                         {p.note}
                                         {(p.paid_by || p.party_slot) && (
                                             <span className="block text-xs text-gray-500">
-                                                {[p.paid_by && `paid by ${p.paid_by}`, p.party_slot && (participant.units || []).find((u) => u.slot === p.party_slot)?.label && `for ${(participant.units || []).find((u) => u.slot === p.party_slot).label}`].filter(Boolean).join(' · ')}
+                                                {[p.party_slot && `paid by ${p.paid_by || participant.member.name}`, !p.party_slot && p.paid_by && `paid by ${p.paid_by}`, p.party_slot && (participant.units || []).find((u) => u.slot === p.party_slot)?.label && `for ${(participant.units || []).find((u) => u.slot === p.party_slot).label}`].filter(Boolean).join(' · ')}
                                             </span>
                                         )}
                                     </td>

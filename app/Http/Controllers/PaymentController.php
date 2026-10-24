@@ -204,7 +204,8 @@ class PaymentController extends Controller
                     'currency' => $pay->currency,
                     'currency_amount' => $pay->currency_amount !== null ? (float) $pay->currency_amount : null,
                     'payment_method' => $pay->payment_method,
-                    'paid_by' => $pay->paid_by,
+                    // For a guest's payment, empty "paid by" means the participant paid.
+                    'paid_by' => $pay->paid_by ?: ($pay->party_slot ? ($p->member->name ?? null) : null),
                     // Guest this payment was for ("Ivan Aleksić (Ivana's athlete)"), or null.
                     'for' => $pay->party_slot && $p->competition
                         ? (collect($p->competition->unitsFor($p))->firstWhere('slot', $pay->party_slot)['label'] ?? null)
@@ -891,7 +892,8 @@ class PaymentController extends Controller
                     ->map(fn ($pay) => [
                         'id' => $pay->id, 'amount' => (float) $pay->amount, 'paid_at' => optional($pay->paid_at)->format('Y-m-d'),
                         'currency' => $pay->currency, 'currency_amount' => $pay->currency_amount !== null ? (float) $pay->currency_amount : null,
-                        'payment_method' => $pay->payment_method, 'paid_by' => $pay->paid_by,
+                        // Empty "paid by" means the participant paid (same as the staff page).
+                        'payment_method' => $pay->payment_method, 'paid_by' => $pay->paid_by ?: ($p->member->name ?? null),
                     ])->values()->all()
                 : [];
             foreach ($units as $u) {
