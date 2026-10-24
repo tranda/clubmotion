@@ -139,7 +139,7 @@ export default function ParticipantModal({ competition, participant, namesEnable
                     </div>
                 </div>
                 <div>
-                    <div className="block text-sm font-medium text-gray-700 mb-1">Additional</div>
+                    <div className="block text-sm font-medium text-gray-700 mb-1">Guests</div>
                     <div className="grid grid-cols-3 gap-3">
                         {[['extra_athletes', 'Athletes'], ['extra_supporters', 'Supporters']].map(([field, label]) => (
                             <div key={field}>

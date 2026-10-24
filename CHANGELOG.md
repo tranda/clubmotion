@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.20] - 2026-10-24
+
+### Changed
+- **"Additional" is now "Guests"** in participant details (the athletes, supporters and children a participant brings).
+
 ## [1.0.19] - 2026-10-24
 
 ### Changed
