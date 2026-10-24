@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { Modal, StatusBadge, METHOD_LABELS, formatDate, formatMoney, inputClass, effectiveStay, stayLabel, paidLabel } from './format';
 
 // Participant details: amounts, fee/status editing and payment history.
-export default function ParticipantModal({ competition, participant, onAddPayment, onEditPayment, onDeletePayment, onRemove, onClose }) {
+export default function ParticipantModal({ competition, participant, namesEnabled = false, onAddPayment, onEditPayment, onDeletePayment, onRemove, onClose }) {
     const cur = competition.currency;
     const { data, setData, put, transform, processing, errors, isDirty } = useForm({
         role: participant.role || 'athlete',
@@ -14,6 +14,11 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
         extra_supporters: participant.extra_supporters ?? 0,
         children_dobs: participant.children_dobs ?? Array.from({ length: participant.extra_children || 0 }, () => null),
         notes: participant.notes || '',
+        extra_names: {
+            athlete: participant.extra_names?.athlete || [],
+            supporter: participant.extra_names?.supporter || [],
+            child: participant.extra_names?.child || [],
+        },
         can_edit_rooms: !!participant.can_edit_rooms,
         // Shown as effective dates; saved as null when equal to the default.
         check_in: effectiveStay(participant, competition.room_dates).check_in || '',
@@ -26,10 +31,20 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
         // Dates equal to the default are saved as null so they follow it.
         transform((d) => ({
             ...d,
+            ...(namesEnabled ? {} : { extra_names: undefined }),
             check_in: d.check_in && d.check_in !== defaults.check_in ? d.check_in : null,
             check_out: d.check_out && d.check_out !== defaults.check_out ? d.check_out : null,
         }));
         put(`/payments/competition-fees/participants/${participant.id}`, { preserveScroll: true });
+    };
+
+    // Name of additional person i of a type ('athlete' | 'supporter' | 'child').
+    const nameOf = (type, i) => data.extra_names[type]?.[i] || '';
+    const setName = (type, i, value) => {
+        const list = [...(data.extra_names[type] || [])];
+        while (list.length <= i) list.push('');
+        list[i] = value;
+        setData('extra_names', { ...data.extra_names, [type]: list });
     };
 
     // Notes start one line tall and grow with their content.
@@ -143,12 +158,33 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                             </div>
                         ))}
                     </div>
+                    {namesEnabled && [['extra_athletes', 'athlete', 'Athlete'], ['extra_supporters', 'supporter', 'Supporter']].map(([field, type, label]) => (
+                        (parseInt(data[field], 10) || 0) > 0 && (
+                            <div key={type} className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                {Array.from({ length: Math.min(parseInt(data[field], 10) || 0, 99) }, (_, i) => (
+                                    <input
+                                        key={i}
+                                        type="text"
+                                        maxLength="60"
+                                        value={nameOf(type, i)}
+                                        onChange={(e) => setName(type, i, e.target.value)}
+                                        placeholder={`${label} ${i + 1} name`}
+                                        className={inputClass}
+                                    />
+                                ))}
+                            </div>
+                        )
+                    ))}
                     <div className="mt-3">
                         <div className="flex items-center justify-between mb-1">
                             <label className="block text-xs text-gray-500">Children (date of birth — sets the room price)</label>
                             <button
                                 type="button"
-                                onClick={() => setData('children_dobs', [...data.children_dobs, null])}
+                                onClick={() => setData((d) => ({
+                                    ...d,
+                                    children_dobs: [...d.children_dobs, null],
+                                    extra_names: { ...d.extra_names, child: [...Array.from({ length: d.children_dobs.length }, (_, j) => d.extra_names.child?.[j] || ''), ''] },
+                                }))}
                                 className="text-xs text-blue-600 hover:text-blue-800"
                             >
                                 + Add child
@@ -158,6 +194,16 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                         <div className="space-y-2">
                             {data.children_dobs.map((dob, i) => (
                                 <div key={i} className="flex items-center gap-2">
+                                    {namesEnabled && (
+                                        <input
+                                            type="text"
+                                            maxLength="60"
+                                            value={nameOf('child', i)}
+                                            onChange={(e) => setName('child', i, e.target.value)}
+                                            placeholder={`Child ${i + 1} name`}
+                                            className={inputClass}
+                                        />
+                                    )}
                                     <input
                                         type="date"
                                         value={dob || ''}
@@ -173,7 +219,11 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                                     </span>
                                     <button
                                         type="button"
-                                        onClick={() => setData('children_dobs', data.children_dobs.filter((_, j) => j !== i))}
+                                        onClick={() => setData((d) => ({
+                                            ...d,
+                                            children_dobs: d.children_dobs.filter((_, j) => j !== i),
+                                            extra_names: { ...d.extra_names, child: (d.extra_names.child || []).filter((_, j) => j !== i) },
+                                        }))}
                                         className="text-gray-400 hover:text-red-600"
                                         aria-label="Remove child"
                                     >
@@ -250,7 +300,14 @@ export default function ParticipantModal({ competition, participant, onAddPaymen
                                         {METHOD_LABELS[p.payment_method] || '—'}
                                         {p.post_to_ledger === false && <span className="block text-xs text-gray-500">not in Ledger</span>}
                                     </td>
-                                    <td className="py-2 pr-3 text-gray-600">{p.note}</td>
+                                    <td className="py-2 pr-3 text-gray-600">
+                                        {p.note}
+                                        {(p.paid_by || p.party_slot) && (
+                                            <span className="block text-xs text-gray-500">
+                                                {[p.paid_by && `paid by ${p.paid_by}`, p.party_slot && (participant.units || []).find((u) => u.slot === p.party_slot)?.label && `for ${(participant.units || []).find((u) => u.slot === p.party_slot).label}`].filter(Boolean).join(' · ')}
+                                            </span>
+                                        )}
+                                    </td>
                                     <td className="py-2 whitespace-nowrap text-right">
                                         <button onClick={() => onEditPayment(p)} className="text-blue-600 hover:text-blue-800 mr-3">Edit</button>
                                         <button onClick={() => onDeletePayment(p)} className="text-red-600 hover:text-red-800">Delete</button>

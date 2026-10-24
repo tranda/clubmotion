@@ -12,7 +12,7 @@ class CompetitionParticipant extends Model
 
     protected $fillable = [
         'competition_id', 'member_id', 'role', 'fee_amount', 'accommodation_applied', 'status',
-        'extra_athletes', 'extra_supporters', 'extra_children', 'children_dobs', 'preferred_room', 'competition_room_id', 'split_extras', 'can_edit_rooms',
+        'extra_athletes', 'extra_supporters', 'extra_children', 'children_dobs', 'preferred_room', 'competition_room_id', 'split_extras', 'extra_names', 'can_edit_rooms',
         'check_in', 'check_out', 'notes',
     ];
 
@@ -26,10 +26,49 @@ class CompetitionParticipant extends Model
         'preferred_room' => 'integer',
         'competition_room_id' => 'integer',
         'split_extras' => 'array',
+        'extra_names' => 'array',
         'can_edit_rooms' => 'boolean',
         'check_in' => 'date:Y-m-d',
         'check_out' => 'date:Y-m-d',
     ];
+
+    /**
+     * True once the migration adding extra_names (and payments.paid_by) ran.
+     * Until then the page works without names.
+     */
+    public static function hasExtraNames()
+    {
+        static $has = null;
+        return $has ??= \Illuminate\Support\Facades\Schema::hasColumn('competition_participants', 'extra_names');
+    }
+
+    /**
+     * Names of the additional people: ['athlete' => [...], 'supporter' => [...],
+     * 'child' => [...]], each padded to its count ('' = no name).
+     */
+    public function extraNames()
+    {
+        $names = (array) ($this->extra_names ?? []);
+        $counts = ['athlete' => (int) $this->extra_athletes, 'supporter' => (int) $this->extra_supporters, 'child' => (int) $this->extra_children];
+        $out = [];
+        foreach ($counts as $type => $n) {
+            $list = array_values((array) ($names[$type] ?? []));
+            $out[$type] = [];
+            for ($i = 0; $i < $n; $i++) {
+                $out[$type][] = trim((string) ($list[$i] ?? ''));
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Name of one additional person by slot ("supporter:1"), or ''.
+     */
+    public function extraName($slot)
+    {
+        [$type, $n] = array_pad(explode(':', (string) $slot), 2, 0);
+        return $this->extraNames()[$type][((int) $n) - 1] ?? '';
+    }
 
     public function competition()
     {
@@ -171,6 +210,8 @@ class CompetitionParticipant extends Model
             'room_id' => $this->competition_room_id ? (int) $this->competition_room_id : null,
             // Additional people placed apart: {"supporter:1": room_id|null}.
             'split_extras' => (object) ($this->split_extras ?? []),
+            // Names of additional people: {athlete: [...], supporter: [...], child: [...]}.
+            'extra_names' => $this->extraNames(),
             'can_edit_rooms' => (bool) $this->can_edit_rooms,
             // Own stay dates; null = use the competition default (room_dates).
             'check_in' => $this->check_in ? $this->check_in->format('Y-m-d') : null,

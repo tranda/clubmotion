@@ -20,7 +20,7 @@ const FILTERS = [
     { key: 'cancelled', label: 'Cancelled' },
 ];
 
-export default function CompetitionDetails({ competition, totals, roomPlan, rooms = [], accommodation, participants, availableMembers, currencies, paymentMethods, organizerPayments = [], ledgerExpenseCategories = [] }) {
+export default function CompetitionDetails({ competition, totals, roomPlan, rooms = [], accommodation, participants, availableMembers, currencies, paymentMethods, organizerPayments = [], ledgerExpenseCategories = [], namesEnabled = false }) {
     const cur = competition.currency;
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
@@ -54,6 +54,16 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
         return room ? (room.name ? `Room ${room.name}` : `Room ${room.number}`) : '';
     };
     const paymentParticipant = paymentTarget ? byId(paymentTarget.participantId) : null;
+    // Paid so far for one separated person ("supporter:1") of a participant.
+    const paidForSlot = (u) => (u.participant.payments || [])
+        .filter((pay) => pay.party_slot === u.slot)
+        .reduce((n, pay) => n + pay.amount, 0);
+    // Add a payment for a separated person: counts towards their participant's fee.
+    const payForUnit = (u) => setPaymentTarget({
+        participantId: u.participant.id,
+        payment: null,
+        payer: { slot: u.slot, name: u.name || '', label: u.label, amount: accommodation?.units?.[u.key] ?? null },
+    });
 
     const visible = useMemo(() => {
         const q = search.trim().toLowerCase();
@@ -354,9 +364,17 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                         )}
                                         {grouped && g.separated?.map((u) => (
                                             <tr key={u.key} className="text-sm text-gray-600">
-                                                <td colSpan={7} className="px-4 py-2 italic">
+                                                <td colSpan={6} className="px-4 py-2 italic">
                                                     {u.label}
                                                     {accommodation?.units?.[u.key] != null && <span className="not-italic text-xs text-gray-500"> · accommodation {formatMoney(accommodation.units[u.key], cur)}</span>}
+                                                    {paidForSlot(u) > 0 && <span className="not-italic text-xs text-green-700"> · paid {formatMoney(paidForSlot(u), cur)}</span>}
+                                                    <span className="not-italic text-xs text-gray-400"> · on {u.participant.member.name}'s fee</span>
+                                                </td>
+                                                <td className="px-4 py-2 text-right whitespace-nowrap">
+                                                    <button onClick={() => payForUnit(u)} className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 mr-2">
+                                                        + Payment
+                                                    </button>
+                                                    <button onClick={() => setDetailsId(u.participant.id)} className="text-blue-600 hover:text-blue-800 text-xs">View</button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -400,9 +418,13 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                 <Fragment key={g.key}>
                                 {grouped && <div className="px-4 py-2 bg-indigo-50">{groupHeader(g)}</div>}
                                 {grouped && g.separated?.map((u) => (
-                                    <div key={u.key} className="px-4 py-2 text-sm text-gray-600 italic">
-                                        {u.label}
-                                        {accommodation?.units?.[u.key] != null && <span className="not-italic text-xs text-gray-500"> · {formatMoney(accommodation.units[u.key], cur)}</span>}
+                                    <div key={u.key} className="px-4 py-2 text-sm text-gray-600 flex items-center justify-between gap-2">
+                                        <div className="italic">
+                                            {u.label}
+                                            {accommodation?.units?.[u.key] != null && <span className="not-italic text-xs text-gray-500"> · {formatMoney(accommodation.units[u.key], cur)}</span>}
+                                            {paidForSlot(u) > 0 && <span className="not-italic text-xs text-green-700"> · paid {formatMoney(paidForSlot(u), cur)}</span>}
+                                        </div>
+                                        <button onClick={() => payForUnit(u)} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded whitespace-nowrap">+ Payment</button>
                                     </div>
                                 ))}
                             {g.items.map((p) => (
@@ -458,9 +480,10 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
             {showAdd && <AddParticipantsModal competition={competition} members={availableMembers} onClose={() => setShowAdd(false)} />}
             {detailsParticipant && (
                 <ParticipantModal
-                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${extrasLabel(detailsParticipant)}-${detailsParticipant.preferred_room}-${detailsParticipant.can_edit_rooms}-${detailsParticipant.check_in}-${detailsParticipant.check_out}-${JSON.stringify(competition.room_dates)}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}`}
+                    key={`${detailsParticipant.id}-${detailsParticipant.role}-${extrasLabel(detailsParticipant)}-${detailsParticipant.preferred_room}-${detailsParticipant.can_edit_rooms}-${detailsParticipant.check_in}-${detailsParticipant.check_out}-${JSON.stringify(competition.room_dates)}-${detailsParticipant.fee_amount}-${detailsParticipant.status}-${detailsParticipant.notes}-${JSON.stringify(detailsParticipant.extra_names)}`}
                     competition={competition}
                     participant={detailsParticipant}
+                    namesEnabled={namesEnabled}
                     onAddPayment={() => setPaymentTarget({ participantId: detailsParticipant.id, payment: null })}
                     onEditPayment={(payment) => setPaymentTarget({ participantId: detailsParticipant.id, payment })}
                     onDeletePayment={deletePayment}
@@ -473,6 +496,8 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                     competition={competition}
                     participant={paymentParticipant}
                     payment={paymentTarget.payment}
+                    payer={paymentTarget.payer}
+                    namesEnabled={namesEnabled}
                     paymentMethods={paymentMethods}
                     onClose={() => setPaymentTarget(null)}
                 />

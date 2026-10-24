@@ -2,6 +2,16 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.15] - 2026-10-24
+
+### Added
+- **Names for additional people.** In a participant's details, each extra athlete, supporter and child can get a name. Names show in the room planner and room lists, e.g. "Ana (Maja's supporter)".
+- **+ Payment for people in another room.** Additional people placed in a different room now have a **+ Payment** button on their room line. The payment counts towards their participant's fee, starts at their accommodation share, and the line shows how much they've paid.
+- **"Paid by" on competition payments.** Optional name of who actually paid; shown in the payment history, the export and the Ledger entry note.
+
+### Requires
+- Database migration `2026_10_24_120000_add_extra_names_and_paid_by` (run `php artisan migrate` from the hosting panel). Until it runs, the page works as before and the name / "Paid by" fields stay hidden.
+
 ## [1.0.14] - 2026-10-22
 
 ### Changed

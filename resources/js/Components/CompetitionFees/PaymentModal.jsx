@@ -2,15 +2,25 @@ import { useForm } from '@inertiajs/react';
 import { Modal, METHOD_LABELS, formatMoney, inputClass, todayIso } from './format';
 
 // Add a payment for a participant, or edit an existing one (`payment`).
-export default function PaymentModal({ competition, participant, payment = null, paymentMethods, onClose }) {
+// `payer` ({ slot, name, label, amount }) = paid by one of the participant's
+// additional people placed in another room; it still counts towards this fee.
+export default function PaymentModal({ competition, participant, payment = null, payer = null, namesEnabled = false, paymentMethods, onClose }) {
+    const remaining = participant.remaining_amount > 0 ? participant.remaining_amount : 0;
+    const defaultAmount = payer?.amount > 0 ? Math.min(payer.amount, remaining || payer.amount) : remaining;
+    const slot = payment ? payment.party_slot : payer?.slot;
+    const slotLabel = payer?.label
+        || (slot && (participant.units || []).find((u) => u.slot === slot)?.label)
+        || '';
     const { data, setData, post, put, processing, errors } = useForm({
-        amount: payment?.amount ?? (participant.remaining_amount > 0 ? participant.remaining_amount : ''),
+        amount: payment?.amount ?? (defaultAmount > 0 ? defaultAmount : ''),
         paid_at: payment?.paid_at || todayIso(),
         currency: payment?.currency || competition.currency,
         currency_amount: payment?.currency_amount ?? '',
         payment_method: payment?.payment_method || 'cash',
         note: payment?.note || '',
         post_to_ledger: payment?.post_to_ledger ?? false,
+        paid_by: payment ? (payment.paid_by || '') : (payer?.name || ''),
+        party_slot: slot || null,
     });
 
     const submit = (e) => {
@@ -29,7 +39,9 @@ export default function PaymentModal({ competition, participant, payment = null,
                 <div className="text-sm space-y-1">
                     <div><span className="text-gray-500">Member:</span> <span className="font-medium">{participant.member.name}</span></div>
                     <div><span className="text-gray-500">Competition:</span> <span className="font-medium">{competition.name}</span></div>
+                    {slotLabel && <div><span className="text-gray-500">For:</span> <span className="font-medium">{slotLabel}</span></div>}
                     <div><span className="text-gray-500">Remaining:</span> {formatMoney(participant.remaining_amount, competition.currency)}</div>
+                    {payer?.amount > 0 && <div><span className="text-gray-500">Their accommodation:</span> {formatMoney(payer.amount, competition.currency)}</div>}
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                     <div>
@@ -79,6 +91,14 @@ export default function PaymentModal({ competition, participant, payment = null,
                             : `Posted to the Ledger (${data.payment_method === 'cash' ? 'cash' : 'bank'}, ${data.currency}).`}
                     </p>
                 </div>
+                {namesEnabled && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Paid by</label>
+                        <input type="text" maxLength="100" value={data.paid_by} onChange={(e) => setData('paid_by', e.target.value)} placeholder={participant.member.name} className={inputClass} />
+                        <p className="mt-1 text-xs text-gray-500">Leave empty when {participant.member.name.split(' ')[0]} paid. Counts towards {participant.member.name.split(' ')[0]}'s fee either way.</p>
+                        {errors.paid_by && <p className="mt-1 text-sm text-red-600">{errors.paid_by}</p>}
+                    </div>
+                )}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
                     <input type="text" maxLength="255" value={data.note} onChange={(e) => setData('note', e.target.value)} className={inputClass} />

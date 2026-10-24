@@ -165,11 +165,15 @@ class CompetitionFeeController extends Controller
                         'currency_amount' => $pay->currency_amount !== null ? (float) $pay->currency_amount : null,
                         'payment_method' => $pay->payment_method,
                         'note' => $pay->note,
+                        'paid_by' => $pay->paid_by,
+                        'party_slot' => $pay->party_slot,
                         'post_to_ledger' => $pay->post_to_ledger !== false,
                         'in_ledger' => (bool) $pay->ledger_entry_id,
                     ])->values(),
                 ];
             })->values(),
+            // False until the migration for names / "paid by" has run.
+            'namesEnabled' => CompetitionParticipant::hasExtraNames(),
             'availableMembers' => $members,
             'currencies' => Competition::CURRENCIES,
             'paymentMethods' => CompetitionPayment::METHODS,
@@ -266,6 +270,7 @@ class CompetitionFeeController extends Controller
                     'currency_amount' => $pay->currency_amount !== null ? (float) $pay->currency_amount : null,
                     'payment_method' => $pay->payment_method,
                     'note' => $pay->note,
+                    'paid_by' => $pay->paid_by,
                 ])->values(),
             ])->values(),
         ]);
@@ -801,6 +806,9 @@ class CompetitionFeeController extends Controller
             'extra_children' => 'nullable|integer|min:0|max:99',
             'children_dobs' => 'sometimes|nullable|array|max:99',
             'children_dobs.*' => 'nullable|date|before_or_equal:today',
+            'extra_names' => 'sometimes|nullable|array',
+            'extra_names.*' => 'nullable|array|max:99',
+            'extra_names.*.*' => 'nullable|string|max:60',
             'preferred_room' => ['nullable', 'integer', Rule::in(Competition::ROOM_SIZES)],
             'notes' => 'nullable|string|max:1000',
             'can_edit_rooms' => 'sometimes|boolean',
@@ -814,6 +822,20 @@ class CompetitionFeeController extends Controller
         if ($request->has('children_dobs')) {
             $data['children_dobs'] = array_values(array_map(fn ($d) => $d ?: null, (array) ($data['children_dobs'] ?? [])));
             $data['extra_children'] = count($data['children_dobs']);
+        }
+        // Names of additional people, trimmed to each type's count.
+        if (array_key_exists('extra_names', $data)) {
+            if (CompetitionParticipant::hasExtraNames()) {
+                $counts = ['athlete' => $data['extra_athletes'], 'supporter' => $data['extra_supporters'], 'child' => $data['extra_children'] ?? (int) $participant->extra_children];
+                $names = [];
+                foreach ($counts as $type => $n) {
+                    $list = array_values((array) ($data['extra_names'][$type] ?? []));
+                    $names[$type] = array_map(fn ($i) => trim((string) ($list[$i] ?? '')), $n > 0 ? range(0, $n - 1) : []);
+                }
+                $data['extra_names'] = $names;
+            } else {
+                unset($data['extra_names']);
+            }
         }
 
         $participant->update($data);
@@ -933,8 +955,8 @@ class CompetitionFeeController extends Controller
 
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle('Payments');
-        $sheet->fromArray(['Member', 'Payment date', "Amount ({$cur})", 'Method', 'Note'], null, 'A1');
-        $this->headerStyle($sheet, 'A1:E1');
+        $sheet->fromArray(['Member', 'Payment date', "Amount ({$cur})", 'Method', 'Note', 'Paid by'], null, 'A1');
+        $this->headerStyle($sheet, 'A1:F1');
         $r = 2;
         foreach ($participants as $p) {
             foreach ($p->payments->sortBy('paid_at') as $pay) {
@@ -944,12 +966,13 @@ class CompetitionFeeController extends Controller
                     (float) $pay->amount,
                     $this->methodLabel($pay->payment_method),
                     $pay->note,
+                    $pay->paid_by,
                 ], null, "A{$r}", true);
                 $r++;
             }
         }
         $sheet->getStyle("C2:C{$r}")->getNumberFormat()->setFormatCode('#,##0.00');
-        foreach (range('A', 'E') as $col) {
+        foreach (range('A', 'F') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -1172,13 +1195,24 @@ class CompetitionFeeController extends Controller
 
     private function validatePayment(Request $request, Competition $competition)
     {
-        return $this->withPaymentCurrency($request, $competition, [
+        $data = $this->withPaymentCurrency($request, $competition, [
             'amount' => 'required|numeric|gt:0',
             'paid_at' => 'required|date',
             'payment_method' => ['required', Rule::in(CompetitionPayment::METHODS)],
             'post_to_ledger' => 'boolean',
             'note' => 'nullable|string|max:255',
+            'paid_by' => 'nullable|string|max:100',
+            'party_slot' => ['nullable', 'regex:/^(athlete|supporter|child):[1-9][0-9]?$/'],
         ]);
+
+        if (!CompetitionParticipant::hasExtraNames()) {
+            unset($data['paid_by'], $data['party_slot']);
+        } else {
+            $data['paid_by'] = isset($data['paid_by']) && trim($data['paid_by']) !== '' ? trim($data['paid_by']) : null;
+            $data['party_slot'] = $data['party_slot'] ?? null;
+        }
+
+        return $data;
     }
 
     private function competitionArray(Competition $competition)

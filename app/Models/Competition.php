@@ -225,16 +225,21 @@ class Competition extends Model
             for ($i = 1; $i <= $n; $i++) {
                 $slot = "{$type}:{$i}";
                 $persons[] = [
-                    'slot' => $slot, 'label' => "{$first}'s {$type} #{$i}", 'kind' => 'adult', 'supporter' => $type === 'supporter',
+                    'slot' => $slot, 'name' => $p->extraName($slot),
+                    'label' => $p->extraName($slot) !== '' ? $p->extraName($slot) . " ({$first}'s {$type})" : "{$first}'s {$type} #{$i}",
+                    'kind' => 'adult', 'supporter' => $type === 'supporter',
                     'takes_bed' => true, 'price' => null, 'age' => null, 'room_id' => $room($slot), 'split' => array_key_exists($slot, $split),
                 ];
             }
         }
         foreach ($this->childrenOf($p, $settings, $defaults) as $i => $child) {
             $slot = 'child:' . ($i + 1);
+            $childName = $p->extraName($slot);
             $persons[] = [
-                'slot' => $slot,
-                'label' => "{$first}'s child #" . ($i + 1) . ($child['age'] !== null ? " ({$child['age']})" : ''),
+                'slot' => $slot, 'name' => $childName,
+                'label' => $childName !== ''
+                    ? $childName . " ({$first}'s child" . ($child['age'] !== null ? ", {$child['age']}" : '') . ')'
+                    : "{$first}'s child #" . ($i + 1) . ($child['age'] !== null ? " ({$child['age']})" : ''),
                 'kind' => 'child', 'supporter' => false, 'takes_bed' => $child['takes_bed'],
                 'price' => $child['band'] === 'unknown' ? 0.0 : $child['price'], 'age' => $child['age'],
                 'room_id' => $room($slot), 'split' => array_key_exists($slot, $split),
@@ -277,7 +282,7 @@ class Competition extends Model
             if ($x['split']) {
                 $units[] = [
                     'key' => "{$p->id}:{$x['slot']}", 'slot' => $x['slot'], 'participant_id' => $p->id,
-                    'label' => $x['label'], 'extras' => '', 'beds' => $x['takes_bed'] ? 1 : 0, 'room_id' => $x['room_id'],
+                    'label' => $x['label'], 'name' => $x['name'] ?? '', 'extras' => '', 'beds' => $x['takes_bed'] ? 1 : 0, 'room_id' => $x['room_id'],
                 ];
             }
         }

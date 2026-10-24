@@ -10,7 +10,7 @@ class CompetitionPayment extends Model
 
     protected $fillable = [
         'competition_participant_id', 'amount', 'currency', 'currency_amount', 'paid_at', 'payment_method', 'post_to_ledger',
-        'note', 'ledger_entry_id', 'created_by',
+        'note', 'paid_by', 'party_slot', 'ledger_entry_id', 'created_by',
     ];
 
     protected $casts = [
@@ -112,7 +112,7 @@ class CompetitionPayment extends Model
             'description' => 'Competition: ' . ($participant->competition->name ?? ''),
             'ledger_category_id' => self::ledgerCategoryId(),
             'member_id' => $participant->member_id,
-            'notes' => $this->note,
+            'notes' => trim(implode(' · ', array_filter([$this->note, $this->paid_by ? 'Paid by ' . $this->paid_by : null]))) ?: null,
             'source' => 'manual',
             'updated_by' => auth()->id() ?? $this->created_by,
         ];
