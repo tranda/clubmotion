@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.24] - 2026-10-24
+
+### Fixed
+- **View button on guest lines on mobile.** Guests placed in another room now have **View** next to **+ Payment** on phones too; it opens the participant who brought them.
+
 ## [1.0.23] - 2026-10-24
 
 ### Changed

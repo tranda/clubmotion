@@ -491,7 +491,10 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
                                             {accommodation?.units?.[u.key] != null && <span className="not-italic text-xs text-gray-500"> · {formatMoney(accommodation.units[u.key], cur)}</span>}
                                             {paidForSlot(u) > 0 && <span className="not-italic text-xs text-green-700"> · paid {formatMoney(paidForSlot(u), cur)}</span>}
                                         </div>
-                                        <button onClick={() => payForUnit(u)} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded whitespace-nowrap">+ Payment</button>
+                                        <div className="flex gap-2 shrink-0">
+                                            <button onClick={() => payForUnit(u)} className="px-3 py-1.5 bg-green-600 text-white text-sm rounded whitespace-nowrap">+ Payment</button>
+                                            <button onClick={() => setDetailsId(u.participant.id)} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded">View</button>
+                                        </div>
                                     </div>
                                 ))}
                             {!isCollapsed(g) && g.items.map((p) => (
