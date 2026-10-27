@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.35] - 2026-10-27
+
+### Changed
+- **Members list keeps your place.** After opening a member and going back (Back to Members or the browser back button), the list returns to where you scrolled, with the same filter.
+
 ## [1.0.34] - 2026-10-27
 
 ### Fixed

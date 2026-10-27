@@ -3,6 +3,15 @@ import { useState } from 'react';
 import Layout from '../../Components/Layout';
 import { resizeImageIfNeeded } from '../../utils/resizeImage';
 
+// Members list URL with the filter the user came from (scroll is restored there)
+function membersBackUrl() {
+    try {
+        const saved = JSON.parse(sessionStorage.getItem('membersReturn') || 'null');
+        if (saved?.url?.startsWith('/members')) return saved.url;
+    } catch (e) {}
+    return '/members';
+}
+
 export default function Show({ member, recentPayments = [], currentYear, imageHistory = [] }) {
     const { auth } = usePage().props;
     const userRole = auth.user?.role?.name || 'user';
@@ -150,7 +159,7 @@ export default function Show({ member, recentPayments = [], currentYear, imageHi
                 <div className="mb-6">
                     {canManage && (
                         <Link
-                            href="/members"
+                            href={membersBackUrl()}
                             className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
                         >
                             <svg className="w-5 h-5 mr-1" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">

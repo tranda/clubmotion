@@ -99,8 +99,27 @@ export default function Index({ members, filter, categoryStats }) {
     };
 
     const navigateToMember = (id) => {
+        // Remember where we were so "Back to Members" returns to the same spot
+        try {
+            sessionStorage.setItem('membersReturn', JSON.stringify({
+                url: window.location.pathname + window.location.search,
+                y: window.scrollY,
+            }));
+        } catch (e) {}
         router.visit(`/members/${id}`);
     };
+
+    // Restore the scroll position saved when a member was opened
+    useEffect(() => {
+        let saved = null;
+        try {
+            saved = JSON.parse(sessionStorage.getItem('membersReturn') || 'null');
+            sessionStorage.removeItem('membersReturn');
+        } catch (e) {}
+        if (!saved || !saved.y) return;
+        const id = requestAnimationFrame(() => window.scrollTo(0, saved.y));
+        return () => cancelAnimationFrame(id);
+    }, []);
 
     // Pull to refresh
     useEffect(() => {
