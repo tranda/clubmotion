@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.36] - 2026-10-27
+
+### Changed
+- **Home page cards follow the menu order.** For staff, Achievements now comes right after Payments.
+
 ## [1.0.35] - 2026-10-27
 
 ### Changed
