@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.34] - 2026-10-27
+
+### Fixed
+- **Mobile side menu scrolls.** On short screens the open side menu can now be scrolled to reach all items and Logout.
+
 ## [1.0.33] - 2026-10-27
 
 ### Removed

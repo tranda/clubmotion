@@ -301,11 +301,11 @@ export default function Layout({ children }) {
 
             {/* Mobile Sidebar Menu */}
             <aside
-                className={`md:hidden fixed top-0 left-0 bottom-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40 ${
+                className={`md:hidden fixed top-0 left-0 bottom-0 w-64 overflow-y-auto overscroll-contain bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40 ${
                     menuOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >
-                <div className="pt-16 px-4">
+                <div className="pt-16 pb-8 px-4">
                     <nav className="space-y-2">
                         {hasCard && (
                             <Link
