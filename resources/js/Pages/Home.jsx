@@ -181,25 +181,6 @@ export default function Home({ stats }) {
                                     <p className="text-gray-600">Admin utilities (time calculator, ...)</p>
                                 </Link>
                             )}
-
-                            {/* Add Member Card - Admin/Superuser only - LAST */}
-                            <Link
-                                href="/members/create"
-                                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-dashed border-gray-300 hover:border-blue-500"
-                            >
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="p-3 bg-indigo-100 rounded-full">
-                                        <svg className="w-8 h-8 text-indigo-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                        </svg>
-                                    </div>
-                                    <svg className="w-6 h-6 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </div>
-                                <h2 className="text-xl font-semibold text-gray-900 mb-2">Add Member</h2>
-                                <p className="text-gray-600">Register a new club member</p>
-                            </Link>
                         </>
                     ) : (
                         <>

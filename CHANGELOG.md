@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.33] - 2026-10-27
+
+### Removed
+- **"Add Member" card removed from the home page.** New members are still added from the Members page.
+
 ## [1.0.32] - 2026-10-24
 
 ### Fixed
