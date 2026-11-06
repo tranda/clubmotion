@@ -356,6 +356,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin,superuser')->prefix('tools')->name('tools.')->group(function () {
         Route::get('/', [App\Http\Controllers\ToolsController::class, 'index'])->name('index');
         Route::put('/coefs', [App\Http\Controllers\ToolsController::class, 'updateCoefs'])->name('coefs.update');
+        Route::post('/migrate', [App\Http\Controllers\ToolsController::class, 'runMigrations'])->middleware('role:admin')->name('migrate');
     });
 
     // Test email sender - Admin only (verify SMTP config)

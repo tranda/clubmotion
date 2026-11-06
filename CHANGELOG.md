@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.39] - 2026-11-06
+
+### Added
+- **Database updates on the Tools page (admins only).** Lists database migrations that are in the code but not yet run on the server and runs them with one button (same as `php artisan migrate`), then shows the result. Already applied updates are skipped. Superusers don't see it. After this deploy, use it to create the Notes tables from v1.0.38 instead of the hosting panel.
+
 ## [1.0.38] - 2026-11-06
 
 ### Added
