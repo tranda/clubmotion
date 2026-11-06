@@ -15,6 +15,12 @@
     },
     "dependencies": {
         "@inertiajs/react": "^2.2.6",
+        "@tiptap/extension-file-handler": "3.32.0",
+        "@tiptap/extension-image": "3.32.0",
+        "@tiptap/extensions": "3.32.0",
+        "@tiptap/pm": "3.32.0",
+        "@tiptap/react": "3.32.0",
+        "@tiptap/starter-kit": "3.32.0",
         "@vitejs/plugin-react": "^5.0.4",
         "react": "^19.2.0",
         "react-dom": "^19.2.0"

@@ -292,20 +292,36 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/annual/excel', [App\Http\Controllers\LedgerReportController::class, 'annualExcel'])->name('reports.annual.excel');
     });
 
-    // Notes (admin scratch-pad, not counted into Ledger) - Admin & Superuser
+    // Custom payments (per-member amounts, not counted into Ledger; tables are still named notes) - Admin & Superuser
+    Route::middleware('role:admin,superuser')->prefix('custom-payments')->name('custom-payments.')->group(function () {
+        Route::get('/', [App\Http\Controllers\CustomPaymentController::class, 'index'])->name('index');
+        Route::post('/entries', [App\Http\Controllers\CustomPaymentController::class, 'storeEntry'])->name('entries.store');
+        Route::put('/entries/{payment}', [App\Http\Controllers\CustomPaymentController::class, 'updateEntry'])->name('entries.update');
+        Route::delete('/entries/{payment}', [App\Http\Controllers\CustomPaymentController::class, 'destroyEntry'])->name('entries.destroy');
+        Route::post('/entries/{id}/restore', [App\Http\Controllers\CustomPaymentController::class, 'restoreEntry'])->name('entries.restore');
+
+        Route::get('/categories', [App\Http\Controllers\CustomPaymentController::class, 'categoriesIndex'])->name('categories.index');
+        Route::post('/categories', [App\Http\Controllers\CustomPaymentController::class, 'categoriesStore'])->name('categories.store');
+        Route::put('/categories/{category}', [App\Http\Controllers\CustomPaymentController::class, 'categoriesUpdate'])->name('categories.update');
+        Route::delete('/categories/{category}', [App\Http\Controllers\CustomPaymentController::class, 'categoriesDestroy'])->name('categories.destroy');
+
+        Route::get('/deleted', [App\Http\Controllers\CustomPaymentController::class, 'deletedEntries'])->name('deleted');
+    });
+
+    // Notes (staff notebook with images and attachments) - Admin & Superuser
     Route::middleware('role:admin,superuser')->prefix('notes')->name('notes.')->group(function () {
-        Route::get('/', [App\Http\Controllers\NoteController::class, 'index'])->name('index');
-        Route::post('/entries', [App\Http\Controllers\NoteController::class, 'storeEntry'])->name('entries.store');
-        Route::put('/entries/{note}', [App\Http\Controllers\NoteController::class, 'updateEntry'])->name('entries.update');
-        Route::delete('/entries/{note}', [App\Http\Controllers\NoteController::class, 'destroyEntry'])->name('entries.destroy');
-        Route::post('/entries/{id}/restore', [App\Http\Controllers\NoteController::class, 'restoreEntry'])->name('entries.restore');
-
-        Route::get('/categories', [App\Http\Controllers\NoteController::class, 'categoriesIndex'])->name('categories.index');
-        Route::post('/categories', [App\Http\Controllers\NoteController::class, 'categoriesStore'])->name('categories.store');
-        Route::put('/categories/{category}', [App\Http\Controllers\NoteController::class, 'categoriesUpdate'])->name('categories.update');
-        Route::delete('/categories/{category}', [App\Http\Controllers\NoteController::class, 'categoriesDestroy'])->name('categories.destroy');
-
-        Route::get('/deleted', [App\Http\Controllers\NoteController::class, 'deletedEntries'])->name('deleted');
+        Route::get('/', [App\Http\Controllers\AdminNoteController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\AdminNoteController::class, 'create'])->name('create');
+        Route::get('/deleted', [App\Http\Controllers\AdminNoteController::class, 'deleted'])->name('deleted');
+        Route::post('/', [App\Http\Controllers\AdminNoteController::class, 'store'])->name('store');
+        Route::post('/files', [App\Http\Controllers\AdminNoteController::class, 'filesStore'])->name('files.store');
+        Route::get('/files/{file}', [App\Http\Controllers\AdminNoteController::class, 'filesShow'])->whereNumber('file')->name('files.show');
+        Route::get('/{note}', [App\Http\Controllers\AdminNoteController::class, 'edit'])->whereNumber('note')->name('edit');
+        Route::put('/{note}', [App\Http\Controllers\AdminNoteController::class, 'update'])->whereNumber('note')->name('update');
+        Route::delete('/{note}', [App\Http\Controllers\AdminNoteController::class, 'destroy'])->whereNumber('note')->name('destroy');
+        Route::post('/{id}/restore', [App\Http\Controllers\AdminNoteController::class, 'restore'])->whereNumber('id')->name('restore');
+        // Old Custom payments links (v1.0.37 and earlier)
+        Route::redirect('/categories', '/custom-payments/categories');
     });
 
     // Join requests - Admin & Superuser

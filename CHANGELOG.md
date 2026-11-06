@@ -2,6 +2,17 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.38] - 2026-11-06
+
+### Added
+- **Notes** — new staff notebook at `/notes` (menu and Home card), shared by all admins and superusers. Each note has a title, formatted text (bold, italic, underline, headings, lists, quotes, code, links), an optional member and attachments. Images can be pasted or dropped into the text. Search by title and text, filter by member; deleted notes can be restored. Ctrl/Cmd+S saves, and leaving with unsaved changes asks first.
+  - Pasted images and attachments are stored on the server in `storage/app/notes` (not public) and open only through the app for admins and superusers. Images up to 10 MB, attachments up to 50 MB, or less if the server's PHP upload limit is lower (the page shows the limit). Files removed from a note are deleted when it is saved; uploads never saved into a note are removed after 2 days.
+  - **Run `php artisan migrate` from the hosting panel after deploy** (creates `admin_notes` and `admin_note_files`). Notes do not work until it runs.
+
+### Changed
+- **Custom payments moved to `/custom-payments`** (old `/notes/categories` link redirects). Its menu item and Home card now use a banknote icon. Data and tables are unchanged.
+- "+ Add note" button on Custom payments now says "+ Add payment".
+
 ## [1.0.37] - 2026-11-06
 
 ### Changed
