@@ -156,8 +156,8 @@ export default function Home({ stats }) {
                                             <path d="M9 5l7 7-7 7" />
                                         </svg>
                                     </div>
-                                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Notes</h2>
-                                    <p className="text-gray-600">Per-member notes, not counted into the Ledger</p>
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Custom payments</h2>
+                                    <p className="text-gray-600">Per-member payments, not counted into the Ledger</p>
                                 </Link>
                             )}
 

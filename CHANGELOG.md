@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.37] - 2026-11-06
+
+### Changed
+- **"Notes" renamed to "Custom payments".** The admin section for per-member amounts kept outside the Ledger is now called Custom payments in the menu, on the Home card, on its pages (list, deleted, categories) and in its messages. The web address stays /notes; no data changes.
+
 ## [1.0.36] - 2026-10-27
 
 ### Changed

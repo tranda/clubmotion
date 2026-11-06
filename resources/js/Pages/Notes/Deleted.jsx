@@ -17,8 +17,8 @@ export default function NotesDeleted({ entries }) {
         <Layout>
             <div className="py-4 max-w-6xl mx-auto">
                 <div className="mb-4 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-800">Deleted notes</h1>
-                    <Link href="/notes" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Notes</Link>
+                    <h1 className="text-2xl font-bold text-gray-800">Deleted custom payments</h1>
+                    <Link href="/notes" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Custom payments</Link>
                 </div>
 
                 <div className="bg-white rounded-lg shadow overflow-x-auto">
@@ -36,7 +36,7 @@ export default function NotesDeleted({ entries }) {
                         </thead>
                         <tbody>
                             {entries.length === 0 && (
-                                <tr><td colSpan="7" className="px-3 py-6 text-center text-gray-400">No deleted notes.</td></tr>
+                                <tr><td colSpan="7" className="px-3 py-6 text-center text-gray-400">No deleted custom payments.</td></tr>
                             )}
                             {entries.map((e) => (
                                 <tr key={e.id} className="border-t border-gray-100 hover:bg-gray-50">

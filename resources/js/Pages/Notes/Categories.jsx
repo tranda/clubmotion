@@ -50,8 +50,8 @@ export default function NoteCategories({ categories }) {
         <Layout>
             <div className="py-4 max-w-3xl mx-auto">
                 <div className="mb-4 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-gray-800">Note categories</h1>
-                    <Link href="/notes" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Notes</Link>
+                    <h1 className="text-2xl font-bold text-gray-800">Custom payment categories</h1>
+                    <Link href="/notes" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Custom payments</Link>
                 </div>
 
                 <form onSubmit={submit} className="bg-white rounded-lg shadow p-4 mb-4">
@@ -106,7 +106,7 @@ export default function NoteCategories({ categories }) {
                         <thead>
                             <tr className="bg-gray-50 text-gray-600 uppercase text-xs">
                                 <th className="px-3 py-2 text-left">Name</th>
-                                <th className="px-3 py-2 text-right">Notes</th>
+                                <th className="px-3 py-2 text-right">Payments</th>
                                 <th className="px-3 py-2 text-right">Sort</th>
                                 <th className="px-3 py-2 text-left">Active</th>
                                 <th className="px-3 py-2 text-right">Actions</th>
@@ -139,7 +139,7 @@ export default function NoteCategories({ categories }) {
                 danger
                 confirmLabel="Delete"
                 message={confirmDelete && (
-                    <>Delete category <span className="font-semibold">"{confirmDelete.name}"</span>? Existing notes will keep their reference (just lose the category link).</>
+                    <>Delete category <span className="font-semibold">"{confirmDelete.name}"</span>? Existing payments will keep their reference (just lose the category link).</>
                 )}
                 onConfirm={confirmRemove}
                 onCancel={() => setConfirmDelete(null)}

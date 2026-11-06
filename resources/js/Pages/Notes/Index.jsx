@@ -213,7 +213,7 @@ export default function NotesIndex({
         <Layout>
             <div className="py-4 max-w-6xl mx-auto">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                    <h1 className="text-2xl font-bold text-gray-800">Notes</h1>
+                    <h1 className="text-2xl font-bold text-gray-800">Custom payments</h1>
                     <div className="flex flex-wrap items-center gap-2">
                         <Link
                             href="/notes/categories"
@@ -266,7 +266,7 @@ export default function NotesIndex({
                 {showForm && (
                     <form onSubmit={submit} className="bg-white rounded-lg shadow p-4 mb-4">
                         <h2 className="text-sm font-semibold text-gray-600 mb-3">
-                            {editing ? 'Edit note' : 'Add note'}
+                            {editing ? 'Edit payment' : 'Add payment'}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                             <div>
@@ -369,7 +369,7 @@ export default function NotesIndex({
                             {entries.length === 0 && (
                                 <tr>
                                     <td colSpan="6" className="px-3 py-6 text-center text-gray-400">
-                                        {filtersActive ? 'No notes match the current filters.' : 'No notes yet.'}
+                                        {filtersActive ? 'No payments match the current filters.' : 'No custom payments yet.'}
                                     </td>
                                 </tr>
                             )}
@@ -425,12 +425,12 @@ export default function NotesIndex({
 
             <ConfirmModal
                 open={!!confirmDelete}
-                title="Delete note?"
+                title="Delete payment?"
                 danger
                 confirmLabel="Delete"
                 message={confirmDelete && (
                     <>
-                        Delete this note?
+                        Delete this payment?
                         <div className="mt-2 text-xs text-gray-500">
                             {confirmDelete.entry_date_display}
                             {confirmDelete.member ? ` · ${confirmDelete.member.name}` : ''}

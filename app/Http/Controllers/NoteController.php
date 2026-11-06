@@ -78,7 +78,7 @@ class NoteController extends Controller
             'updated_by' => auth()->id(),
         ]));
 
-        return redirect()->back()->with('success', 'Note added.');
+        return redirect()->back()->with('success', 'Payment added.');
     }
 
     public function updateEntry(Request $request, Note $note)
@@ -89,7 +89,7 @@ class NoteController extends Controller
         $note->updated_by = auth()->id();
         $note->save();
 
-        return redirect()->back()->with('success', 'Note updated.');
+        return redirect()->back()->with('success', 'Payment updated.');
     }
 
     public function destroyEntry(Note $note)
@@ -98,7 +98,7 @@ class NoteController extends Controller
         $note->save();
         $note->delete();
 
-        return redirect()->back()->with('success', 'Note deleted.');
+        return redirect()->back()->with('success', 'Payment deleted.');
     }
 
     public function restoreEntry(int $id)
@@ -108,7 +108,7 @@ class NoteController extends Controller
         $note->deleted_by = null;
         $note->save();
 
-        return redirect()->back()->with('success', 'Note restored.');
+        return redirect()->back()->with('success', 'Payment restored.');
     }
 
     private function validateEntry(Request $request): array
