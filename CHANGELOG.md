@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.40] - 2026-11-06
+
+### Changed
+- **Database updates moved to Settings → App settings** (`/settings/app`, admins only). The new "App settings" item on the Settings page holds app maintenance; Database updates is its first section. Removed from the Tools page.
+
 ## [1.0.39] - 2026-11-06
 
 ### Added

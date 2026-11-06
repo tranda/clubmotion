@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 // Settings home (admin & superuser): club-wide configuration.
@@ -8,13 +8,22 @@ const SECTIONS = [
     { href: '/settings/categories', title: 'Member categories', text: 'IDBF categories and age ranges used to assign members automatically.' },
 ];
 
+// Shown to admins only.
+const ADMIN_SECTIONS = [
+    { href: '/settings/app', title: 'App settings', text: 'App maintenance, such as database updates after a new version.' },
+];
+
 export default function SettingsIndex() {
+    const { auth } = usePage().props;
+    const isAdmin = auth.user?.role?.name === 'admin';
+    const sections = isAdmin ? [...SECTIONS, ...ADMIN_SECTIONS] : SECTIONS;
+
     return (
         <Layout>
             <div className="max-w-3xl mx-auto py-6">
                 <h1 className="text-2xl font-bold text-gray-900 mb-4">Settings</h1>
                 <div className="space-y-3">
-                    {SECTIONS.map((s) => (
+                    {sections.map((s) => (
                         <Link key={s.href} href={s.href} className="flex items-center justify-between bg-white rounded-lg shadow p-4 hover:bg-gray-50">
                             <span>
                                 <span className="block font-semibold text-gray-900">{s.title}</span>

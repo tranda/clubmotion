@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
-import DatabaseUpdates from '../../Components/Tools/DatabaseUpdates';
 
 const PRESET_DISTANCES = [200, 500, 1000, 2000];
 
@@ -128,7 +127,7 @@ function coefsToStrings(coefs) {
     return result;
 }
 
-export default function ToolsIndex({ coefs: serverCoefs, dbUpdates }) {
+export default function ToolsIndex({ coefs: serverCoefs }) {
     // Mode: 'time' (distance + time -> speed) | 'speed' (distance + GPS speed -> time) | 'distance' (speed + time -> distance, no wind)
     const [mode, setMode] = useState('time');
 
@@ -559,8 +558,6 @@ export default function ToolsIndex({ coefs: serverCoefs, dbUpdates }) {
                         Min. korigovana brzina: 0.1 km/h.
                     </div>
                 </div>
-
-                {dbUpdates && <DatabaseUpdates status={dbUpdates} />}
             </div>
         </Layout>
     );

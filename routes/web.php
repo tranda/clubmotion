@@ -348,6 +348,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/events/sync', [App\Http\Controllers\EventsSyncController::class, 'preview'])->name('events.sync');
         Route::post('/events/sync/pull', [App\Http\Controllers\EventsSyncController::class, 'pull'])->name('events.sync.pull');
         Route::post('/events/sync/push', [App\Http\Controllers\EventsSyncController::class, 'push'])->name('events.sync.push');
+        // App settings (database updates / migrations) - admins only.
+        Route::get('/app', [App\Http\Controllers\DatabaseUpdatesController::class, 'index'])->middleware('role:admin')->name('app');
+        Route::post('/app/database', [App\Http\Controllers\DatabaseUpdatesController::class, 'run'])->middleware('role:admin')->name('app.database');
         // Old link (v1.0.10)
         Route::redirect('/events/edbf-sync', '/settings/events/sync');
     });
@@ -356,7 +359,6 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin,superuser')->prefix('tools')->name('tools.')->group(function () {
         Route::get('/', [App\Http\Controllers\ToolsController::class, 'index'])->name('index');
         Route::put('/coefs', [App\Http\Controllers\ToolsController::class, 'updateCoefs'])->name('coefs.update');
-        Route::post('/migrate', [App\Http\Controllers\ToolsController::class, 'runMigrations'])->middleware('role:admin')->name('migrate');
     });
 
     // Test email sender - Admin only (verify SMTP config)
