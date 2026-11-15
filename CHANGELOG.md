@@ -2,6 +2,20 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.42] - 2026-11-15
+
+### Added
+- **Images on trainings** — separate "Images" section in the training form (thumbnails, add/remove). On the training page images show as a gallery; tap one to open it full screen (arrows/swipe, Download).
+- **Video links on trainings** — up to 10 links per training with an optional label. YouTube (watch, youtu.be, Shorts) and Vimeo play right on the training page (YouTube without tracking cookies); other links open in a new tab. Calendar and list show file (📎) and video (▶) counts.
+- **Trainings → Import** (admins and superusers) — adds many trainings at once from a prepared `trainings-import.json` plus its images and PDFs. Shows the list first (new / already in the app / missing files), then imports one training per request with a progress bar. Trainings with the same type, date and title are skipped, so re-running is safe. A file used by many trainings (e.g. the whole plan PDF) is uploaded once and shared.
+
+### Changed
+- **Every training now needs a date.** The "Programs" (no date) section is gone; past trainings stay in the calendar and in List → Past as the archive.
+- Removing a shared file from one training no longer deletes it for the others.
+
+### Database
+- **After deploy, run Settings → App settings → Database updates** (adds `links` to `trainings`). Until then the Trainings page shows a notice.
+
 ## [1.0.41] - 2026-11-15
 
 ### Added

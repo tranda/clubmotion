@@ -19,6 +19,7 @@ class Training extends Model
         'title',
         'training_date',
         'description',
+        'links',
         'created_by',
         'updated_by',
         'deleted_by',
@@ -26,6 +27,7 @@ class Training extends Model
 
     protected $casts = [
         'training_date' => 'date',
+        'links' => 'array', // [{url, label}]
     ];
 
     public function files()

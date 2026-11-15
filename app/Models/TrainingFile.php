@@ -24,9 +24,13 @@ class TrainingFile extends Model
 
     protected static function booted()
     {
-        // Remove the stored file together with its row.
+        // Remove the stored file together with its row, unless another training still
+        // uses the same stored file (imports share one copy of a whole-plan PDF).
         static::deleting(function (TrainingFile $file) {
-            Storage::disk(self::DISK)->delete($file->path);
+            $shared = static::where('path', $file->path)->where('id', '!=', $file->id)->exists();
+            if (!$shared) {
+                Storage::disk(self::DISK)->delete($file->path);
+            }
         });
     }
 

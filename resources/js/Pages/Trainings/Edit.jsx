@@ -1,13 +1,15 @@
 import { Link, router, useForm } from '@inertiajs/react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Layout from '../../Components/Layout';
 import ConfirmModal from '../../Components/ConfirmModal';
-import { formatSize } from '../../Components/Trainings/shared';
+import { IMAGE_EXTENSIONS, formatSize, isImageMime } from '../../Components/Trainings/shared';
 
 export default function TrainingEdit({ training, defaultType, defaultDate = '', limits }) {
     const isNew = !training;
     const fileInput = useRef(null);
+    const imageInput = useRef(null);
     const [fileError, setFileError] = useState('');
+    const [imageError, setImageError] = useState('');
     const [confirmDelete, setConfirmDelete] = useState(false);
 
     const form = useForm({
@@ -15,12 +17,16 @@ export default function TrainingEdit({ training, defaultType, defaultDate = '', 
         title: training?.title || '',
         training_date: training ? (training.date || '') : defaultDate,
         description: training?.description || '',
+        links: training?.links || [],
+        images: [],
         files: [],
         remove_file_ids: [],
     });
     const { data, setData, errors, processing, progress } = form;
 
     const keptFiles = (training?.files || []).filter((f) => !data.remove_file_ids.includes(f.id));
+    const keptImages = keptFiles.filter((f) => isImageMime(f.mime));
+    const keptDocs = keptFiles.filter((f) => !isImageMime(f.mime));
     const removedFiles = (training?.files || []).filter((f) => data.remove_file_ids.includes(f.id));
 
     const addFiles = (list) => {
@@ -40,9 +46,25 @@ export default function TrainingEdit({ training, defaultType, defaultDate = '', 
         if (fileInput.current) fileInput.current.value = '';
     };
 
-    const newBytes = data.files.reduce((sum, f) => sum + f.size, 0);
+    const addImages = (list) => {
+        setImageError('');
+        const ok = [];
+        const problems = [];
+        for (const f of Array.from(list || [])) {
+            const ext = (f.name.split('.').pop() || '').toLowerCase();
+            if (!IMAGE_EXTENSIONS.includes(ext)) problems.push(`${f.name}: use JPG, PNG, GIF or WebP`);
+            else if (limits.file_bytes && f.size > limits.file_bytes) problems.push(`${f.name}: larger than ${formatSize(limits.file_bytes)}`);
+            else ok.push(f);
+        }
+        if (problems.length) setImageError(problems.join(' · '));
+        if (ok.length) setData('images', [...data.images, ...ok]);
+        if (imageInput.current) imageInput.current.value = '';
+    };
+
+    const newUploads = [...data.images, ...data.files];
+    const newBytes = newUploads.reduce((sum, f) => sum + f.size, 0);
     const tooBig = limits.total_bytes && newBytes > limits.total_bytes * 0.95;
-    const tooMany = limits.max_files && data.files.length > limits.max_files;
+    const tooMany = limits.max_files && newUploads.length > limits.max_files;
 
     const submit = (e) => {
         e.preventDefault();
@@ -56,6 +78,7 @@ export default function TrainingEdit({ training, defaultType, defaultDate = '', 
     };
 
     const fileErrors = Object.entries(errors).filter(([k]) => k.startsWith('files')).map(([, v]) => v);
+    const imageErrors = Object.entries(errors).filter(([k]) => k.startsWith('images')).map(([, v]) => v);
 
     return (
         <Layout>
@@ -108,9 +131,9 @@ export default function TrainingEdit({ training, defaultType, defaultDate = '', 
                                 type="date"
                                 value={data.training_date}
                                 onChange={(e) => setData('training_date', e.target.value)}
+                                required
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                             />
-                            <span className="mt-1 block text-xs text-gray-500">Leave empty for a general program.</span>
                             {errors.training_date && <p className="mt-1 text-sm text-red-600">{errors.training_date}</p>}
                         </label>
                     </div>
@@ -128,11 +151,108 @@ export default function TrainingEdit({ training, defaultType, defaultDate = '', 
                     </label>
 
                     <div>
+                        <span className="block text-sm font-medium text-gray-700 mb-1">Images</span>
+                        <div
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => { e.preventDefault(); addImages(e.dataTransfer.files); }}
+                            className="grid grid-cols-3 sm:grid-cols-5 gap-2"
+                        >
+                            {keptImages.map((f) => (
+                                <Thumb
+                                    key={`old-${f.id}`}
+                                    src={f.url}
+                                    name={f.name}
+                                    onRemove={() => setData('remove_file_ids', [...data.remove_file_ids, f.id])}
+                                />
+                            ))}
+                            {data.images.map((f, i) => (
+                                <Thumb
+                                    key={`new-${i}-${f.name}`}
+                                    file={f}
+                                    name={f.name}
+                                    isNew
+                                    onRemove={() => setData('images', data.images.filter((_, j) => j !== i))}
+                                />
+                            ))}
+                            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-center text-xs text-gray-500 hover:border-blue-400 hover:bg-blue-50">
+                                <input
+                                    ref={imageInput}
+                                    type="file"
+                                    multiple
+                                    accept="image/jpeg,image/png,image/gif,image/webp"
+                                    onChange={(e) => addImages(e.target.files)}
+                                    className="sr-only"
+                                />
+                                <span className="text-2xl leading-none text-blue-600">+</span>
+                                <span className="mt-1 font-medium text-blue-600">Add images</span>
+                            </label>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">Photos, drawings or screenshots of the plan. They show as a gallery on the training page.</p>
+                        {imageError && <p className="mt-1 text-sm text-red-600">{imageError}</p>}
+                        {imageErrors.map((msg, i) => <p key={i} className="mt-1 text-sm text-red-600">{msg}</p>)}
+                    </div>
+
+                    <div>
+                        <span className="block text-sm font-medium text-gray-700 mb-1">Video links</span>
+                        {data.links.length > 0 && (
+                            <div className="mb-2 space-y-2">
+                                {data.links.map((l, i) => {
+                                    const setLink = (field, value) => setData('links', data.links.map((x, j) => (j === i ? { ...x, [field]: value } : x)));
+                                    return (
+                                        <div key={i}>
+                                            <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+                                                <input
+                                                    type="url"
+                                                    value={l.url}
+                                                    onChange={(e) => setLink('url', e.target.value)}
+                                                    placeholder="https://youtu.be/…"
+                                                    required
+                                                    className="min-w-0 flex-[2] px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={l.label || ''}
+                                                    onChange={(e) => setLink('label', e.target.value)}
+                                                    placeholder="Label (optional)"
+                                                    maxLength={100}
+                                                    className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setData('links', data.links.filter((_, j) => j !== i))}
+                                                    className="px-2 text-gray-400 hover:text-red-600"
+                                                    aria-label="Remove link"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                            {(errors[`links.${i}.url`] || errors[`links.${i}.label`]) && (
+                                                <p className="mt-1 text-sm text-red-600">{errors[`links.${i}.url`] || errors[`links.${i}.label`]}</p>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        {data.links.length < 10 && (
+                            <button
+                                type="button"
+                                onClick={() => setData('links', [...data.links, { url: '', label: '' }])}
+                                className="text-sm text-blue-600 hover:underline"
+                            >
+                                + Add video link
+                            </button>
+                        )}
+                        <p className="mt-1 text-xs text-gray-500">YouTube and Vimeo videos play right on the training page; other links open in a new tab.</p>
+                        {errors.links && <p className="mt-1 text-sm text-red-600">{errors.links}</p>}
+                    </div>
+
+                    <div>
                         <span className="block text-sm font-medium text-gray-700 mb-1">Files</span>
 
-                        {(keptFiles.length > 0 || data.files.length > 0) && (
+                        {(keptDocs.length > 0 || data.files.length > 0) && (
                             <ul className="mb-2 divide-y divide-gray-100 border border-gray-200 rounded-lg">
-                                {keptFiles.map((f) => (
+                                {keptDocs.map((f) => (
                                     <FileRow
                                         key={`old-${f.id}`}
                                         name={f.name}
@@ -180,7 +300,7 @@ export default function TrainingEdit({ training, defaultType, defaultDate = '', 
                             />
                             <span className="font-medium text-blue-600">Add files</span>
                             <span className="text-xs text-gray-500">
-                                PDF, images, Word/Excel, video · up to {formatSize(limits.file_bytes)} each
+                                PDF, Word/Excel, video files · up to {formatSize(limits.file_bytes)} each
                             </span>
                         </label>
 
@@ -252,5 +372,30 @@ function FileRow({ name, size, isNew, onRemove }) {
                 ✕
             </button>
         </li>
+    );
+}
+
+function Thumb({ src, file, name, isNew, onRemove }) {
+    const [url, setUrl] = useState(src || null);
+    useEffect(() => {
+        if (!file) return undefined;
+        const objectUrl = URL.createObjectURL(file);
+        setUrl(objectUrl);
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [file]);
+
+    return (
+        <div className="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+            {url && <img src={url} alt={name} className="h-full w-full object-cover" />}
+            {isNew && <span className="absolute bottom-1 left-1 rounded bg-green-600 px-1.5 text-[10px] font-medium text-white">new</span>}
+            <button
+                type="button"
+                onClick={onRemove}
+                aria-label={`Remove ${name}`}
+                className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-white hover:bg-red-600"
+            >
+                ✕
+            </button>
+        </div>
     );
 }

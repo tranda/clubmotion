@@ -2,6 +2,11 @@
 
 export const TYPE_LABELS = { water: 'Water', gym: 'Gym' };
 
+// Images shown in the gallery (the browser can display these). Keep in sync with TrainingController.
+export const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+export const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+export const isImageMime = (mime) => IMAGE_MIMES.includes(mime);
+
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 // "2026-11-15" → "Sun 15.11.2026" (read as a local date, no timezone shift).
@@ -35,4 +40,34 @@ export function TypeBadge({ type }) {
             {type === 'gym' ? '🏋️' : '🚣'} {TYPE_LABELS[type] || type}
         </span>
     );
+}
+
+// YouTube / Vimeo address → embeddable player address; other links → null.
+export function videoEmbedUrl(url) {
+    let u;
+    try { u = new URL(url); } catch { return null; }
+    const host = u.hostname.replace(/^www\.|^m\./, '');
+    let id = null;
+    if (host === 'youtu.be') id = u.pathname.slice(1).split('/')[0];
+    else if (host === 'youtube.com' || host === 'music.youtube.com') {
+        if (u.pathname === '/watch') id = u.searchParams.get('v');
+        else {
+            const m = u.pathname.match(/^\/(?:shorts|embed|live)\/([^/?#]+)/);
+            if (m) id = m[1];
+        }
+    }
+    if (id && /^[\w-]{6,20}$/.test(id)) {
+        const t = parseInt(u.searchParams.get('t') || u.searchParams.get('start') || '', 10);
+        return `https://www.youtube-nocookie.com/embed/${id}${t > 0 ? `?start=${t}` : ''}`;
+    }
+    if (host === 'vimeo.com') {
+        const m = u.pathname.match(/^\/(\d+)/);
+        if (m) return `https://player.vimeo.com/video/${m[1]}`;
+    }
+    return null;
+}
+
+export function linkLabel(link) {
+    if (link.label) return link.label;
+    try { return new URL(link.url).hostname.replace(/^www\./, ''); } catch { return link.url; }
 }

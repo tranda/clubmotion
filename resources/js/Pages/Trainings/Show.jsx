@@ -1,8 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import Layout from '../../Components/Layout';
-import { TypeBadge, formatDate, formatSize, isToday } from '../../Components/Trainings/shared';
+import { TypeBadge, formatDate, formatSize, isImageMime, isToday, linkLabel, videoEmbedUrl } from '../../Components/Trainings/shared';
 
-const isImage = (f) => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(f.mime);
+const isImage = (f) => isImageMime(f.mime);
 const isPdf = (f) => f.mime === 'application/pdf';
 
 export default function TrainingShow({ training: t }) {
@@ -11,7 +12,11 @@ export default function TrainingShow({ training: t }) {
     const canManage = role === 'admin' || role === 'superuser';
 
     const images = t.files.filter(isImage);
+    const [viewing, setViewing] = useState(null); // index of the image open in the viewer
     const others = t.files.filter((f) => !isImage(f));
+    const links = t.links || [];
+    const embeds = links.map((l) => ({ ...l, embed: videoEmbedUrl(l.url) })).filter((l) => l.embed);
+    const plainLinks = links.filter((l) => !videoEmbedUrl(l.url));
 
     return (
         <Layout>
@@ -33,7 +38,7 @@ export default function TrainingShow({ training: t }) {
                 <div className="bg-white rounded-lg shadow p-5">
                     <div className="flex flex-wrap items-center gap-2 text-sm">
                         <TypeBadge type={t.type} />
-                        <span className="text-gray-600">{t.date ? formatDate(t.date) : 'Program (no fixed date)'}</span>
+                        {t.date && <span className="text-gray-600">{formatDate(t.date)}</span>}
                         {isToday(t.date) && (
                             <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-600 text-white">Today</span>
                         )}
@@ -42,6 +47,74 @@ export default function TrainingShow({ training: t }) {
 
                     {t.description && (
                         <div className="mt-4 text-gray-800 whitespace-pre-wrap break-words leading-relaxed">{t.description}</div>
+                    )}
+
+                    {images.length === 1 && (
+                        <button type="button" onClick={() => setViewing(0)} className="mt-5 block w-full">
+                            <img src={images[0].url} alt={images[0].name} className="w-full max-h-[32rem] object-contain rounded-lg border border-gray-200 bg-gray-50" />
+                        </button>
+                    )}
+                    {images.length > 1 && (
+                        <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {images.map((f, i) => (
+                                <button
+                                    key={f.id}
+                                    type="button"
+                                    onClick={() => setViewing(i)}
+                                    className="aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+                                >
+                                    <img src={f.url} alt={f.name} loading="lazy" className="h-full w-full object-cover hover:scale-105 transition-transform" />
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {embeds.length > 0 && (
+                        <div className="mt-5 space-y-4">
+                            {embeds.map((l, i) => (
+                                <figure key={i}>
+                                    <div className="relative w-full overflow-hidden rounded-lg bg-black" style={{ paddingTop: '56.25%' }}>
+                                        <iframe
+                                            src={l.embed}
+                                            title={linkLabel(l)}
+                                            className="absolute inset-0 h-full w-full"
+                                            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                                            allowFullScreen
+                                            loading="lazy"
+                                            referrerPolicy="strict-origin-when-cross-origin"
+                                        />
+                                    </div>
+                                    <figcaption className="mt-1 flex items-center justify-between gap-2 text-sm text-gray-600">
+                                        <span className="truncate">{l.label || ''}</span>
+                                        <a href={l.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-blue-600 hover:underline">
+                                            Open in app ↗
+                                        </a>
+                                    </figcaption>
+                                </figure>
+                            ))}
+                        </div>
+                    )}
+
+                    {plainLinks.length > 0 && (
+                        <ul className="mt-5 space-y-2">
+                            {plainLinks.map((l, i) => (
+                                <li key={i}>
+                                    <a
+                                        href={l.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
+                                    >
+                                        <span className="text-xl" aria-hidden>▶️</span>
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block truncate text-sm font-medium text-gray-900">{linkLabel(l)}</span>
+                                            <span className="block truncate text-xs text-gray-500">{l.url}</span>
+                                        </span>
+                                        <span className="text-sm text-blue-600">Open ↗</span>
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
                     )}
 
                     {others.length > 0 && (
@@ -74,17 +147,7 @@ export default function TrainingShow({ training: t }) {
                         </ul>
                     )}
 
-                    {images.length > 0 && (
-                        <div className="mt-5 space-y-3">
-                            {images.map((f) => (
-                                <a key={f.id} href={f.url} target="_blank" rel="noopener" className="block">
-                                    <img src={f.url} alt={f.name} loading="lazy" className="w-full rounded-lg border border-gray-200" />
-                                </a>
-                            ))}
-                        </div>
-                    )}
-
-                    {!t.description && t.files.length === 0 && (
+                    {!t.description && t.files.length === 0 && links.length === 0 && (
                         <p className="mt-4 text-sm text-gray-500">No details added yet.</p>
                     )}
 
@@ -95,6 +158,85 @@ export default function TrainingShow({ training: t }) {
                     )}
                 </div>
             </div>
+
+            {viewing !== null && images[viewing] && (
+                <ImageViewer images={images} index={viewing} onChange={setViewing} onClose={() => setViewing(null)} />
+            )}
         </Layout>
+    );
+}
+
+// Full-screen image viewer: arrows / swipe to move, Esc or tap outside to close.
+function ImageViewer({ images, index, onChange, onClose }) {
+    const count = images.length;
+    const go = (step) => onChange((index + step + count) % count);
+    const [touchX, setTouchX] = useState(null);
+
+    useEffect(() => {
+        const onKey = (e) => {
+            if (e.key === 'Escape') onClose();
+            else if (e.key === 'ArrowRight' && count > 1) go(1);
+            else if (e.key === 'ArrowLeft' && count > 1) go(-1);
+        };
+        window.addEventListener('keydown', onKey);
+        const overflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            document.body.style.overflow = overflow;
+        };
+    });
+
+    const img = images[index];
+    return (
+        <div
+            className="fixed inset-0 z-50 flex flex-col bg-black/90"
+            role="dialog"
+            aria-modal="true"
+            onClick={onClose}
+            onTouchStart={(e) => setTouchX(e.touches[0].clientX)}
+            onTouchEnd={(e) => {
+                if (touchX === null || count < 2) return;
+                const dx = e.changedTouches[0].clientX - touchX;
+                if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+                setTouchX(null);
+            }}
+        >
+            <div className="flex items-center justify-between gap-2 p-3 text-sm text-white/80" onClick={(e) => e.stopPropagation()}>
+                <span className="truncate">{count > 1 ? `${index + 1} / ${count} · ` : ''}{img.name}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                    <a href={`${img.url}?download=1`} className="rounded px-2 py-1 hover:bg-white/10">Download</a>
+                    <button type="button" onClick={onClose} aria-label="Close" className="h-8 w-8 rounded-full text-xl hover:bg-white/10">✕</button>
+                </div>
+            </div>
+            <div className="relative flex min-h-0 flex-1 items-center justify-center p-2">
+                <img
+                    src={img.url}
+                    alt={img.name}
+                    onClick={(e) => e.stopPropagation()}
+                    className="max-h-full max-w-full object-contain"
+                />
+                {count > 1 && (
+                    <>
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); go(-1); }}
+                            aria-label="Previous image"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 text-2xl text-white hover:bg-white/20"
+                        >
+                            ‹
+                        </button>
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); go(1); }}
+                            aria-label="Next image"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/10 text-2xl text-white hover:bg-white/20"
+                        >
+                            ›
+                        </button>
+                    </>
+                )}
+            </div>
+        </div>
     );
 }

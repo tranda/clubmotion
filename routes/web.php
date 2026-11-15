@@ -329,6 +329,9 @@ Route::middleware('auth')->group(function () {
     Route::prefix('trainings')->name('trainings.')->group(function () {
         Route::middleware('role:admin,superuser')->group(function () {
             Route::get('/create', [App\Http\Controllers\TrainingController::class, 'create'])->name('create');
+            Route::get('/import', [App\Http\Controllers\TrainingController::class, 'importPage'])->name('import');
+            Route::post('/import/check', [App\Http\Controllers\TrainingController::class, 'importCheck'])->name('import.check');
+            Route::post('/import/item', [App\Http\Controllers\TrainingController::class, 'importItem'])->name('import.item');
             Route::post('/', [App\Http\Controllers\TrainingController::class, 'store'])->name('store');
             Route::get('/{training}/edit', [App\Http\Controllers\TrainingController::class, 'edit'])->whereNumber('training')->name('edit');
             Route::put('/{training}', [App\Http\Controllers\TrainingController::class, 'update'])->whereNumber('training')->name('update');

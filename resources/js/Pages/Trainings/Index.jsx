@@ -28,7 +28,7 @@ const pillClass = (type) => (type === 'gym'
 const dotClass = (type) => (type === 'gym' ? 'bg-orange-500' : 'bg-sky-500');
 
 export default function TrainingsIndex(props) {
-    const { notReady, view = 'month', undated = [], filters = {} } = props;
+    const { notReady, view = 'month', filters = {} } = props;
     const { auth } = usePage().props;
     const role = auth.user?.role?.name || 'user';
     const canManage = role === 'admin' || role === 'superuser';
@@ -58,9 +58,14 @@ export default function TrainingsIndex(props) {
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                     <h1 className="text-2xl font-bold text-gray-800">Trainings</h1>
                     {canManage && !notReady && (
-                        <Link href={createHref('')} className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                            + New training
-                        </Link>
+                        <div className="flex items-center gap-2">
+                            <Link href="/trainings/import" className="px-3 py-2 text-sm bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200">
+                                Import
+                            </Link>
+                            <Link href={createHref('')} className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                + New training
+                            </Link>
+                        </div>
                     )}
                 </div>
 
@@ -88,12 +93,6 @@ export default function TrainingsIndex(props) {
                                 onNavigate={(date) => go({ date })}
                                 onOpenWeek={(date) => go({ view: 'week', date })}
                             />
-                        )}
-
-                        {undated.length > 0 && (
-                            <div className="mt-6">
-                                <Section title="Programs" hint="No fixed date" items={undated} />
-                            </div>
                         )}
                     </>
                 )}
@@ -347,7 +346,12 @@ function WeekColumn({ date, weekday, items, isToday, canManage, createHref }) {
                 {items.map((t) => (
                     <Link key={t.id} href={`/trainings/${t.id}`} className={`block rounded px-2 py-1.5 ${pillClass(t.type)}`}>
                         <div className="text-sm font-medium leading-snug break-words">{t.title}</div>
-                        {t.files_count > 0 && <div className="mt-0.5 text-xs opacity-75">📎 {t.files_count}</div>}
+                        {(t.files_count > 0 || t.links_count > 0) && (
+                            <div className="mt-0.5 text-xs opacity-75">
+                                {t.files_count > 0 && <span>📎 {t.files_count}</span>}
+                                {t.links_count > 0 && <span className="ml-2">▶ {t.links_count}</span>}
+                            </div>
+                        )}
                     </Link>
                 ))}
                 {items.length === 0 && <div className="sm:hidden text-xs text-gray-400">—</div>}
@@ -436,9 +440,10 @@ function TrainingCard({ training: t }) {
                     <TypeBadge type={t.type} />
                     {t.date && <span className="text-gray-600">{formatDate(t.date)}</span>}
                     {today && <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-600 text-white">Today</span>}
-                    {t.files_count > 0 && (
+                    {(t.files_count > 0 || t.links_count > 0) && (
                         <span className="ml-auto text-xs text-gray-500">
-                            📎 {t.files_count} {t.files_count === 1 ? 'file' : 'files'}
+                            {t.files_count > 0 && <>📎 {t.files_count} {t.files_count === 1 ? 'file' : 'files'}</>}
+                            {t.links_count > 0 && <span className="ml-2">▶ {t.links_count} {t.links_count === 1 ? 'video' : 'videos'}</span>}
                         </span>
                     )}
                 </div>

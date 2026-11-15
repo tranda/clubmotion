@@ -34,7 +34,7 @@ class TrainingController extends Controller
     public function index(Request $request)
     {
         // The page shows a notice instead of failing until the database update has run.
-        if (!Schema::hasTable('trainings')) {
+        if (!self::ready()) {
             return Inertia::render('Trainings/Index', ['notReady' => true]);
         }
 
@@ -48,13 +48,9 @@ class TrainingController extends Controller
             ->when($type !== '', fn ($q) => $q->where('type', $type));
         $format = fn ($items) => $items->map(fn (Training $t) => $this->formatListItem($t))->values();
 
-        $undated = $base()->whereNull('training_date')
-            ->orderByDesc('updated_at')->get();
-
         $props = [
             'notReady' => false,
             'view' => $view,
-            'undated' => $format($undated),
             'filters' => ['type' => $type, 'older' => $showOlder],
         ];
 
@@ -109,6 +105,7 @@ class TrainingController extends Controller
         ]);
     }
 
+
     public function create(Request $request)
     {
         $type = in_array($request->input('type'), Training::TYPES, true) ? $request->input('type') : Training::TYPE_WATER;
@@ -128,6 +125,7 @@ class TrainingController extends Controller
         return Inertia::render('Trainings/Edit', [
             'training' => $this->formatFull($training),
             'defaultType' => $training->type,
+            'defaultDate' => '',
             'limits' => $this->limits(),
         ]);
     }
@@ -143,10 +141,11 @@ class TrainingController extends Controller
             'title' => $data['title'],
             'training_date' => $data['training_date'],
             'description' => $data['description'],
+            'links' => $data['links'],
             'created_by' => auth()->id(),
             'updated_by' => auth()->id(),
         ]);
-        $this->storeFiles($training, $request->file('files', []));
+        $this->storeFiles($training, array_merge($request->file('images', []), $request->file('files', [])));
 
         return redirect()->route('trainings.show', $training)->with('success', 'Training saved.');
     }
@@ -160,6 +159,7 @@ class TrainingController extends Controller
             'title' => $data['title'],
             'training_date' => $data['training_date'],
             'description' => $data['description'],
+            'links' => $data['links'],
         ]);
         $training->updated_by = auth()->id();
         $training->save();
@@ -168,7 +168,7 @@ class TrainingController extends Controller
             // One by one so the model event removes the stored file too.
             $training->files()->whereIn('id', $data['remove_file_ids'])->get()->each->delete();
         }
-        $this->storeFiles($training, $request->file('files', []));
+        $this->storeFiles($training, array_merge($request->file('images', []), $request->file('files', [])));
 
         return redirect()->route('trainings.show', $training)->with('success', 'Training saved.');
     }
@@ -180,6 +180,101 @@ class TrainingController extends Controller
         $training->delete();
 
         return redirect()->route('trainings.index')->with('success', 'Training deleted.');
+    }
+
+    // ─── Import ──────────────────────────────────────────────────────────────
+    //
+    // Bulk import from a prepared file (trainings-import.json) plus its images and PDFs.
+    // The page reads the file in the browser, shows what will be added, then sends one
+    // training per request, so no single request goes over the server's upload limits.
+    // A file used by many trainings (e.g. the whole plan PDF) is uploaded once and then
+    // linked to the others with copy_file_ids.
+
+    public function importPage()
+    {
+        return Inertia::render('Trainings/Import', [
+            'notReady' => !self::ready(),
+            'limits' => $this->limits(),
+        ]);
+    }
+
+    // Which of the given trainings already exist (same type, date and title).
+    public function importCheck(Request $request)
+    {
+        abort_unless(self::ready(), 409, 'Run the database updates first.');
+        $data = $request->validate([
+            'items' => 'required|array|max:2000',
+            'items.*.type' => 'required|string',
+            'items.*.date' => 'required|date_format:Y-m-d',
+            'items.*.title' => 'required|string|max:200',
+        ]);
+
+        $dates = collect($data['items'])->pluck('date')->sort()->values();
+        $existing = Training::whereDate('training_date', '>=', $dates->first())
+            ->whereDate('training_date', '<=', $dates->last())
+            ->get(['type', 'training_date', 'title'])
+            ->map(fn ($t) => self::importKey($t->type, $t->training_date->toDateString(), $t->title))
+            ->flip();
+
+        return response()->json([
+            'existing' => collect($data['items'])
+                ->filter(fn ($i) => isset($existing[self::importKey($i['type'], $i['date'], $i['title'])]))
+                ->map(fn ($i) => self::importKey($i['type'], $i['date'], $i['title']))
+                ->values(),
+        ]);
+    }
+
+    public function importItem(Request $request)
+    {
+        abort_unless(self::ready(), 409, 'Run the database updates first.');
+        $data = $this->validateTraining($request);
+        $copyIds = array_map('intval', $request->validate([
+            'copy_file_ids' => 'nullable|array|max:20',
+            'copy_file_ids.*' => 'integer',
+        ])['copy_file_ids'] ?? []);
+
+        // Running the same import twice does not create duplicates.
+        $existing = Training::where('type', $data['type'])
+            ->whereDate('training_date', $data['training_date'])
+            ->where('title', $data['title'])
+            ->first();
+        if ($existing) {
+            return response()->json(['id' => $existing->id, 'skipped' => true, 'files' => []]);
+        }
+
+        $training = Training::create([
+            'type' => $data['type'],
+            'title' => $data['title'],
+            'training_date' => $data['training_date'],
+            'description' => $data['description'],
+            'links' => $data['links'],
+            'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
+        ]);
+        $this->storeFiles($training, array_merge($request->file('images', []), $request->file('files', [])));
+
+        // Link already uploaded files (same stored file, new row for this training).
+        foreach (TrainingFile::whereIn('id', $copyIds)->get() as $file) {
+            TrainingFile::create([
+                'training_id' => $training->id,
+                'original_name' => $file->original_name,
+                'path' => $file->path,
+                'mime' => $file->mime,
+                'size' => $file->size,
+                'uploaded_by' => auth()->id(),
+            ]);
+        }
+
+        return response()->json([
+            'id' => $training->id,
+            'skipped' => false,
+            'files' => $training->files()->get()->map(fn ($f) => ['id' => $f->id, 'name' => $f->original_name])->values(),
+        ]);
+    }
+
+    private static function importKey(string $type, string $date, string $title): string
+    {
+        return $type . '|' . $date . '|' . mb_strtolower(trim($title));
     }
 
     // ─── Files ───────────────────────────────────────────────────────────────
@@ -215,7 +310,7 @@ class TrainingController extends Controller
     // Home page card: the next water and the next gym training (today or later).
     public static function nextByType(): array
     {
-        if (!Schema::hasTable('trainings')) return [];
+        if (!self::ready()) return [];
 
         $today = now()->toDateString();
         $next = [];
@@ -231,6 +326,12 @@ class TrainingController extends Controller
         return $next;
     }
 
+    // False until both Trainings database updates have run on this server.
+    private static function ready(): bool
+    {
+        return Schema::hasTable('trainings') && Schema::hasColumn('trainings', 'links');
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private function validateTraining(Request $request): array
@@ -238,7 +339,7 @@ class TrainingController extends Controller
         $data = $request->validate([
             'type' => 'required|in:' . implode(',', Training::TYPES),
             'title' => 'required|string|max:200',
-            'training_date' => 'nullable|date',
+            'training_date' => 'required|date',
             'description' => 'nullable|string|max:20000',
             'files' => 'nullable|array|max:20',
             'files.*' => [
@@ -251,11 +352,22 @@ class TrainingController extends Controller
                     }
                 },
             ],
+            'images' => 'nullable|array|max:30',
+            'images.*' => ['file', 'max:' . self::MAX_FILE_KB, 'mimes:jpg,jpeg,png,gif,webp'],
             'remove_file_ids' => 'nullable|array',
             'remove_file_ids.*' => 'integer',
+            'links' => 'nullable|array|max:10',
+            'links.*.url' => ['required', 'string', 'max:500', 'url', 'regex:#^https?://#i'],
+            'links.*.label' => 'nullable|string|max:100',
         ], [
+            'links.*.url.required' => 'Enter the video address or remove the empty link.',
+            'links.*.url.url' => 'Enter a full address, e.g. https://youtu.be/…',
+            'links.*.url.regex' => 'The address must start with http:// or https://.',
             'files.*.max' => 'Each file can be at most ' . (self::MAX_FILE_KB / 1024) . ' MB.',
             'files.*.uploaded' => 'A file could not be uploaded (it may be larger than the server allows).',
+            'images.*.max' => 'Each image can be at most ' . (self::MAX_FILE_KB / 1024) . ' MB.',
+            'images.*.mimes' => 'Images must be JPG, PNG, GIF or WebP.',
+            'images.*.uploaded' => 'An image could not be uploaded (it may be larger than the server allows).',
         ]);
 
         $description = isset($data['description']) ? trim($data['description']) : '';
@@ -263,9 +375,12 @@ class TrainingController extends Controller
         return [
             'type' => $data['type'],
             'title' => trim($data['title']),
-            'training_date' => $data['training_date'] ?? null,
+            'training_date' => $data['training_date'],
             'description' => $description !== '' ? $description : null,
             'remove_file_ids' => array_map('intval', $data['remove_file_ids'] ?? []),
+            'links' => collect($data['links'] ?? [])
+                ->map(fn ($l) => ['url' => trim($l['url']), 'label' => trim((string) ($l['label'] ?? '')) ?: null])
+                ->values()->all() ?: null,
         ];
     }
 
@@ -310,6 +425,7 @@ class TrainingController extends Controller
             'date' => $t->training_date?->toDateString(),
             'preview' => Str::limit(preg_replace('/\s+/u', ' ', (string) $t->description), 160),
             'files_count' => $t->files_count ?? 0,
+            'links_count' => count($t->links ?? []),
         ];
     }
 
@@ -321,6 +437,7 @@ class TrainingController extends Controller
             'title' => $t->title,
             'date' => $t->training_date?->toDateString(),
             'description' => $t->description,
+            'links' => $t->links ?? [],
             'files' => $t->files->map->toClient()->values(),
             'updated_by' => $t->updater?->name,
             'updated_at' => $t->updated_at?->format('d.m.Y H:i'),

@@ -33,6 +33,7 @@ class TrainingsTest extends TestCase
         });
         Schema::create('join_requests', function (Blueprint $t) { $t->id(); $t->string('status')->nullable(); $t->timestamps(); });
         (require database_path('migrations/2026_11_15_120000_create_trainings_tables.php'))->up();
+        (require database_path('migrations/2026_11_15_130000_add_links_to_trainings.php'))->up();
 
         $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
     }
@@ -87,13 +88,14 @@ class TrainingsTest extends TestCase
             '_method' => 'put',
             'type' => 'gym',
             'title' => 'Changed',
+            'training_date' => '2026-12-01',
             'remove_file_ids' => [$png->id],
             'files' => [UploadedFile::fake()->create('extra.xlsx', 10)],
         ])->assertRedirect('/trainings/' . $training->id);
 
         $training->refresh();
         $this->assertSame('gym', $training->type);
-        $this->assertNull($training->training_date);
+        $this->assertSame('2026-12-01', $training->training_date->toDateString());
         $this->assertEqualsCanonicalizing(['plan.pdf', 'extra.xlsx'], $training->files->pluck('original_name')->all());
         Storage::disk('local')->assertMissing($png->path);
 
@@ -111,6 +113,7 @@ class TrainingsTest extends TestCase
         $this->actingAs($admin)->post('/trainings', [
             'type' => 'water',
             'title' => 'Bad',
+            'training_date' => '2026-12-01',
             'files' => [UploadedFile::fake()->create('script.php', 1)],
         ])->assertSessionHasErrors('files.0');
         $this->assertSame(0, Training::count());
@@ -121,15 +124,11 @@ class TrainingsTest extends TestCase
         $user = $this->userWithRole('user');
         Training::create(['type' => 'water', 'title' => 'Past', 'training_date' => now()->subDays(3)->toDateString()]);
         Training::create(['type' => 'water', 'title' => 'Today', 'training_date' => now()->toDateString()]);
-        Training::create(['type' => 'gym', 'title' => 'Program']);
 
         $this->actingAs($user)->get('/trainings?view=list&type=water')->assertOk()
             ->assertInertia(fn ($p) => $p
                 ->where('upcoming.0.title', 'Today')
-                ->where('past.0.title', 'Past')
-                ->has('undated', 0));
-        $this->actingAs($user)->get('/trainings')->assertOk()
-            ->assertInertia(fn ($p) => $p->where('undated.0.title', 'Program'));
+                ->where('past.0.title', 'Past'));
     }
 
     public function test_calendar_month_and_week_ranges(): void
@@ -182,5 +181,128 @@ class TrainingsTest extends TestCase
     {
         $this->actingAs($this->userWithRole('admin'))->get('/trainings/create?date=2026-11-20&type=gym')->assertOk()
             ->assertInertia(fn ($p) => $p->where('defaultDate', '2026-11-20')->where('defaultType', 'gym'));
+    }
+
+    public function test_date_is_required_and_video_links_are_saved(): void
+    {
+        $admin = $this->userWithRole('admin');
+
+        $this->actingAs($admin)->post('/trainings', ['type' => 'water', 'title' => 'No date'])
+            ->assertSessionHasErrors('training_date');
+
+        $this->actingAs($admin)->post('/trainings', [
+            'type' => 'water',
+            'title' => 'Bad link',
+            'training_date' => '2026-12-01',
+            'links' => [['url' => 'javascript:alert(1)', 'label' => '']],
+        ])->assertSessionHasErrors('links.0.url');
+
+        $this->actingAs($admin)->post('/trainings', [
+            'type' => 'water',
+            'title' => 'Technique',
+            'training_date' => '2026-12-01',
+            'links' => [
+                ['url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'label' => 'Catch phase'],
+                ['url' => 'https://example.com/video.mp4', 'label' => ''],
+            ],
+        ])->assertRedirect();
+
+        $t = Training::where('title', 'Technique')->firstOrFail();
+        $this->assertSame([
+            ['url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'label' => 'Catch phase'],
+            ['url' => 'https://example.com/video.mp4', 'label' => null],
+        ], $t->links);
+
+        $member = $this->userWithRole('user');
+        $this->actingAs($member)->get('/trainings/' . $t->id)->assertOk()
+            ->assertInertia(fn ($p) => $p->where('training.links.0.label', 'Catch phase'));
+        $this->actingAs($member)->get('/trainings?view=list')->assertOk()
+            ->assertInertia(fn ($p) => $p->where('upcoming.0.links_count', 2));
+    }
+
+    public function test_page_waits_for_database_update(): void
+    {
+        Schema::table('trainings', fn (Blueprint $t) => $t->dropColumn('links'));
+        $this->actingAs($this->userWithRole('user'))->get('/trainings')->assertOk()
+            ->assertInertia(fn ($p) => $p->where('notReady', true));
+        $this->actingAs($this->userWithRole('user'))->get('/')->assertOk()
+            ->assertInertia(fn ($p) => $p->where('nextTrainings', []));
+    }
+
+    public function test_images_are_uploaded_separately_and_must_be_images(): void
+    {
+        Storage::fake('local');
+        $admin = $this->userWithRole('admin');
+
+        $this->actingAs($admin)->post('/trainings', [
+            'type' => 'gym',
+            'title' => 'Not an image',
+            'training_date' => '2026-12-01',
+            'images' => [UploadedFile::fake()->create('plan.pdf', 10, 'application/pdf')],
+        ])->assertSessionHasErrors('images.0');
+
+        $this->actingAs($admin)->post('/trainings', [
+            'type' => 'gym',
+            'title' => 'With images',
+            'training_date' => '2026-12-01',
+            'images' => [UploadedFile::fake()->image('a.jpg', 30, 30), UploadedFile::fake()->image('b.png', 30, 30)],
+            'files' => [UploadedFile::fake()->create('plan.pdf', 10, 'application/pdf')],
+        ])->assertRedirect();
+
+        $t = Training::where('title', 'With images')->firstOrFail();
+        $this->assertEqualsCanonicalizing(['a.jpg', 'b.png', 'plan.pdf'], $t->files->pluck('original_name')->all());
+        $this->assertSame(2, $t->files->filter(fn ($f) => str_starts_with($f->mime, 'image/'))->count());
+    }
+
+    public function test_import_check_and_items_share_uploaded_files(): void
+    {
+        Storage::fake('local');
+        $admin = $this->userWithRole('admin');
+        Training::create(['type' => 'water', 'title' => 'Aerobno', 'training_date' => '2026-11-08']);
+
+        $this->actingAs($this->userWithRole('user'))->get('/trainings/import')->assertForbidden();
+        $this->actingAs($admin)->get('/trainings/import')->assertOk()
+            ->assertInertia(fn ($p) => $p->component('Trainings/Import')->where('notReady', false));
+
+        $this->actingAs($admin)->postJson('/trainings/import/check', ['items' => [
+            ['type' => 'water', 'date' => '2026-11-08', 'title' => 'aerobno '],
+            ['type' => 'gym', 'date' => '2026-11-10', 'title' => 'A2'],
+        ]])->assertOk()->assertJson(['existing' => ['water|2026-11-08|aerobno']]);
+
+        // First item uploads the shared plan PDF and its page image.
+        $first = $this->actingAs($admin)->post('/trainings/import/item', [
+            'type' => 'gym', 'title' => 'A1 | povlačenja', 'training_date' => '2026-11-03', 'description' => "Laka\n1. Veslanje",
+            'images' => [UploadedFile::fake()->image('Teretana 2026-11-03 A1.jpg', 30, 30)],
+            'files' => [UploadedFile::fake()->create('plan.pdf', 50, 'application/pdf')],
+        ], ['Accept' => 'application/json'])->assertOk()->assertJson(['skipped' => false])->json();
+        $planId = collect($first['files'])->firstWhere('name', 'plan.pdf')['id'];
+
+        // Second item links the same stored PDF instead of uploading it again.
+        $second = $this->actingAs($admin)->post('/trainings/import/item', [
+            'type' => 'gym', 'title' => 'B1 | potisci', 'training_date' => '2026-11-05',
+            'copy_file_ids' => [$planId],
+        ], ['Accept' => 'application/json'])->assertOk()->json();
+        $copy = TrainingFile::where('training_id', $second['id'])->firstOrFail();
+        $original = TrainingFile::findOrFail($planId);
+        $this->assertSame($original->path, $copy->path);
+        $this->assertSame('plan.pdf', $copy->original_name);
+
+        // Running the same item again is skipped.
+        $this->actingAs($admin)->post('/trainings/import/item', [
+            'type' => 'gym', 'title' => 'B1 | potisci', 'training_date' => '2026-11-05',
+        ], ['Accept' => 'application/json'])->assertOk()->assertJson(['skipped' => true]);
+        $this->assertSame(3, Training::count());
+
+        // Removing the PDF from one training keeps the stored file for the other.
+        $this->actingAs($admin)->post('/trainings/' . $second['id'], [
+            '_method' => 'put', 'type' => 'gym', 'title' => 'B1 | potisci', 'training_date' => '2026-11-05',
+            'remove_file_ids' => [$copy->id],
+        ])->assertRedirect();
+        Storage::disk('local')->assertExists($original->path);
+        $this->actingAs($this->userWithRole('user'))->get('/trainings/files/' . $planId)->assertOk();
+
+        // Bad items return JSON errors.
+        $this->actingAs($admin)->post('/trainings/import/item', ['type' => 'gym', 'title' => 'X'], ['Accept' => 'application/json'])
+            ->assertStatus(422)->assertJsonValidationErrors('training_date');
     }
 }
