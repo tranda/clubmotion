@@ -29,10 +29,13 @@ export default function Home({ nextTrainings = [] }) {
                 </div>
 
                 <div className="flex-1">
-                    {/* Next trainings */}
-                    <div className="mb-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                        <NextTrainingsCard trainings={nextTrainings} />
-                    </div>
+                    {/* Next trainings: a light reminder row, set apart from the menu cards */}
+                    <section className="mb-8">
+                        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Next training</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            <NextTrainingsCard trainings={nextTrainings} />
+                        </div>
+                    </section>
 
                     {/* Dashboard Cards */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">

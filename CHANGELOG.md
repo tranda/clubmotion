@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.1.4] - 2026-11-15
+
+### Changed
+- **Home page:** the next-training tiles are set apart as a reminder row — small "Next training" label, light tinted background (blue = water, orange = gym), no shadow, and more space before the menu cards.
+
 ## [1.1.3] - 2026-11-15
 
 ### Changed

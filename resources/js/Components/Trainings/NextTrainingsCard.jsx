@@ -6,9 +6,8 @@ import { TypeBadge, formatDate, isToday, todayIso } from './shared';
 export default function NextTrainingsCard({ trainings = [] }) {
     if (trainings.length === 0) {
         return (
-            <Link href="/trainings" className="flex flex-col justify-center rounded-lg bg-white p-4 shadow-md hover:shadow-lg transition-shadow">
-                <span className="text-sm font-semibold text-gray-900">Next training</span>
-                <span className="mt-1 text-xs text-gray-500">No upcoming trainings yet. Calendar →</span>
+            <Link href="/trainings" className="flex flex-col justify-center rounded-lg border border-dashed border-gray-300 p-4 hover:bg-white transition-colors">
+                <span className="text-xs text-gray-500">No upcoming trainings yet. Calendar →</span>
             </Link>
         );
     }
@@ -17,8 +16,10 @@ export default function NextTrainingsCard({ trainings = [] }) {
         <Link
             key={t.id}
             href={`/trainings/${t.id}`}
-            className={`flex min-w-0 flex-col rounded-lg border bg-white p-4 shadow-md hover:shadow-lg transition-shadow ${
-                t.type === 'gym' ? 'border-orange-200' : 'border-sky-200'
+            className={`flex min-w-0 flex-col rounded-lg border p-4 transition-colors ${
+                t.type === 'gym'
+                    ? 'border-orange-200 bg-orange-50 hover:bg-orange-100/70'
+                    : 'border-sky-200 bg-sky-50 hover:bg-sky-100/70'
             }`}
         >
             <span className="flex flex-wrap items-center gap-1.5 text-xs">
