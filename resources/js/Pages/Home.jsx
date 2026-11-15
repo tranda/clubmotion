@@ -1,7 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
 import Layout from '../Components/Layout';
+import NextTrainingsCard from '../Components/Trainings/NextTrainingsCard';
 
-export default function Home({ stats }) {
+export default function Home({ stats, nextTrainings = [] }) {
     const { auth, appVersion, clubName } = usePage().props;
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
@@ -38,6 +39,8 @@ export default function Home({ stats }) {
                             </div>
                         </div>
                     </div>
+
+                    <NextTrainingsCard trainings={nextTrainings} />
 
                     {/* Dashboard Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

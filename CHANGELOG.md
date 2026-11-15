@@ -2,6 +2,17 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.41] - 2026-11-15
+
+### Added
+- **Trainings** — new section at `/trainings` (menu item after Attendance) where water and gym trainings are published for members to read before they come. Every logged-in member can view; admins and superusers add, edit and delete.
+  - **Calendar view** by month (short colored badges per day: blue = water, orange = gym; "+N more" opens that week) or by week (full titles), plus a List view (upcoming / past). Filter All / Water / Gym. On phones the month shows dots and tapping a day lists its trainings. Click any training to open its details.
+  - Each training has a type, title, optional date (no date = general program, shown under the calendar), description and files (PDF, images, Word/Excel/PowerPoint, txt/csv, mp4/mov; up to 50 MB each, or less if the server's PHP limit is lower). PDFs open in the browser, images show on the page, other files download.
+  - Staff can click **+** on a calendar day to add a training with that date filled in.
+  - Files are stored in `storage/app/trainings` (not public) and open only for logged-in users; files of a deleted training are no longer served.
+- **Next training card on Home** — shows the next water and the next gym training (today or later) with a link to the calendar.
+- **After deploy, run Settings → App settings → Database updates** (creates `trainings` and `training_files`). Until then the Trainings page shows a notice.
+
 ## [1.0.40] - 2026-11-06
 
 ### Changed

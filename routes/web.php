@@ -52,7 +52,8 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('Home', [
             'stats' => [
                 'activeMembers' => $activeMembers,
-            ]
+            ],
+            'nextTrainings' => App\Http\Controllers\TrainingController::nextByType(),
         ]);
     })->name('home');
 
@@ -322,6 +323,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}/restore', [App\Http\Controllers\AdminNoteController::class, 'restore'])->whereNumber('id')->name('restore');
         // Old Custom payments links (v1.0.37 and earlier)
         Route::redirect('/categories', '/custom-payments/categories');
+    });
+
+    // Trainings (water & gym plans) - everyone can read, Admin & Superuser manage
+    Route::prefix('trainings')->name('trainings.')->group(function () {
+        Route::middleware('role:admin,superuser')->group(function () {
+            Route::get('/create', [App\Http\Controllers\TrainingController::class, 'create'])->name('create');
+            Route::post('/', [App\Http\Controllers\TrainingController::class, 'store'])->name('store');
+            Route::get('/{training}/edit', [App\Http\Controllers\TrainingController::class, 'edit'])->whereNumber('training')->name('edit');
+            Route::put('/{training}', [App\Http\Controllers\TrainingController::class, 'update'])->whereNumber('training')->name('update');
+            Route::delete('/{training}', [App\Http\Controllers\TrainingController::class, 'destroy'])->whereNumber('training')->name('destroy');
+        });
+        Route::get('/', [App\Http\Controllers\TrainingController::class, 'index'])->name('index');
+        Route::get('/files/{file}', [App\Http\Controllers\TrainingController::class, 'fileShow'])->whereNumber('file')->name('files.show');
+        Route::get('/{training}', [App\Http\Controllers\TrainingController::class, 'show'])->whereNumber('training')->name('show');
     });
 
     // Join requests - Admin & Superuser
