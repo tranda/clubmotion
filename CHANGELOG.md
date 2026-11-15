@@ -2,6 +2,20 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.43] - 2026-11-15
+
+### Added
+- **Exercises as separate records.** A gym training now lists its exercises one by one: order, who does it (everyone / women / men), sets × reps, rest and suggested load for women and men. Tap an exercise to open just that exercise — illustration, this day's dose, muscles and how to do it; arrows/swipe move to the next one.
+- **Exercise library** (Trainings → Exercises) — every exercise once, with illustration, muscles and instructions; search by name or muscle. Admins and superusers add and edit exercises (name, image, muscles, how to); an exercise used in trainings cannot be deleted.
+- **Exercises in the training form** — pick from the library or type a new name, set group, sets, rest, loads, reorder with arrows.
+- **Import adds exercises** — the import file can carry the exercise library (with images) and each training's exercises. A training that already exists (same type, date and title) is now updated (description, exercises; listed old attachments removed) instead of skipped. Existing library exercises only get fields they are missing.
+
+### Fixed
+- Matching exercise names and training titles that start with Č/Š/Ž etc. is done in PHP, so it works the same on every database.
+
+### Database
+- **After deploy, run Settings → App settings → Database updates** (creates `exercises` and `training_exercises`). Until then the Trainings page shows a notice.
+
 ## [1.0.42] - 2026-11-15
 
 ### Added

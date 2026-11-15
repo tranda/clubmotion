@@ -329,15 +329,23 @@ Route::middleware('auth')->group(function () {
     Route::prefix('trainings')->name('trainings.')->group(function () {
         Route::middleware('role:admin,superuser')->group(function () {
             Route::get('/create', [App\Http\Controllers\TrainingController::class, 'create'])->name('create');
+            Route::get('/exercises/create', [App\Http\Controllers\ExerciseController::class, 'create'])->name('exercises.create');
+            Route::post('/exercises', [App\Http\Controllers\ExerciseController::class, 'store'])->name('exercises.store');
+            Route::get('/exercises/{exercise}/edit', [App\Http\Controllers\ExerciseController::class, 'edit'])->whereNumber('exercise')->name('exercises.edit');
+            Route::put('/exercises/{exercise}', [App\Http\Controllers\ExerciseController::class, 'update'])->whereNumber('exercise')->name('exercises.update');
+            Route::delete('/exercises/{exercise}', [App\Http\Controllers\ExerciseController::class, 'destroy'])->whereNumber('exercise')->name('exercises.destroy');
             Route::get('/import', [App\Http\Controllers\TrainingController::class, 'importPage'])->name('import');
             Route::post('/import/check', [App\Http\Controllers\TrainingController::class, 'importCheck'])->name('import.check');
             Route::post('/import/item', [App\Http\Controllers\TrainingController::class, 'importItem'])->name('import.item');
+            Route::post('/import/exercise', [App\Http\Controllers\TrainingController::class, 'importExercise'])->name('import.exercise');
             Route::post('/', [App\Http\Controllers\TrainingController::class, 'store'])->name('store');
             Route::get('/{training}/edit', [App\Http\Controllers\TrainingController::class, 'edit'])->whereNumber('training')->name('edit');
             Route::put('/{training}', [App\Http\Controllers\TrainingController::class, 'update'])->whereNumber('training')->name('update');
             Route::delete('/{training}', [App\Http\Controllers\TrainingController::class, 'destroy'])->whereNumber('training')->name('destroy');
         });
         Route::get('/', [App\Http\Controllers\TrainingController::class, 'index'])->name('index');
+        Route::get('/exercises', [App\Http\Controllers\ExerciseController::class, 'index'])->name('exercises.index');
+        Route::get('/exercises/{exercise}/image', [App\Http\Controllers\ExerciseController::class, 'image'])->whereNumber('exercise')->name('exercises.image');
         Route::get('/files/{file}', [App\Http\Controllers\TrainingController::class, 'fileShow'])->whereNumber('file')->name('files.show');
         Route::get('/{training}', [App\Http\Controllers\TrainingController::class, 'show'])->whereNumber('training')->name('show');
     });

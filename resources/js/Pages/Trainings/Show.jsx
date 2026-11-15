@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import Layout from '../../Components/Layout';
+import ExerciseModal, { GroupChip } from '../../Components/Trainings/ExerciseModal';
 import { TypeBadge, formatDate, formatSize, isImageMime, isToday, linkLabel, videoEmbedUrl } from '../../Components/Trainings/shared';
 
 const isImage = (f) => isImageMime(f.mime);
@@ -13,6 +14,8 @@ export default function TrainingShow({ training: t }) {
 
     const images = t.files.filter(isImage);
     const [viewing, setViewing] = useState(null); // index of the image open in the viewer
+    const exercises = t.exercises || [];
+    const [openExercise, setOpenExercise] = useState(null); // index into exercises
     const others = t.files.filter((f) => !isImage(f));
     const links = t.links || [];
     const embeds = links.map((l) => ({ ...l, embed: videoEmbedUrl(l.url) })).filter((l) => l.embed);
@@ -47,6 +50,10 @@ export default function TrainingShow({ training: t }) {
 
                     {t.description && (
                         <div className="mt-4 text-gray-800 whitespace-pre-wrap break-words leading-relaxed">{t.description}</div>
+                    )}
+
+                    {exercises.length > 0 && (
+                        <ExerciseList exercises={exercises} onOpen={setOpenExercise} />
                     )}
 
                     {images.length === 1 && (
@@ -147,7 +154,7 @@ export default function TrainingShow({ training: t }) {
                         </ul>
                     )}
 
-                    {!t.description && t.files.length === 0 && links.length === 0 && (
+                    {!t.description && t.files.length === 0 && links.length === 0 && exercises.length === 0 && (
                         <p className="mt-4 text-sm text-gray-500">No details added yet.</p>
                     )}
 
@@ -158,6 +165,10 @@ export default function TrainingShow({ training: t }) {
                     )}
                 </div>
             </div>
+
+            {openExercise !== null && exercises[openExercise] && (
+                <ExerciseModal items={exercises} index={openExercise} onChange={setOpenExercise} onClose={() => setOpenExercise(null)} />
+            )}
 
             {viewing !== null && images[viewing] && (
                 <ImageViewer images={images} index={viewing} onChange={setViewing} onClose={() => setViewing(null)} />
@@ -238,5 +249,66 @@ function ImageViewer({ images, index, onChange, onClose }) {
                 )}
             </div>
         </div>
+    );
+}
+
+// Exercises in order. Rows where women and men do different exercises show both side by side.
+function ExerciseList({ exercises, onOpen }) {
+    const rows = [];
+    exercises.forEach((e, i) => {
+        const last = rows[rows.length - 1];
+        if (last && last.position === e.position) last.items.push([e, i]);
+        else rows.push({ position: e.position, items: [[e, i]] });
+    });
+
+    return (
+        <section className="mt-5">
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+                Exercises <span className="font-normal normal-case tracking-normal text-gray-400">· tap one for details</span>
+            </h2>
+            <ol className="space-y-2">
+                {rows.map((row) => (
+                    <li key={row.position} className="flex gap-2">
+                        <span className="mt-3 w-5 shrink-0 text-right text-sm font-semibold text-gray-400">{row.position}</span>
+                        <div className={`grid min-w-0 flex-1 gap-2 ${row.items.length > 1 ? 'sm:grid-cols-2' : ''}`}>
+                            {row.items.map(([e, i]) => <ExerciseCard key={e.id} item={e} onClick={() => onOpen(i)} />)}
+                        </div>
+                    </li>
+                ))}
+            </ol>
+        </section>
+    );
+}
+
+function ExerciseCard({ item, onClick }) {
+    const ex = item.exercise || {};
+    const loads = item.load_women && item.load_women === item.load_men
+        ? item.load_women
+        : [item.load_women && `Ž ${item.load_women}`, item.load_men && `M ${item.load_men}`].filter(Boolean).join(' · ');
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="flex w-full min-w-0 items-center gap-3 rounded-lg border border-gray-200 bg-white p-2 text-left hover:border-blue-300 hover:bg-blue-50/40"
+        >
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-gray-50">
+                {ex.image_url
+                    ? <img src={ex.image_url} alt="" loading="lazy" className="h-full w-full object-contain" />
+                    : <span className="text-2xl" aria-hidden>🏋️</span>}
+            </span>
+            <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-medium text-gray-900">{ex.name}</span>
+                    <GroupChip group={item.group} />
+                </span>
+                {(item.sets || item.rest) && (
+                    <span className="block text-sm text-gray-700">
+                        {item.sets}{item.sets && item.rest ? ' · ' : ''}{item.rest && `pauza ${item.rest}`}
+                    </span>
+                )}
+                {loads && <span className="block truncate text-xs text-gray-500">{loads}</span>}
+            </span>
+            <span className="text-gray-300" aria-hidden>›</span>
+        </button>
     );
 }

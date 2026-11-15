@@ -57,14 +57,21 @@ export default function TrainingsIndex(props) {
             <div className="py-4 max-w-6xl mx-auto">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                     <h1 className="text-2xl font-bold text-gray-800">Trainings</h1>
-                    {canManage && !notReady && (
+                    {!notReady && (
                         <div className="flex items-center gap-2">
-                            <Link href="/trainings/import" className="px-3 py-2 text-sm bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200">
-                                Import
+                            <Link href="/trainings/exercises" className="px-3 py-2 text-sm bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200">
+                                Exercises
                             </Link>
-                            <Link href={createHref('')} className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                + New training
-                            </Link>
+                            {canManage && (
+                                <>
+                                    <Link href="/trainings/import" className="px-3 py-2 text-sm bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200">
+                                        Import
+                                    </Link>
+                                    <Link href={createHref('')} className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                        + New training
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
@@ -440,10 +447,11 @@ function TrainingCard({ training: t }) {
                     <TypeBadge type={t.type} />
                     {t.date && <span className="text-gray-600">{formatDate(t.date)}</span>}
                     {today && <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-600 text-white">Today</span>}
-                    {(t.files_count > 0 || t.links_count > 0) && (
+                    {(t.files_count > 0 || t.links_count > 0 || t.exercises_count > 0) && (
                         <span className="ml-auto text-xs text-gray-500">
                             {t.files_count > 0 && <>📎 {t.files_count} {t.files_count === 1 ? 'file' : 'files'}</>}
                             {t.links_count > 0 && <span className="ml-2">▶ {t.links_count} {t.links_count === 1 ? 'video' : 'videos'}</span>}
+                            {t.exercises_count > 0 && <span className="ml-2">🏋️ {t.exercises_count} exercises</span>}
                         </span>
                     )}
                 </div>

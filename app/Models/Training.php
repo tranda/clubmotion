@@ -35,6 +35,11 @@ class Training extends Model
         return $this->hasMany(TrainingFile::class)->orderBy('id');
     }
 
+    public function exercises()
+    {
+        return $this->hasMany(TrainingExercise::class);
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

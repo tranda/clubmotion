@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Exercise;
 use App\Models\Training;
+use App\Models\TrainingExercise;
 use App\Models\TrainingFile;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -44,7 +47,7 @@ class TrainingController extends Controller
         $today = now()->toDateString();
 
         $base = fn () => Training::query()
-            ->withCount('files')
+            ->withCount(['files', 'exercises'])
             ->when($type !== '', fn ($q) => $q->where('type', $type));
         $format = fn ($items) => $items->map(fn (Training $t) => $this->formatListItem($t))->values();
 
@@ -98,7 +101,7 @@ class TrainingController extends Controller
 
     public function show(Training $training)
     {
-        $training->load(['files', 'updater']);
+        $training->load(['files', 'updater', 'exercises.exercise']);
 
         return Inertia::render('Trainings/Show', [
             'training' => $this->formatFull($training),
@@ -112,6 +115,7 @@ class TrainingController extends Controller
 
         return Inertia::render('Trainings/Edit', [
             'training' => null,
+            'exerciseNames' => Exercise::orderBy('name')->pluck('name'),
             'defaultType' => $type,
             'defaultDate' => $this->parseDate($request->input('date'))?->toDateString() ?? '',
             'limits' => $this->limits(),
@@ -120,10 +124,11 @@ class TrainingController extends Controller
 
     public function edit(Training $training)
     {
-        $training->load(['files', 'updater']);
+        $training->load(['files', 'updater', 'exercises.exercise']);
 
         return Inertia::render('Trainings/Edit', [
             'training' => $this->formatFull($training),
+            'exerciseNames' => Exercise::orderBy('name')->pluck('name'),
             'defaultType' => $training->type,
             'defaultDate' => '',
             'limits' => $this->limits(),
@@ -146,6 +151,9 @@ class TrainingController extends Controller
             'updated_by' => auth()->id(),
         ]);
         $this->storeFiles($training, array_merge($request->file('images', []), $request->file('files', [])));
+        if ($data['exercises'] !== null) {
+            $this->syncExercises($training, $data['exercises']);
+        }
 
         return redirect()->route('trainings.show', $training)->with('success', 'Training saved.');
     }
@@ -169,6 +177,9 @@ class TrainingController extends Controller
             $training->files()->whereIn('id', $data['remove_file_ids'])->get()->each->delete();
         }
         $this->storeFiles($training, array_merge($request->file('images', []), $request->file('files', [])));
+        if ($data['exercises'] !== null) {
+            $this->syncExercises($training, $data['exercises']);
+        }
 
         return redirect()->route('trainings.show', $training)->with('success', 'Training saved.');
     }
@@ -224,37 +235,86 @@ class TrainingController extends Controller
         ]);
     }
 
+    // Adds an exercise to the library, or fills in what an existing one (same name) is missing.
+    // Never overwrites what was already entered or edited in the app.
+    public function importExercise(Request $request)
+    {
+        abort_unless(self::ready(), 409, 'Run the database updates first.');
+        $data = $request->validate([
+            'name' => 'required|string|max:150',
+            'muscles' => 'nullable|string|max:2000',
+            'how_to' => 'nullable|string|max:10000',
+            'image' => ['nullable', 'file', 'max:' . self::MAX_FILE_KB, 'mimes:jpg,jpeg,png,gif,webp'],
+        ]);
+        $name = trim(preg_replace('/\s+/u', ' ', $data['name']));
+
+        $exercise = self::findExercise($name)
+            ?? new Exercise(['name' => $name, 'created_by' => auth()->id()]);
+        $created = !$exercise->exists;
+        foreach (['muscles', 'how_to'] as $field) {
+            if (!$exercise->$field && !empty($data[$field])) {
+                $exercise->$field = trim($data[$field]);
+            }
+        }
+        if (!$exercise->image_path && $request->hasFile('image')) {
+            $upload = $request->file('image');
+            $ext = preg_replace('/[^a-z0-9]/', '', strtolower($upload->getClientOriginalExtension())) ?: 'jpg';
+            $exercise->image_path = $upload->storeAs('exercises', Str::random(40) . '.' . $ext, Exercise::DISK);
+            $exercise->image_mime = $upload->getMimeType();
+        }
+        $exercise->updated_by = auth()->id();
+        $exercise->save();
+
+        return response()->json(['id' => $exercise->id, 'name' => $exercise->name, 'created' => $created]);
+    }
+
+    // Adds one training, or updates the one with the same type, date and title
+    // (description, exercises, and removes the listed files), so an import can be re-run.
     public function importItem(Request $request)
     {
         abort_unless(self::ready(), 409, 'Run the database updates first.');
         $data = $this->validateTraining($request);
-        $copyIds = array_map('intval', $request->validate([
+        $extra = $request->validate([
             'copy_file_ids' => 'nullable|array|max:20',
             'copy_file_ids.*' => 'integer',
-        ])['copy_file_ids'] ?? []);
+            'remove_files' => 'nullable|array|max:20',
+            'remove_files.*' => 'string|max:255',
+        ]);
+        $copyIds = array_map('intval', $extra['copy_file_ids'] ?? []);
 
-        // Running the same import twice does not create duplicates.
-        $existing = Training::where('type', $data['type'])
+        // Compare titles in PHP: SQL LOWER() does not handle letters like Č on every database.
+        $training = Training::where('type', $data['type'])
             ->whereDate('training_date', $data['training_date'])
-            ->where('title', $data['title'])
-            ->first();
-        if ($existing) {
-            return response()->json(['id' => $existing->id, 'skipped' => true, 'files' => []]);
+            ->get()
+            ->first(fn (Training $t) => mb_strtolower(trim($t->title)) === mb_strtolower($data['title']));
+        $updated = (bool) $training;
+
+        if ($training) {
+            $training->description = $data['description'];
+            if ($data['links'] !== null) {
+                $training->links = $data['links'];
+            }
+            $training->updated_by = auth()->id();
+            $training->save();
+            if (!empty($extra['remove_files'])) {
+                $training->files()->whereIn('original_name', $extra['remove_files'])->get()->each->delete();
+            }
+        } else {
+            $training = Training::create([
+                'type' => $data['type'],
+                'title' => $data['title'],
+                'training_date' => $data['training_date'],
+                'description' => $data['description'],
+                'links' => $data['links'],
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
+            ]);
         }
 
-        $training = Training::create([
-            'type' => $data['type'],
-            'title' => $data['title'],
-            'training_date' => $data['training_date'],
-            'description' => $data['description'],
-            'links' => $data['links'],
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
-        ]);
         $this->storeFiles($training, array_merge($request->file('images', []), $request->file('files', [])));
-
         // Link already uploaded files (same stored file, new row for this training).
         foreach (TrainingFile::whereIn('id', $copyIds)->get() as $file) {
+            if ($training->files()->where('original_name', $file->original_name)->exists()) continue;
             TrainingFile::create([
                 'training_id' => $training->id,
                 'original_name' => $file->original_name,
@@ -264,10 +324,13 @@ class TrainingController extends Controller
                 'uploaded_by' => auth()->id(),
             ]);
         }
+        if ($data['exercises'] !== null) {
+            $this->syncExercises($training, $data['exercises']);
+        }
 
         return response()->json([
             'id' => $training->id,
-            'skipped' => false,
+            'updated' => $updated,
             'files' => $training->files()->get()->map(fn ($f) => ['id' => $f->id, 'name' => $f->original_name])->values(),
         ]);
     }
@@ -315,7 +378,7 @@ class TrainingController extends Controller
         $today = now()->toDateString();
         $next = [];
         foreach (Training::TYPES as $type) {
-            $t = Training::withCount('files')
+            $t = Training::withCount(['files', 'exercises'])
                 ->where('type', $type)
                 ->whereDate('training_date', '>=', $today)
                 ->orderBy('training_date')->orderBy('id')
@@ -329,7 +392,7 @@ class TrainingController extends Controller
     // False until both Trainings database updates have run on this server.
     private static function ready(): bool
     {
-        return Schema::hasTable('trainings') && Schema::hasColumn('trainings', 'links');
+        return Schema::hasTable('trainings') && Schema::hasColumn('trainings', 'links') && Schema::hasTable('training_exercises');
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -356,10 +419,21 @@ class TrainingController extends Controller
             'images.*' => ['file', 'max:' . self::MAX_FILE_KB, 'mimes:jpg,jpeg,png,gif,webp'],
             'remove_file_ids' => 'nullable|array',
             'remove_file_ids.*' => 'integer',
+            'exercises_sent' => 'nullable|boolean',
+            'exercises' => 'nullable|array|max:60',
+            'exercises.*.name' => 'required|string|max:150',
+            'exercises.*.group' => 'nullable|in:' . implode(',', TrainingExercise::GROUPS),
+            'exercises.*.position' => 'nullable|integer|min:1|max:999',
+            'exercises.*.sets' => 'nullable|string|max:80',
+            'exercises.*.rest' => 'nullable|string|max:80',
+            'exercises.*.load_women' => 'nullable|string|max:200',
+            'exercises.*.load_men' => 'nullable|string|max:200',
+            'exercises.*.note' => 'nullable|string|max:255',
             'links' => 'nullable|array|max:10',
             'links.*.url' => ['required', 'string', 'max:500', 'url', 'regex:#^https?://#i'],
             'links.*.label' => 'nullable|string|max:100',
         ], [
+            'exercises.*.name.required' => 'Choose or type the exercise name.',
             'links.*.url.required' => 'Enter the video address or remove the empty link.',
             'links.*.url.url' => 'Enter a full address, e.g. https://youtu.be/…',
             'links.*.url.regex' => 'The address must start with http:// or https://.',
@@ -378,10 +452,60 @@ class TrainingController extends Controller
             'training_date' => $data['training_date'],
             'description' => $description !== '' ? $description : null,
             'remove_file_ids' => array_map('intval', $data['remove_file_ids'] ?? []),
+            // null = leave the exercises as they are (the field was not sent at all).
+            'exercises' => ($request->has('exercises') || $request->boolean('exercises_sent')) ? array_values($data['exercises'] ?? []) : null,
             'links' => collect($data['links'] ?? [])
                 ->map(fn ($l) => ['url' => trim($l['url']), 'label' => trim((string) ($l['label'] ?? '')) ?: null])
                 ->values()->all() ?: null,
         ];
+    }
+
+    // Replace the training's exercise list. Exercises are found by name (any letter case);
+    // a new name adds a new exercise to the library.
+    private function syncExercises(Training $training, array $rows): void
+    {
+        DB::transaction(function () use ($training, $rows) {
+            $training->exercises()->delete();
+            $pos = 0;
+            $last = null;
+            foreach ($rows as $i => $row) {
+                $name = trim(preg_replace('/\s+/u', ' ', $row['name']));
+                if ($name === '') continue;
+                $exercise = self::findExercise($name)
+                    ?? Exercise::create(['name' => $name, 'created_by' => auth()->id(), 'updated_by' => auth()->id()]);
+                $group = in_array($row['group'] ?? 'all', TrainingExercise::GROUPS, true) ? ($row['group'] ?? 'all') : 'all';
+                // Without a given position, a "men" row right after a "women" row shares its number.
+                if (!empty($row['position'])) {
+                    $pos = (int) $row['position'];
+                } elseif (!($group === 'men' && $last === 'women')) {
+                    $pos++;
+                }
+                $last = $group;
+                $training->exercises()->create([
+                    'exercise_id' => $exercise->id,
+                    'position' => $pos,
+                    'group' => $group,
+                    'sets' => self::nullIfEmpty($row['sets'] ?? null),
+                    'rest' => self::nullIfEmpty($row['rest'] ?? null),
+                    'load_women' => self::nullIfEmpty($row['load_women'] ?? null),
+                    'load_men' => self::nullIfEmpty($row['load_men'] ?? null),
+                    'note' => self::nullIfEmpty($row['note'] ?? null),
+                ]);
+            }
+        });
+    }
+
+    // Exercise with this name in any letter case (compared in PHP so Č/Š/Ž work everywhere).
+    private static function findExercise(string $name): ?Exercise
+    {
+        return Exercise::where('name', $name)->first()
+            ?? Exercise::all()->first(fn (Exercise $e) => mb_strtolower($e->name) === mb_strtolower($name));
+    }
+
+        private static function nullIfEmpty($v): ?string
+    {
+        $v = trim((string) $v);
+        return $v === '' ? null : $v;
     }
 
     private function storeFiles(Training $training, $uploads): void
@@ -426,6 +550,7 @@ class TrainingController extends Controller
             'preview' => Str::limit(preg_replace('/\s+/u', ' ', (string) $t->description), 160),
             'files_count' => $t->files_count ?? 0,
             'links_count' => count($t->links ?? []),
+            'exercises_count' => $t->exercises_count ?? 0,
         ];
     }
 
@@ -438,6 +563,13 @@ class TrainingController extends Controller
             'date' => $t->training_date?->toDateString(),
             'description' => $t->description,
             'links' => $t->links ?? [],
+            'exercises' => $t->relationLoaded('exercises')
+                ? $t->exercises->sortBy([
+                    ['position', 'asc'],
+                    fn ($a, $b) => array_search($a->group, TrainingExercise::GROUPS) <=> array_search($b->group, TrainingExercise::GROUPS),
+                    ['id', 'asc'],
+                ])->map->toClient()->values()
+                : [],
             'files' => $t->files->map->toClient()->values(),
             'updated_by' => $t->updater?->name,
             'updated_at' => $t->updated_at?->format('d.m.Y H:i'),

@@ -46,7 +46,7 @@ async function send(url, body, json = false) {
 
 export default function TrainingsImport({ notReady, limits }) {
     const input = useRef(null);
-    const [manifest, setManifest] = useState(null); // { name, trainings }
+    const [manifest, setManifest] = useState(null); // { name, trainings, exercises }
     const [files, setFiles] = useState({}); // name -> File
     const [existing, setExisting] = useState(null); // Set of keys, null while checking
     const [error, setError] = useState('');
@@ -78,7 +78,7 @@ export default function TrainingsImport({ notReady, limits }) {
         const byName = {};
         for (const f of picked) if (f !== jsonFile) byName[f.name] = f;
         setFiles(byName);
-        setManifest({ name: jsonFile.name, trainings: data.trainings });
+        setManifest({ name: jsonFile.name, trainings: data.trainings, exercises: data.exercises || [] });
         setExisting(null);
         try {
             const res = await send('/trainings/import/check', {
@@ -98,29 +98,59 @@ export default function TrainingsImport({ notReady, limits }) {
         const tooBig = names.filter((n) => files[n] && limits.file_bytes && files[n].size > limits.file_bytes);
         return { t, key, names, missing, tooBig, exists: existing?.has(key) };
     }), [manifest, files, existing, limits.file_bytes]);
+    const exerciseList = manifest?.exercises || [];
+    const missingExerciseImages = exerciseList.filter((e) => e.image && !files[e.image]).map((e) => e.image);
 
-    const toImport = rows.filter((r) => !r.exists && r.missing.length === 0 && r.tooBig.length === 0);
-    const blocked = rows.filter((r) => !r.exists && (r.missing.length > 0 || r.tooBig.length > 0));
+    const toImport = rows.filter((r) => r.missing.length === 0 && r.tooBig.length === 0);
+    const blocked = rows.filter((r) => r.missing.length > 0 || r.tooBig.length > 0);
     const counts = {
-        water: toImport.filter((r) => r.t.type === 'water').length,
-        gym: toImport.filter((r) => r.t.type === 'gym').length,
+        added: toImport.filter((r) => !r.exists).length,
+        updated: toImport.filter((r) => r.exists).length,
+        exerciseRows: toImport.reduce((s, r) => s + (r.t.exercises?.length || 0), 0),
     };
     const totalBytes = Object.values(files).reduce((s, f) => s + f.size, 0);
     const dates = rows.map((r) => r.t.date).sort();
-    const doneCount = Object.values(results).filter((v) => v === 'done').length;
-    const failed = Object.entries(results).filter(([, v]) => v !== 'done' && v !== 'skipped');
+    const trainingResults = Object.entries(results).filter(([k]) => !k.startsWith('ex|'));
+    const doneCount = trainingResults.filter(([, v]) => v === 'done' || v === 'updated').length;
+    const failed = Object.entries(results).filter(([, v]) => v !== 'done' && v !== 'updated');
+    const total = toImport.length + exerciseList.length;
 
     const run = async () => {
         setRunning(true);
         setFinished(false);
+        // 1. Exercise library (illustrations, muscles, how to). Existing ones only get what they miss.
+        for (const e of exerciseList) {
+            if (results[`ex|${e.name}`] === 'done') continue;
+            const body = new FormData();
+            body.append('name', e.name);
+            body.append('muscles', e.muscles || '');
+            body.append('how_to', e.how_to || '');
+            if (e.image && files[e.image]) body.append('image', files[e.image]);
+            try {
+                await send('/trainings/import/exercise', body);
+                setResults((prev) => ({ ...prev, [`ex|${e.name}`]: 'done' }));
+            } catch (err) {
+                setResults((prev) => ({ ...prev, [`ex|${e.name}`]: `${e.name}: ${err.message}` }));
+            }
+        }
+        // 2. Trainings, one per request.
         const uploaded = {}; // file name -> stored file id, so shared files go up once
         for (const r of toImport) {
-            if (results[r.key] === 'done') continue;
+            if (results[r.key] === 'done' || results[r.key] === 'updated') continue;
             const body = new FormData();
             body.append('type', r.t.type);
             body.append('title', r.t.title);
             body.append('training_date', r.t.date);
             body.append('description', r.t.description || '');
+            (r.t.remove_files || []).forEach((n) => body.append('remove_files[]', n));
+            if (Array.isArray(r.t.exercises)) {
+                body.append('exercises_sent', '1');
+                r.t.exercises.forEach((x, i) => {
+                    for (const f of ['name', 'group', 'position', 'sets', 'rest', 'load_women', 'load_men', 'note']) {
+                        if (x[f] !== undefined && x[f] !== null) body.append(`exercises[${i}][${f}]`, x[f]);
+                    }
+                });
+            }
             (r.t.links || []).forEach((l, i) => {
                 body.append(`links[${i}][url]`, l.url);
                 body.append(`links[${i}][label]`, l.label || '');
@@ -136,7 +166,7 @@ export default function TrainingsImport({ notReady, limits }) {
             try {
                 const res = await send('/trainings/import/item', body);
                 for (const f of res.files || []) if (!uploaded[f.name]) uploaded[f.name] = f.id;
-                setResults((prev) => ({ ...prev, [r.key]: res.skipped ? 'skipped' : 'done' }));
+                setResults((prev) => ({ ...prev, [r.key]: res.updated ? 'updated' : 'done' }));
             } catch (e) {
                 setResults((prev) => ({ ...prev, [r.key]: e.message }));
             }
@@ -154,7 +184,7 @@ export default function TrainingsImport({ notReady, limits }) {
                 <h1 className="mb-1 text-2xl font-bold text-gray-800">Import trainings</h1>
                 <p className="mb-4 text-sm text-gray-600">
                     Adds many trainings at once from a prepared import file. You see the list first; nothing is saved until you click Import.
-                    Trainings that already exist (same type, date and title) are skipped, so running it again is safe.
+                    A training that already exists (same type, date and title) is updated instead of added twice, so running it again is safe.
                 </p>
 
                 {notReady ? (
@@ -196,20 +226,29 @@ export default function TrainingsImport({ notReady, limits }) {
                                             <div className="text-gray-500">Checking which already exist…</div>
                                         ) : (
                                             <div>
-                                                To import: <b>{toImport.length}</b> ({counts.water} water, {counts.gym} gym)
-                                                {rows.length - toImport.length - blocked.length > 0 && <> · already in the app: {rows.length - toImport.length - blocked.length}</>}
+                                                New: <b>{counts.added}</b> · update: <b>{counts.updated}</b>
+                                                {exerciseList.length > 0 && <> · {exerciseList.length} exercises in the library, {counts.exerciseRows} in trainings</>}
                                                 {blocked.length > 0 && <span className="text-red-700"> · cannot import: {blocked.length}</span>}
                                                 <span className="text-gray-500"> · {Object.keys(files).length} files, {formatSize(totalBytes)}</span>
+                                                {missingExerciseImages.length > 0 && (
+                                                    <div className="text-red-700">Missing exercise images: {missingExerciseImages.join(', ')}</div>
+                                                )}
+                                                {counts.updated > 0 && (
+                                                    <div className="text-xs text-gray-500">
+                                                        Update = same type, date and title already in the app: its description and exercises are replaced
+                                                        {rows.some((r) => r.exists && r.t.remove_files?.length) ? ', and the old plan page/PDF attachments are removed' : ''}.
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
                                     <button
                                         type="button"
                                         onClick={run}
-                                        disabled={running || existing === null || toImport.length === 0 || (finished && failed.length === 0)}
+                                        disabled={running || existing === null || toImport.length === 0 || missingExerciseImages.length > 0 || (finished && failed.length === 0)}
                                         className="px-5 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                                     >
-                                        {running ? `Importing… ${doneCount}/${toImport.length}` : failed.length ? 'Retry failed' : `Import ${toImport.length} trainings`}
+                                        {running ? `Importing… ${Object.keys(results).length}/${total}` : failed.length ? 'Retry failed' : `Import ${toImport.length} trainings`}
                                     </button>
                                 </div>
 
@@ -218,12 +257,12 @@ export default function TrainingsImport({ notReady, limits }) {
                                         <div className="h-2 w-full overflow-hidden rounded bg-gray-100">
                                             <div
                                                 className="h-full bg-blue-600 transition-all"
-                                                style={{ width: `${toImport.length ? (Object.keys(results).length / toImport.length) * 100 : 0}%` }}
+                                                style={{ width: `${total ? (Object.keys(results).length / total) * 100 : 0}%` }}
                                             />
                                         </div>
                                         {finished && (
                                             <p className={`mt-2 text-sm ${failed.length ? 'text-red-700' : 'text-green-700'}`}>
-                                                {doneCount} imported{failed.length ? `, ${failed.length} failed (see the list)` : ''}.{' '}
+                                                {doneCount} trainings imported{failed.length ? `, ${failed.length} failed: ${failed.slice(0, 3).map(([, v]) => v).join('; ')}` : ''}.{' '}
                                                 <Link href="/trainings" className="text-blue-600 hover:underline">Open the calendar →</Link>
                                             </p>
                                         )}
@@ -245,7 +284,7 @@ export default function TrainingsImport({ notReady, limits }) {
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
                                         {rows.map((r) => (
-                                            <tr key={r.key} className={r.exists ? 'text-gray-400' : ''}>
+                                            <tr key={r.key}>
                                                 <td className="px-3 py-2 whitespace-nowrap align-top">{formatDate(r.t.date)}</td>
                                                 <td className="px-3 py-2 align-top">
                                                     <div className="flex flex-wrap items-center gap-2">
@@ -257,6 +296,7 @@ export default function TrainingsImport({ notReady, limits }) {
                                                     )}
                                                 </td>
                                                 <td className="hidden sm:table-cell px-3 py-2 align-top text-xs text-gray-500">
+                                                    {r.t.exercises?.length > 0 && <div>🏋️ {r.t.exercises.length} exercises</div>}
                                                     {r.names.map((n) => (
                                                         <div key={n} className={`truncate max-w-[16rem] ${!files[n] || r.tooBig.includes(n) ? 'text-red-600' : ''}`}>
                                                             {n}{!files[n] ? ' — not selected' : r.tooBig.includes(n) ? ' — too large' : ''}
@@ -280,11 +320,10 @@ export default function TrainingsImport({ notReady, limits }) {
 }
 
 function Status({ row, result }) {
-    if (row.exists) return <span className="text-xs">Already in the app</span>;
     if (row.missing.length) return <span className="text-xs text-red-600">Missing {row.missing.length} file(s)</span>;
     if (row.tooBig.length) return <span className="text-xs text-red-600">File too large</span>;
-    if (result === 'done') return <span className="text-xs font-medium text-green-700">✓ Imported</span>;
-    if (result === 'skipped') return <span className="text-xs text-gray-500">Already in the app</span>;
+    if (result === 'done') return <span className="text-xs font-medium text-green-700">✓ Added</span>;
+    if (result === 'updated') return <span className="text-xs font-medium text-green-700">✓ Updated</span>;
     if (result) return <span className="text-xs text-red-600" title={result}>✕ {result.length > 40 ? `${result.slice(0, 40)}…` : result}</span>;
-    return <span className="text-xs text-blue-700">New</span>;
+    return row.exists ? <span className="text-xs text-amber-700">Update</span> : <span className="text-xs text-blue-700">New</span>;
 }

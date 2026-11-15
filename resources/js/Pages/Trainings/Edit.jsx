@@ -4,7 +4,9 @@ import Layout from '../../Components/Layout';
 import ConfirmModal from '../../Components/ConfirmModal';
 import { IMAGE_EXTENSIONS, formatSize, isImageMime } from '../../Components/Trainings/shared';
 
-export default function TrainingEdit({ training, defaultType, defaultDate = '', limits }) {
+const emptyExercise = () => ({ name: '', group: 'all', sets: '', rest: '', load_women: '', load_men: '' });
+
+export default function TrainingEdit({ training, defaultType, defaultDate = '', limits, exerciseNames = [] }) {
     const isNew = !training;
     const fileInput = useRef(null);
     const imageInput = useRef(null);
@@ -18,6 +20,15 @@ export default function TrainingEdit({ training, defaultType, defaultDate = '', 
         training_date: training ? (training.date || '') : defaultDate,
         description: training?.description || '',
         links: training?.links || [],
+        exercises: (training?.exercises || []).map((e) => ({
+            name: e.exercise?.name || '',
+            group: e.group || 'all',
+            sets: e.sets || '',
+            rest: e.rest || '',
+            load_women: e.load_women || '',
+            load_men: e.load_men || '',
+        })),
+        exercises_sent: 1,
         images: [],
         files: [],
         remove_file_ids: [],
@@ -149,6 +160,13 @@ export default function TrainingEdit({ training, defaultType, defaultDate = '', 
                         />
                         {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                     </label>
+
+                    <ExercisesEditor
+                        rows={data.exercises}
+                        onChange={(rows) => setData('exercises', rows)}
+                        names={exerciseNames}
+                        errors={errors}
+                    />
 
                     <div>
                         <span className="block text-sm font-medium text-gray-700 mb-1">Images</span>
@@ -397,5 +415,113 @@ function Thumb({ src, file, name, isNew, onRemove }) {
                 ✕
             </button>
         </div>
+    );
+}
+
+// Exercise list of a training. Order matters; a "Men" row right after a "Women" row is the
+// same step (women and men do different exercises at the same time).
+function ExercisesEditor({ rows, onChange, names, errors }) {
+    const set = (i, field, value) => onChange(rows.map((r, j) => (j === i ? { ...r, [field]: value } : r)));
+    const move = (i, step) => {
+        const j = i + step;
+        if (j < 0 || j >= rows.length) return;
+        const next = [...rows];
+        [next[i], next[j]] = [next[j], next[i]];
+        onChange(next);
+    };
+    let number = 0;
+    const numbers = rows.map((r, i) => {
+        if (!(r.group === 'men' && rows[i - 1]?.group === 'women')) number++;
+        return number;
+    });
+
+    return (
+        <div>
+            <span className="block text-sm font-medium text-gray-700 mb-1">Exercises</span>
+            <datalist id="exercise-names">
+                {names.map((n) => <option key={n} value={n} />)}
+            </datalist>
+            {rows.length > 0 && (
+                <ol className="mb-2 space-y-2">
+                    {rows.map((r, i) => (
+                        <li key={i} className="rounded-lg border border-gray-200 p-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="w-6 text-right text-sm font-semibold text-gray-400">{numbers[i]}</span>
+                                <select
+                                    value={r.group}
+                                    onChange={(e) => set(i, 'group', e.target.value)}
+                                    aria-label="Who does it"
+                                    className="px-2 py-1.5 text-sm border border-gray-300 rounded-lg bg-white"
+                                >
+                                    <option value="all">Everyone</option>
+                                    <option value="women">Women</option>
+                                    <option value="men">Men</option>
+                                </select>
+                                <input
+                                    type="text"
+                                    list="exercise-names"
+                                    value={r.name}
+                                    onChange={(e) => set(i, 'name', e.target.value)}
+                                    placeholder="Exercise (pick or type a new one)"
+                                    required
+                                    maxLength={150}
+                                    className="min-w-[12rem] flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg"
+                                />
+                                <div className="flex items-center">
+                                    <IconButton label="Move up" onClick={() => move(i, -1)} disabled={i === 0}>↑</IconButton>
+                                    <IconButton label="Move down" onClick={() => move(i, 1)} disabled={i === rows.length - 1}>↓</IconButton>
+                                    <IconButton label="Remove exercise" onClick={() => onChange(rows.filter((_, j) => j !== i))} danger>✕</IconButton>
+                                </div>
+                            </div>
+                            <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:pl-8">
+                                <SmallInput value={r.sets} onChange={(v) => set(i, 'sets', v)} placeholder="Sets × reps, e.g. 3×20" />
+                                <SmallInput value={r.rest} onChange={(v) => set(i, 'rest', v)} placeholder="Rest, e.g. 60-75 s" />
+                                {r.group !== 'men' && (
+                                    <SmallInput value={r.load_women} onChange={(v) => set(i, 'load_women', v)} placeholder="Load women" />
+                                )}
+                                {r.group !== 'women' && (
+                                    <SmallInput value={r.load_men} onChange={(v) => set(i, 'load_men', v)} placeholder="Load men" />
+                                )}
+                            </div>
+                            {errors[`exercises.${i}.name`] && <p className="mt-1 text-sm text-red-600">{errors[`exercises.${i}.name`]}</p>}
+                        </li>
+                    ))}
+                </ol>
+            )}
+            <button type="button" onClick={() => onChange([...rows, emptyExercise()])} className="text-sm text-blue-600 hover:underline">
+                + Add exercise
+            </button>
+            <p className="mt-1 text-xs text-gray-500">
+                Pick an exercise from the library (illustration and instructions come with it) or type a new name to add it.
+                A “Men” row right after a “Women” row is the same step.
+            </p>
+        </div>
+    );
+}
+
+function SmallInput({ value, onChange, placeholder }) {
+    return (
+        <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            aria-label={placeholder}
+            className="min-w-0 px-2 py-1.5 text-sm border border-gray-300 rounded-lg"
+        />
+    );
+}
+
+function IconButton({ label, onClick, disabled, danger, children }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            aria-label={label}
+            className={`h-8 w-8 rounded text-sm disabled:opacity-30 ${danger ? 'text-gray-400 hover:text-red-600' : 'text-gray-500 hover:bg-gray-100'}`}
+        >
+            {children}
+        </button>
     );
 }

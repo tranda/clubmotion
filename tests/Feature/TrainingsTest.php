@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Exercise;
 use App\Models\Role;
 use App\Models\Training;
+use App\Models\TrainingExercise;
 use App\Models\TrainingFile;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
@@ -34,6 +36,7 @@ class TrainingsTest extends TestCase
         Schema::create('join_requests', function (Blueprint $t) { $t->id(); $t->string('status')->nullable(); $t->timestamps(); });
         (require database_path('migrations/2026_11_15_120000_create_trainings_tables.php'))->up();
         (require database_path('migrations/2026_11_15_130000_add_links_to_trainings.php'))->up();
+        (require database_path('migrations/2026_11_15_140000_create_exercises_tables.php'))->up();
 
         $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
     }
@@ -274,7 +277,7 @@ class TrainingsTest extends TestCase
             'type' => 'gym', 'title' => 'A1 | povlačenja', 'training_date' => '2026-11-03', 'description' => "Laka\n1. Veslanje",
             'images' => [UploadedFile::fake()->image('Teretana 2026-11-03 A1.jpg', 30, 30)],
             'files' => [UploadedFile::fake()->create('plan.pdf', 50, 'application/pdf')],
-        ], ['Accept' => 'application/json'])->assertOk()->assertJson(['skipped' => false])->json();
+        ], ['Accept' => 'application/json'])->assertOk()->assertJson(['updated' => false])->json();
         $planId = collect($first['files'])->firstWhere('name', 'plan.pdf')['id'];
 
         // Second item links the same stored PDF instead of uploading it again.
@@ -287,11 +290,12 @@ class TrainingsTest extends TestCase
         $this->assertSame($original->path, $copy->path);
         $this->assertSame('plan.pdf', $copy->original_name);
 
-        // Running the same item again is skipped.
+        // Running the same item again updates it instead of adding a second one.
         $this->actingAs($admin)->post('/trainings/import/item', [
-            'type' => 'gym', 'title' => 'B1 | potisci', 'training_date' => '2026-11-05',
-        ], ['Accept' => 'application/json'])->assertOk()->assertJson(['skipped' => true]);
+            'type' => 'gym', 'title' => 'B1 | potisci', 'training_date' => '2026-11-05', 'description' => 'New text',
+        ], ['Accept' => 'application/json'])->assertOk()->assertJson(['updated' => true]);
         $this->assertSame(3, Training::count());
+        $this->assertSame('New text', Training::find($second['id'])->description);
 
         // Removing the PDF from one training keeps the stored file for the other.
         $this->actingAs($admin)->post('/trainings/' . $second['id'], [
@@ -304,5 +308,113 @@ class TrainingsTest extends TestCase
         // Bad items return JSON errors.
         $this->actingAs($admin)->post('/trainings/import/item', ['type' => 'gym', 'title' => 'X'], ['Accept' => 'application/json'])
             ->assertStatus(422)->assertJsonValidationErrors('training_date');
+    }
+
+    public function test_exercises_are_saved_per_training_and_shown_to_members(): void
+    {
+        $admin = $this->userWithRole('superuser');
+        $this->actingAs($admin)->post('/trainings', [
+            'type' => 'gym', 'title' => 'B1', 'training_date' => '2026-12-01', 'exercises_sent' => 1,
+            'exercises' => [
+                ['name' => 'Potisak nogama na spravi', 'group' => 'women', 'sets' => '3×20', 'rest' => '60-75 s', 'load_women' => '10-20 kg'],
+                ['name' => 'Čučanj sa šipkom', 'group' => 'men', 'sets' => '3×20', 'rest' => '60-75 s', 'load_men' => '20-30 kg'],
+                ['name' => 'Bench press', 'group' => 'all', 'sets' => '3×20', 'load_women' => '10-15 kg', 'load_men' => '20-30 kg'],
+            ],
+        ])->assertRedirect();
+
+        $t = Training::firstOrFail();
+        $rows = TrainingExercise::where('training_id', $t->id)->orderBy('id')->get();
+        $this->assertSame([1, 1, 2], $rows->pluck('position')->all()); // women + men share step 1
+        $this->assertSame(3, Exercise::count());
+
+        // Same name in another letter case reuses the library exercise.
+        $this->actingAs($admin)->post('/trainings/' . $t->id, [
+            '_method' => 'put', 'type' => 'gym', 'title' => 'B1', 'training_date' => '2026-12-01', 'exercises_sent' => 1,
+            'exercises' => [['name' => 'bench PRESS', 'group' => 'all', 'sets' => '4×12']],
+        ])->assertRedirect();
+        $this->assertSame(3, Exercise::count());
+        $this->actingAs($admin)->post('/trainings/import/exercise', ['name' => 'čučanj SA šipkom'], ['Accept' => 'application/json'])
+            ->assertOk()->assertJson(['created' => false]);
+        $this->assertSame(3, Exercise::count());
+        $this->assertSame(1, TrainingExercise::where('training_id', $t->id)->count());
+
+        // Saving without the exercises field leaves them alone; exercises_sent with none clears them.
+        $this->actingAs($admin)->post('/trainings/' . $t->id, ['_method' => 'put', 'type' => 'gym', 'title' => 'B1', 'training_date' => '2026-12-01'])->assertRedirect();
+        $this->assertSame(1, TrainingExercise::where('training_id', $t->id)->count());
+
+        $member = $this->userWithRole('user');
+        $this->actingAs($member)->get('/trainings/' . $t->id)->assertOk()
+            ->assertInertia(fn ($p) => $p->where('training.exercises.0.exercise.name', 'Bench press')->where('training.exercises.0.sets', '4×12'));
+        $this->actingAs($member)->get('/trainings/exercises')->assertOk()
+            ->assertInertia(fn ($p) => $p->component('Trainings/Exercises')->has('exercises', 3));
+        $this->actingAs($member)->get('/trainings/exercises/1/edit')->assertForbidden();
+
+        $this->actingAs($admin)->post('/trainings/' . $t->id, ['_method' => 'put', 'type' => 'gym', 'title' => 'B1', 'training_date' => '2026-12-01', 'exercises_sent' => 1])->assertRedirect();
+        $this->assertSame(0, TrainingExercise::where('training_id', $t->id)->count());
+    }
+
+    public function test_exercise_library_edit_image_and_delete_rules(): void
+    {
+        Storage::fake('local');
+        $admin = $this->userWithRole('admin');
+        $this->actingAs($admin)->post('/trainings/exercises', [
+            'name' => 'Face pull', 'muscles' => 'Zadnje rame', 'how_to' => 'Sajla u visini očiju.',
+            'image' => UploadedFile::fake()->image('face.png', 40, 40),
+        ])->assertRedirect('/trainings/exercises');
+        $e = Exercise::firstOrFail();
+        Storage::disk('local')->assertExists($e->image_path);
+        $this->actingAs($this->userWithRole('user'))->get('/trainings/exercises/' . $e->id . '/image')->assertOk();
+
+        // Used exercises cannot be deleted.
+        $t = Training::create(['type' => 'gym', 'title' => 'A1', 'training_date' => '2026-12-01']);
+        TrainingExercise::create(['training_id' => $t->id, 'exercise_id' => $e->id, 'position' => 1]);
+        $this->actingAs($admin)->delete('/trainings/exercises/' . $e->id)->assertRedirect();
+        $this->assertNotNull(Exercise::find($e->id));
+
+        TrainingExercise::query()->delete();
+        $path = $e->image_path;
+        $this->actingAs($admin)->delete('/trainings/exercises/' . $e->id)->assertRedirect('/trainings/exercises');
+        $this->assertNull(Exercise::find($e->id));
+        Storage::disk('local')->assertMissing($path);
+    }
+
+    public function test_import_exercises_fill_only_missing_fields_and_update_trainings(): void
+    {
+        Storage::fake('local');
+        $admin = $this->userWithRole('admin');
+        Exercise::create(['name' => 'Bench press', 'how_to' => 'Edited in the app']);
+
+        $this->actingAs($admin)->post('/trainings/import/exercise', [
+            'name' => 'bench press', 'muscles' => 'Grudi', 'how_to' => 'From PDF',
+            'image' => UploadedFile::fake()->image('bench.jpg', 30, 30),
+        ], ['Accept' => 'application/json'])->assertOk()->assertJson(['created' => false]);
+        $e = Exercise::firstOrFail();
+        $this->assertSame('Edited in the app', $e->how_to);
+        $this->assertSame('Grudi', $e->muscles);
+        $this->assertNotNull($e->image_path);
+
+        // A training imported earlier with a page image gets exercises and loses the old attachment.
+        $t = Training::create(['type' => 'gym', 'title' => 'A1 | povlačenja', 'training_date' => '2026-11-03', 'description' => 'old list']);
+        $this->actingAs($admin)->post('/trainings/' . $t->id, [
+            '_method' => 'put', 'type' => 'gym', 'title' => 'A1 | povlačenja', 'training_date' => '2026-11-03',
+            'images' => [UploadedFile::fake()->image('Teretana 2026-11-03 A1.jpg', 20, 20)],
+        ]);
+        $this->assertSame(1, $t->files()->count());
+
+        $this->actingAs($admin)->post('/trainings/import/item', [
+            'type' => 'gym', 'title' => 'A1 | povlačenja', 'training_date' => '2026-11-03', 'description' => 'Laka nedelja',
+            'remove_files' => ['Teretana 2026-11-03 A1.jpg', 'plan.pdf'],
+            'exercises_sent' => 1,
+            'exercises' => [
+                ['name' => 'Bench press', 'group' => 'all', 'position' => 1, 'sets' => '3×20'],
+                ['name' => 'Face pull', 'group' => 'all', 'position' => 2, 'sets' => '3×20'],
+            ],
+        ], ['Accept' => 'application/json'])->assertOk()->assertJson(['updated' => true]);
+
+        $t->refresh();
+        $this->assertSame('Laka nedelja', $t->description);
+        $this->assertSame(0, $t->files()->count());
+        $this->assertSame(['Bench press', 'Face pull'], $t->exercises()->orderBy('position')->get()->map(fn ($r) => $r->exercise->name)->all());
+        $this->assertSame(2, Exercise::count());
     }
 }
