@@ -32,7 +32,11 @@ export default function ViewAsMemberModal({ onClose }) {
 
     useEffect(() => setActive(0), [query]);
 
-    const viewAs = (m) => router.post(`/members/${m.id}/impersonate`);
+    // Close the panel right away; the page then reloads as that member.
+    const viewAs = (m) => {
+        onClose();
+        router.post(`/members/${m.id}/impersonate`);
+    };
 
     const onKeyDown = (e) => {
         if (e.key === 'ArrowDown') { e.preventDefault(); setActive((i) => Math.min(i + 1, results.length - 1)); }

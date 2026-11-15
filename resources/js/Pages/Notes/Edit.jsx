@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import Layout from '../../Components/Layout';
 import ConfirmModal from '../../Components/ConfirmModal';
@@ -136,8 +136,7 @@ export default function NotesEdit({ note, members, defaultMemberId, limits }) {
     return (
         <Layout>
             <div className="py-4 max-w-4xl mx-auto">
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                    <Link href="/notes" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Notes</Link>
+                <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                         {dirty && <span className="text-xs text-amber-700">Unsaved changes</span>}
                         {!isNew && (

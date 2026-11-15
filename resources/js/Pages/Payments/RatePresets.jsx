@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { router, Link } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import ConfirmModal from '../../Components/ConfirmModal';
 
@@ -112,12 +112,6 @@ export default function RatePresets({ presets }) {
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold text-gray-800">Payment Rate Presets</h1>
                     <div className="flex gap-2">
-                        <Link
-                            href="/payments/initialize"
-                            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-                        >
-                            Back to Initialize
-                        </Link>
                         <button
                             onClick={openAddModal}
                             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

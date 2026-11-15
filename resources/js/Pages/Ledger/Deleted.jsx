@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
 import ConfirmModal from '../../Components/ConfirmModal';
@@ -26,7 +26,6 @@ export default function LedgerDeleted({ year, month, entries }) {
             <div className="py-4 max-w-5xl mx-auto">
                 <div className="mb-4 flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-800">Deleted entries — {String(month).padStart(2, '0')}/{year}</h1>
-                    <Link href={`/ledger?year=${year}&month=${month}`} className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Ledger</Link>
                 </div>
 
                 <div className="bg-white rounded-lg shadow overflow-x-auto">

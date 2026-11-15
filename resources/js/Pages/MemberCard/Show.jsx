@@ -54,9 +54,6 @@ export default function MemberCardShow({ member, card, backHref }) {
             {/* cursor-pointer: iOS Safari ignores taps on plain divs without it. */}
             <div className="min-h-[calc(100vh-6rem)] cursor-pointer" onClick={closeCard}>
                 <div className="max-w-sm mx-auto py-2 sm:py-6">
-                    {backHref && (
-                        <Link href={backHref} onClick={keepOpen} className="text-sm text-blue-600 hover:text-blue-800">← Back to member</Link>
-                    )}
                     <button
                         type="button"
                         onClick={(e) => { keepOpen(e); setFull(true); }}

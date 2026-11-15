@@ -1,4 +1,4 @@
-import { Link, router, useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
 import ConfirmModal from '../../Components/ConfirmModal';
@@ -65,7 +65,6 @@ export default function LedgerImportReview({ batch, groups, summary, categories,
             <div className="py-4 max-w-6xl mx-auto">
                 <div className="mb-4 flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-800">Review import</h1>
-                    <Link href="/ledger/import" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Imports</Link>
                 </div>
 
                 <div className="bg-white rounded-lg shadow p-4 mb-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">

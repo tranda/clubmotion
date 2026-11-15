@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 // Review guessed genders (from first names) for members without one, then save.
@@ -20,8 +20,7 @@ export default function GenderGuess({ rows }) {
     return (
         <Layout>
             <div className="py-4 max-w-3xl mx-auto">
-                <Link href="/members" className="text-sm text-blue-600 hover:text-blue-800">← Members</Link>
-                <h1 className="mt-2 text-2xl font-bold text-gray-800">Fill gender from names</h1>
+                <h1 className="text-2xl font-bold text-gray-800">Fill gender from names</h1>
                 <p className="text-sm text-gray-600 mb-4">
                     Guessed from the first name for the {rows.length} member(s) without a gender. Correct any mistakes, then save.
                     Members that already have a gender are not changed.

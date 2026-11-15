@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import DatabaseUpdates from '../../Components/DatabaseUpdates';
 
@@ -9,8 +9,7 @@ export default function AppSettings({ database }) {
             <Head title="App settings" />
             <div className="max-w-2xl mx-auto py-6 space-y-6">
                 <div>
-                    <Link href="/settings" className="text-sm text-blue-600 hover:text-blue-800">← Settings</Link>
-                    <h1 className="text-2xl font-bold text-gray-900 mt-1">App settings</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">App settings</h1>
                 </div>
 
                 <section className="space-y-2">

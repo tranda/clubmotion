@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 export default function NotesDeleted({ notes }) {
@@ -9,7 +9,6 @@ export default function NotesDeleted({ notes }) {
             <div className="py-4 max-w-5xl mx-auto">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                     <h1 className="text-2xl font-bold text-gray-800">Deleted notes</h1>
-                    <Link href="/notes" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Notes</Link>
                 </div>
 
                 {notes.length === 0 ? (

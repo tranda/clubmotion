@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 function formatAmount(value) {
@@ -18,7 +18,6 @@ export default function CustomPaymentsDeleted({ entries }) {
             <div className="py-4 max-w-6xl mx-auto">
                 <div className="mb-4 flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-800">Deleted custom payments</h1>
-                    <Link href="/custom-payments" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Custom payments</Link>
                 </div>
 
                 <div className="bg-white rounded-lg shadow overflow-x-auto">

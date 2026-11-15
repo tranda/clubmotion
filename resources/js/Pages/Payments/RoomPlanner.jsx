@@ -1,5 +1,4 @@
 import { Fragment, useState } from 'react';
-import { Link } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import RoomPlannerModal from '../../Components/CompetitionFees/RoomPlannerModal';
 import {
@@ -24,8 +23,7 @@ export default function RoomPlanner({ competition, totals, rooms, roomPlan, part
     return (
         <Layout>
             <div className="py-4 max-w-5xl mx-auto">
-                <Link href="/my-payments" className="text-sm text-blue-600 hover:text-blue-800">← My Payments</Link>
-                <div className="mt-2 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{competition.name}</h1>
                         <div className="text-gray-500">{[competition.date_range, competition.location].filter(Boolean).join(' · ')}</div>

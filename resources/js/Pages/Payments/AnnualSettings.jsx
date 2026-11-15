@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 export default function AnnualSettings({ settings }) {
@@ -23,12 +23,6 @@ export default function AnnualSettings({ settings }) {
             <div className="py-4">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold text-gray-800">Annual Payment Settings</h1>
-                    <Link
-                        href="/payments"
-                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-                    >
-                        Back to Payments
-                    </Link>
                 </div>
 
                 <div className="bg-white rounded-lg shadow p-6 max-w-xl">

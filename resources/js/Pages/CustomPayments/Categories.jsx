@@ -1,4 +1,4 @@
-import { Link, router, useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import Layout from '../../Components/Layout';
 import ConfirmModal from '../../Components/ConfirmModal';
@@ -51,7 +51,6 @@ export default function CustomPaymentCategories({ categories }) {
             <div className="py-4 max-w-3xl mx-auto">
                 <div className="mb-4 flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-800">Custom payment categories</h1>
-                    <Link href="/custom-payments" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Custom payments</Link>
                 </div>
 
                 <form onSubmit={submit} className="bg-white rounded-lg shadow p-4 mb-4">

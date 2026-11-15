@@ -17,8 +17,7 @@ export default function EventsSettings({ url, club, hasKey, canEdit }) {
             <Head title="Events platform" />
             <div className="max-w-2xl mx-auto py-6 space-y-6">
                 <div>
-                    <Link href="/settings" className="text-sm text-blue-600 hover:text-blue-800">← Settings</Link>
-                    <h1 className="text-2xl font-bold text-gray-900 mt-1">Events platform</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Events platform</h1>
                     <p className="text-sm text-gray-600">
                         Connection to events.motion.rs, used to sync member data (EDBF ID, birth date, gender) with our club's athletes there.
                     </p>

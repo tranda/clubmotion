@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import Layout from '../../../Components/Layout';
 
 const BUCKETS = ['cash', 'bank', 'cash_eur', 'eur'];
@@ -41,7 +41,6 @@ export default function AnnualReport({ year, totals, monthly, categories, member
                         >
                             Download Excel
                         </a>
-                        <Link href="/ledger" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Ledger</Link>
                     </div>
                 </div>
 

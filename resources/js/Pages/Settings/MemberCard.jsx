@@ -45,8 +45,7 @@ export default function MemberCardSettings({ card, designs, sample }) {
             <Head title="Member card settings" />
             <form onSubmit={submit} className="max-w-5xl mx-auto py-6 space-y-6">
                 <div>
-                    <Link href="/settings" className="text-sm text-blue-600 hover:text-blue-800">← Settings</Link>
-                    <h1 className="text-2xl font-bold text-gray-900 mt-1">Member card</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Member card</h1>
                     <p className="text-sm text-gray-600">
                         Digital card members open from <strong>Show Card</strong> in their menu. Pick a layout, and optionally upload your own background.
                     </p>

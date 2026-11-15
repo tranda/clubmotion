@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.1.3] - 2026-11-15
+
+### Changed
+- **Back links removed from all pages** (Settings, Ledger, Notes, Custom payments, Payments, Members, member card); the menu is used to move around. "Back to Login" on the forgot-password page stays (no menu before login).
+- **View as member:** picking a member closes the panel right away, then the page reloads as that member.
+
 ## [1.1.2] - 2026-11-15
 
 ### Changed

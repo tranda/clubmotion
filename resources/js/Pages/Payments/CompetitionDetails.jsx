@@ -1,5 +1,5 @@
 import { Fragment, useMemo, useState } from 'react';
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 import ConfirmModal from '../../Components/ConfirmModal';
 import CompetitionFormModal from '../../Components/CompetitionFees/CompetitionFormModal';
@@ -292,10 +292,8 @@ export default function CompetitionDetails({ competition, totals, roomPlan, room
     return (
         <Layout>
             <div className="py-4">
-                <Link href="/payments/competition-fees" className="text-sm text-blue-600 hover:text-blue-800">← Competition Fees</Link>
-
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mt-2 mb-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{competition.name}</h1>

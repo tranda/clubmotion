@@ -80,8 +80,7 @@ export default function EventsSync({ error, club, athleteCount, memberCount, pai
             <Head title="Sync with events platform" />
             <div className="max-w-4xl mx-auto py-6 space-y-5">
                 <div>
-                    <Link href="/settings/events" className="text-sm text-blue-600 hover:text-blue-800">← Events platform</Link>
-                    <h1 className="text-2xl font-bold text-gray-900 mt-1">Sync with events platform</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Sync with events platform</h1>
                 </div>
 
                 {error ? (

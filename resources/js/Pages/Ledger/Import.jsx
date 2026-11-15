@@ -27,7 +27,6 @@ export default function LedgerImport({ recentBatches }) {
             <div className="py-4 max-w-3xl mx-auto">
                 <div className="mb-4 flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-800">Import ledger</h1>
-                    <Link href="/ledger" className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">← Ledger</Link>
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-900 mb-4">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, router, useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
 
 const inputClass = 'w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
@@ -85,8 +85,7 @@ export default function Categories({ categories }) {
     return (
         <Layout>
             <div className="max-w-3xl mx-auto py-6">
-                <Link href="/settings" className="text-sm text-blue-600 hover:text-blue-800">← Settings</Link>
-                <div className="mt-2 mb-4 flex items-center justify-between gap-3">
+                <div className="mb-4 flex items-center justify-between gap-3">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Member categories</h1>
                         <p className="text-sm text-gray-600">IDBF categories. Age = age reached this calendar year.</p>
