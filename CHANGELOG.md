@@ -2,6 +2,18 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.1.0] - 2026-11-15
+
+New feature release: **Trainings** (built up in 1.0.41–1.0.44).
+
+### Added
+- **Trainings section** — water and gym trainings members can read before they come, in a month/week calendar (plus a list with past trainings as the archive) with Water/Gym filters.
+- **Training details** — description, image gallery, video links (YouTube/Vimeo play on the page) and files.
+- **Exercises as separate records** — a gym training lists its exercises in order (everyone / women / men, sets, rest, suggested loads); tap one to open just that exercise with its illustration, muscles and how to do it.
+- **Exercise library** (Trainings → Exercises) with search; admins and superusers add and edit exercises.
+- **Import** (admins and superusers) — adds or updates many trainings and exercises at once from a prepared import file; the winter 2026/27 water and gym plans were imported this way.
+- **Home page** — the next water and gym training as tiles; all Home cards are now smaller tiles in a grid.
+
 ## [1.0.44] - 2026-11-15
 
 ### Changed
