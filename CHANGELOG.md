@@ -2,6 +2,12 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.1.2] - 2026-11-15
+
+### Changed
+- **Home page:** the "Active members" tile is removed; the next water and gym trainings are tiles the same size as the menu cards. New **Trainings** card right after Attendance, in the same order as the menu (for staff and members).
+- **No back links** on the Trainings pages (Exercises, Import, training and exercise forms) and no "Back to Members" link on a member's page; the menu is used to move around.
+
 ## [1.1.1] - 2026-11-15
 
 ### Changed

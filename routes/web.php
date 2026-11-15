@@ -46,13 +46,7 @@ Route::middleware('auth')->group(function () {
 
     // Home - accessible to all authenticated users
     Route::get('/', function () {
-        // Show real active members count to everyone
-        $activeMembers = Member::where('is_active', true)->count();
-
         return Inertia::render('Home', [
-            'stats' => [
-                'activeMembers' => $activeMembers,
-            ],
             'nextTrainings' => App\Http\Controllers\TrainingController::nextByType(),
         ]);
     })->name('home');

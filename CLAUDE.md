@@ -46,7 +46,7 @@ When the user says:
 - **CHANGELOG.md** - Detailed change history
 
 ## Current Version
-**1.1.1** (as of 2026-11-15)
+**1.1.2** (as of 2026-11-15)
 
 See VERSION.md and CHANGELOG.md for detailed versioning instructions and change history.
 

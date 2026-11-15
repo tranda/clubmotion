@@ -2,7 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import Layout from '../Components/Layout';
 import NextTrainingsCard from '../Components/Trainings/NextTrainingsCard';
 
-export default function Home({ stats, nextTrainings = [] }) {
+export default function Home({ nextTrainings = [] }) {
     const { auth, appVersion, clubName } = usePage().props;
     const userRole = auth.user?.role?.name || 'user';
     const canManage = userRole === 'admin' || userRole === 'superuser';
@@ -29,12 +29,8 @@ export default function Home({ stats, nextTrainings = [] }) {
                 </div>
 
                 <div className="flex-1">
-                    {/* Overview: members and the next trainings */}
-                    <div className="mb-6 grid grid-cols-2 sm:grid-cols-3 gap-3 max-sm:[&>*:last-child:nth-child(odd)]:col-span-2">
-                        <div className="flex flex-col justify-center rounded-lg bg-white p-4 text-center shadow-md">
-                            <span className="text-3xl font-bold text-green-600">{stats.activeMembers}</span>
-                            <span className="mt-1 text-xs text-gray-600">Active members</span>
-                        </div>
+                    {/* Next trainings */}
+                    <div className="mb-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         <NextTrainingsCard trainings={nextTrainings} />
                     </div>
 
@@ -72,6 +68,22 @@ export default function Home({ stats, nextTrainings = [] }) {
                                 </div>
                                 <h2 className="text-sm sm:text-base font-semibold leading-tight text-gray-900">Attendance</h2>
                                 <p className="mt-1 hidden sm:block text-xs text-gray-500 line-clamp-2">Track member attendance</p>
+                            </Link>
+
+                            {/* Trainings Card */}
+                            <Link
+                                href="/trainings"
+                                className="flex flex-col bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
+                            >
+                                <div className="mb-2">
+                                    <div className="inline-flex p-2 bg-sky-100 rounded-full">
+                                        <svg className="w-6 h-6 text-sky-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h2 className="text-sm sm:text-base font-semibold leading-tight text-gray-900">Trainings</h2>
+                                <p className="mt-1 hidden sm:block text-xs text-gray-500 line-clamp-2">Water and gym trainings and exercises</p>
                             </Link>
 
                             {/* Payments Card - Admin/Superuser only */}
@@ -210,6 +222,22 @@ export default function Home({ stats, nextTrainings = [] }) {
                                 </div>
                                 <h2 className="text-sm sm:text-base font-semibold leading-tight text-gray-900">Attendance</h2>
                                 <p className="mt-1 hidden sm:block text-xs text-gray-500 line-clamp-2">View attendance records</p>
+                            </Link>
+
+                            {/* Trainings Card */}
+                            <Link
+                                href="/trainings"
+                                className="flex flex-col bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
+                            >
+                                <div className="mb-2">
+                                    <div className="inline-flex p-2 bg-sky-100 rounded-full">
+                                        <svg className="w-6 h-6 text-sky-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h2 className="text-sm sm:text-base font-semibold leading-tight text-gray-900">Trainings</h2>
+                                <p className="mt-1 hidden sm:block text-xs text-gray-500 line-clamp-2">Water and gym trainings and exercises</p>
                             </Link>
 
                             {/* My Payments Card - Regular users */}

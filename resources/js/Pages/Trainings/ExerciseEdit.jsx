@@ -1,4 +1,4 @@
-import { Link, router, useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import Layout from '../../Components/Layout';
 import ConfirmModal from '../../Components/ConfirmModal';
@@ -36,9 +36,6 @@ export default function ExerciseEdit({ exercise }) {
     return (
         <Layout>
             <div className="py-4 max-w-2xl mx-auto">
-                <div className="mb-3">
-                    <Link href="/trainings/exercises" className="text-sm text-blue-600 hover:underline">← Exercises</Link>
-                </div>
                 <h1 className="mb-4 text-2xl font-bold text-gray-800">{isNew ? 'New exercise' : 'Edit exercise'}</h1>
 
                 <form onSubmit={submit} className="bg-white rounded-lg shadow p-5 space-y-4">

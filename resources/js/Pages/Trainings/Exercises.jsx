@@ -20,9 +20,6 @@ export default function Exercises({ exercises }) {
     return (
         <Layout>
             <div className="py-4 max-w-5xl mx-auto">
-                <div className="mb-3">
-                    <Link href="/trainings" className="text-sm text-blue-600 hover:underline">← Trainings</Link>
-                </div>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                     <h1 className="text-2xl font-bold text-gray-800">Exercises</h1>
                     {canManage && (

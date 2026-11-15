@@ -178,9 +178,6 @@ export default function TrainingsImport({ notReady, limits }) {
     return (
         <Layout>
             <div className="py-4 max-w-5xl mx-auto">
-                <div className="mb-3">
-                    <Link href="/trainings" className="text-sm text-blue-600 hover:underline">← Trainings</Link>
-                </div>
                 <h1 className="mb-1 text-2xl font-bold text-gray-800">Import trainings</h1>
                 <p className="mb-4 text-sm text-gray-600">
                     Adds many trainings at once from a prepared import file. You see the list first; nothing is saved until you click Import.
