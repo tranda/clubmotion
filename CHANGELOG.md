@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.0.44] - 2026-11-15
+
+### Changed
+- **Home page cards are smaller and in a grid.** Active members and the next water and gym training are three small tiles at the top (one row on desktop; two per row on phones, a lone last tile spans the row). The menu cards below (Members, Attendance, Payments, …) are compact tiles: 2 per row on phones (name only), up to 4 per row on larger screens with a short description.
+
 ## [1.0.43] - 2026-11-15
 
 ### Added
