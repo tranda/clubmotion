@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.1.1] - 2026-11-15
+
+### Changed
+- Training page header follows the other pages: the training title on the left, Edit (admins and superusers) on the right; the "← Trainings" link is removed.
+
 ## [1.1.0] - 2026-11-15
 
 New feature release: **Trainings** (built up in 1.0.41–1.0.44).

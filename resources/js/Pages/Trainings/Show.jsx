@@ -24,15 +24,10 @@ export default function TrainingShow({ training: t }) {
     return (
         <Layout>
             <div className="py-4 max-w-3xl mx-auto">
-                <div className="mb-3 flex items-center justify-between gap-2">
-                    <Link href={t.date ? `/trainings?date=${t.date}` : '/trainings'} className="text-sm text-blue-600 hover:underline">
-                        ← Trainings
-                    </Link>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                    <h1 className="text-2xl font-bold text-gray-800">{t.title}</h1>
                     {canManage && (
-                        <Link
-                            href={`/trainings/${t.id}/edit`}
-                            className="px-3 py-1.5 text-sm bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200"
-                        >
+                        <Link href={`/trainings/${t.id}/edit`} className="px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200">
                             Edit
                         </Link>
                     )}
@@ -46,7 +41,6 @@ export default function TrainingShow({ training: t }) {
                             <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-600 text-white">Today</span>
                         )}
                     </div>
-                    <h1 className="mt-2 text-2xl font-bold text-gray-900">{t.title}</h1>
 
                     {t.description && (
                         <div className="mt-4 text-gray-800 whitespace-pre-wrap break-words leading-relaxed">{t.description}</div>
