@@ -417,4 +417,27 @@ class TrainingsTest extends TestCase
         $this->assertSame(['Bench press', 'Face pull'], $t->exercises()->orderBy('position')->get()->map(fn ($r) => $r->exercise->name)->all());
         $this->assertSame(2, Exercise::count());
     }
+
+    public function test_import_item_replaces_an_older_title(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $old = Training::create(['type' => 'gym', 'title' => 'A1 | povlačenja i biceps', 'training_date' => '2026-11-03', 'description' => 'old']);
+        Training::create(['type' => 'water', 'title' => 'A1 | povlačenja i biceps', 'training_date' => '2026-11-03']);
+
+        $item = ['type' => 'gym', 'date' => '2026-11-03', 'title' => 'A1 | povlačenja, ramena i biceps', 'replaces' => ['A1 | POVLAČENJA I BICEPS']];
+        $this->actingAs($admin)->postJson('/trainings/import/check', ['items' => [
+            $item,
+            ['type' => 'gym', 'date' => '2026-11-05', 'title' => 'B1', 'replaces' => ['A1 | povlačenja i biceps']],
+        ]])->assertOk()->assertExactJson(['existing' => ['gym|2026-11-03|a1 | povlačenja, ramena i biceps']]);
+
+        $this->actingAs($admin)->post('/trainings/import/item', [
+            'type' => 'gym', 'title' => $item['title'], 'training_date' => '2026-11-03', 'description' => 'new',
+            'replaces' => $item['replaces'],
+        ], ['Accept' => 'application/json'])->assertOk()->assertJson(['updated' => true, 'id' => $old->id]);
+
+        $old->refresh();
+        $this->assertSame('A1 | povlačenja, ramena i biceps', $old->title);
+        $this->assertSame('new', $old->description);
+        $this->assertSame(2, Training::count());
+    }
 }

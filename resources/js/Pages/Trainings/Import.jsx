@@ -82,7 +82,7 @@ export default function TrainingsImport({ notReady, limits }) {
         setExisting(null);
         try {
             const res = await send('/trainings/import/check', {
-                items: data.trainings.map((t) => ({ type: t.type, date: t.date, title: t.title })),
+                items: data.trainings.map((t) => ({ type: t.type, date: t.date, title: t.title, replaces: t.replaces || [] })),
             }, true);
             setExisting(new Set(res.existing));
         } catch (e) {
@@ -143,6 +143,7 @@ export default function TrainingsImport({ notReady, limits }) {
             body.append('training_date', r.t.date);
             body.append('description', r.t.description || '');
             (r.t.remove_files || []).forEach((n) => body.append('remove_files[]', n));
+            (r.t.replaces || []).forEach((n) => body.append('replaces[]', n));
             if (Array.isArray(r.t.exercises)) {
                 body.append('exercises_sent', '1');
                 r.t.exercises.forEach((x, i) => {
@@ -181,7 +182,7 @@ export default function TrainingsImport({ notReady, limits }) {
                 <h1 className="mb-1 text-2xl font-bold text-gray-800">Import trainings</h1>
                 <p className="mb-4 text-sm text-gray-600">
                     Adds many trainings at once from a prepared import file. You see the list first; nothing is saved until you click Import.
-                    A training that already exists (same type, date and title) is updated instead of added twice, so running it again is safe.
+                    A training that already exists (same type, date and title, or an older title the file says it replaces) is updated instead of added twice, so running it again is safe.
                 </p>
 
                 {notReady ? (
@@ -232,7 +233,7 @@ export default function TrainingsImport({ notReady, limits }) {
                                                 )}
                                                 {counts.updated > 0 && (
                                                     <div className="text-xs text-gray-500">
-                                                        Update = same type, date and title already in the app: its description and exercises are replaced
+                                                        Update = same type, date and title (or its older title) already in the app: its title, description and exercises are replaced
                                                         {rows.some((r) => r.exists && r.t.remove_files?.length) ? ', and the old plan page/PDF attachments are removed' : ''}.
                                                     </div>
                                                 )}

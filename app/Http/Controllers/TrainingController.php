@@ -218,6 +218,8 @@ class TrainingController extends Controller
             'items.*.type' => 'required|string',
             'items.*.date' => 'required|date_format:Y-m-d',
             'items.*.title' => 'required|string|max:200',
+            'items.*.replaces' => 'nullable|array|max:10',
+            'items.*.replaces.*' => 'string|max:200',
         ]);
 
         $dates = collect($data['items'])->pluck('date')->sort()->values();
@@ -227,9 +229,11 @@ class TrainingController extends Controller
             ->map(fn ($t) => self::importKey($t->type, $t->training_date->toDateString(), $t->title))
             ->flip();
 
+        // An item exists when its own title, or an older title it replaces, is already in the app.
         return response()->json([
             'existing' => collect($data['items'])
-                ->filter(fn ($i) => isset($existing[self::importKey($i['type'], $i['date'], $i['title'])]))
+                ->filter(fn ($i) => collect(array_merge([$i['title']], $i['replaces'] ?? []))
+                    ->contains(fn ($title) => isset($existing[self::importKey($i['type'], $i['date'], $title)])))
                 ->map(fn ($i) => self::importKey($i['type'], $i['date'], $i['title']))
                 ->values(),
         ]);
@@ -279,17 +283,25 @@ class TrainingController extends Controller
             'copy_file_ids.*' => 'integer',
             'remove_files' => 'nullable|array|max:20',
             'remove_files.*' => 'string|max:255',
+            'replaces' => 'nullable|array|max:10',
+            'replaces.*' => 'string|max:200',
         ]);
         $copyIds = array_map('intval', $extra['copy_file_ids'] ?? []);
 
+        // Same title first, then an older title this item replaces (the training is renamed).
         // Compare titles in PHP: SQL LOWER() does not handle letters like Č on every database.
-        $training = Training::where('type', $data['type'])
+        $sameDay = Training::where('type', $data['type'])
             ->whereDate('training_date', $data['training_date'])
-            ->get()
-            ->first(fn (Training $t) => mb_strtolower(trim($t->title)) === mb_strtolower($data['title']));
+            ->get();
+        $training = null;
+        foreach (array_merge([$data['title']], $extra['replaces'] ?? []) as $title) {
+            $training = $sameDay->first(fn (Training $t) => mb_strtolower(trim($t->title)) === mb_strtolower(trim($title)));
+            if ($training) break;
+        }
         $updated = (bool) $training;
 
         if ($training) {
+            $training->title = $data['title'];
             $training->description = $data['description'];
             if ($data['links'] !== null) {
                 $training->links = $data['links'];

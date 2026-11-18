@@ -2,6 +2,11 @@
 
 All notable changes to ClubMotion will be documented in this file.
 
+## [1.1.5] - 2026-11-18
+
+### Changed
+- **Trainings import:** an item in the import file can list the older title(s) of a training (`replaces`). A training with the same type and date and an older title is updated and renamed instead of added a second time, so a revised plan with new titles replaces the old one.
+
 ## [1.1.4] - 2026-11-15
 
 ### Changed
